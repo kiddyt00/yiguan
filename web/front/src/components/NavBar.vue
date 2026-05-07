@@ -8,6 +8,7 @@
         </button>
         <template v-if="auth.isLoggedIn()">
           <router-link to="/history">历史</router-link>
+          <router-link to="/ads" class="text-amber-300">📢 领次数</router-link>
           <router-link to="/profile">{{ auth.user?.nickname || '我' }}</router-link>
           <button @click="auth.logout(); $router.push('/')" class="opacity-75">退出</button>
         </template>

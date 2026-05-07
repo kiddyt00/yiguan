@@ -5,6 +5,8 @@ const routes = [
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
   { path: '/profile', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { auth: true } },
   { path: '/history', name: 'History', component: () => import('../views/History.vue'), meta: { auth: true } },
+  { path: '/stream', name: 'StreamDivine', component: () => import('../views/StreamDivine.vue'), meta: { auth: true } },
+  { path: '/ads', name: 'AdCenter', component: () => import('../views/AdCenter.vue'), meta: { auth: true } },
 ]
 
 const router = createRouter({
