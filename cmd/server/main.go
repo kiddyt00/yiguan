@@ -95,11 +95,14 @@ func main() {
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
 	dh := handler.NewDivineHandler(st, llmClient)
+	ah := handler.NewAdminHandler(st)
 
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
+	mux.Handle("GET /api/admin/dashboard", authMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
+	mux.Handle("GET /api/admin/users", authMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
 
 	log.Printf("☯ 易观 v2.0 http://localhost:%s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, mux))
