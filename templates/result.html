@@ -1,0 +1,108 @@
+{{define "result"}}
+<div class="bg-white rounded-xl shadow-md p-6">
+    <h3 class="text-xl font-bold text-stone-800 mb-4 text-center">📜 卦象结果</h3>
+
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="bg-amber-50 rounded-lg p-4 text-center">
+            <span class="text-sm text-stone-500">本卦</span>
+            <div class="text-2xl font-bold text-red-900 mt-1">{{.Primary.Name}}</div>
+            <div class="text-3xl">{{.Primary.Symbol}}</div>
+            <p class="text-xs text-stone-400 mt-1">{{.Primary.GuaCi}}</p>
+        </div>
+        <div class="bg-stone-50 rounded-lg p-4 text-center">
+            <span class="text-sm text-stone-500">变卦</span>
+            <div class="text-2xl font-bold text-stone-800 mt-1">{{.Changing.Name}}</div>
+            <div class="text-3xl">{{.Changing.Symbol}}</div>
+            <p class="text-xs text-stone-400 mt-1">{{.Changing.GuaCi}}</p>
+        </div>
+    </div>
+
+    <!-- 变爻标注 -->
+    <div class="text-center mb-6">
+        <span class="text-sm text-stone-500">变爻：</span>
+        {{range .ChangingPositions}}
+        <span class="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-sm mx-0.5">
+            {{yaoLabel .}}
+        </span>
+        {{end}}
+        <span class="inline-block bg-red-700 text-amber-100 px-2 py-0.5 rounded text-sm mx-0.5" title="主变爻">
+            {{yaoLabel .MasterYao}} ★主
+        </span>
+    </div>
+
+    <!-- 卦象可视化 -->
+    <div class="flex flex-col items-center py-4 mb-6 border-t border-b border-stone-200">
+        {{range $i, $line := .LineDisplays}}
+        <div class="flex items-center gap-3 my-1.5 hexagram-line">
+            <span class="text-xs text-stone-400 w-12 text-right">{{$line.Label}}</span>
+            <div class="flex gap-1">
+                {{if $line.IsYang}}
+                <span class="block w-20 h-2 bg-red-800 rounded"></span>
+                {{else}}
+                <span class="flex gap-1">
+                    <span class="block w-9 h-2 bg-stone-700 rounded"></span>
+                    <span class="block w-9 h-2 bg-stone-700 rounded"></span>
+                </span>
+                {{end}}
+            </div>
+            {{if $line.Changing}}
+            <span class="text-red-600 text-xs font-bold w-8">○ 变</span>
+            {{else}}
+            <span class="w-8"></span>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+    <!-- AI解卦 -->
+    <div class="border-t border-stone-200 pt-6">
+        <h4 class="text-lg font-medium text-stone-700 mb-3 flex items-center gap-2">
+            <span>🤖</span> AI 解卦
+        </h4>
+        <div class="prose prose-stone max-w-none text-stone-700 leading-relaxed whitespace-pre-wrap">
+            {{.Interpretation}}
+        </div>
+    </div>
+
+    <!-- 广告位 -->
+    <div class="bg-stone-200 rounded-lg h-16 my-6 flex items-center justify-center text-stone-400 text-sm">
+        广告位 (结果页)
+    </div>
+
+    <!-- 大师咨询 -->
+    <div class="border-t border-stone-200 pt-6 text-center">
+        <p class="text-stone-500 mb-3">想获得更深入的解读吗？</p>
+        <button onclick="toggleQR()"
+                class="bg-amber-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-amber-500 transition">
+            🔮 周易大师一对一详解
+        </button>
+        <div id="qr-code" class="hidden mt-4">
+            <div class="mx-auto w-48 h-48 bg-stone-300 rounded-lg flex items-center justify-center text-stone-500 text-sm">
+                大师微信二维码
+            </div>
+            <p class="text-stone-400 text-sm mt-2">扫码添加周易大师微信</p>
+        </div>
+    </div>
+
+    <!-- 分享按钮 -->
+    <div class="text-center mt-4">
+        <button onclick="share()"
+                class="text-stone-400 hover:text-stone-600 text-sm underline">
+            📤 分享结果给朋友
+        </button>
+    </div>
+</div>
+
+<script>
+function toggleQR() {
+    document.getElementById('qr-code').classList.toggle('hidden');
+}
+function share() {
+    if (navigator.share) {
+        navigator.share({title: '易观AI算卦', url: window.location.href});
+    } else {
+        alert('请复制链接分享给朋友');
+    }
+}
+</script>
+{{end}}

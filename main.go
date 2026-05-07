@@ -1,10 +1,13 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/kiddyt00/yiguan/internal/handler"
+	"github.com/kiddyt00/yiguan/internal/qianwen"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,10 +43,34 @@ func main() {
 		cfg.Qianwen.APIKey = key
 	}
 
+	// 模板函数
+	funcMap := template.FuncMap{
+		"yaoLabel": handler.YaoLabelFunc(),
+	}
+
+	// 解析所有模板
+	tmpl := template.Must(
+		template.New("").Funcs(funcMap).ParseFiles(
+			"templates/layout.html",
+			"templates/home.html",
+			"templates/result.html",
+		),
+	)
+
+	// 千问客户端
+	qw := qianwen.NewClient(cfg.Qianwen.APIKey, cfg.Qianwen.Model, cfg.Qianwen.Endpoint)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("易观 API OK"))
-	})
+
+	// 静态文件
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	// 页面路由
+	home := &handler.HomeHandler{Tmpl: tmpl}
+	divine := &handler.DivineHandler{Tmpl: tmpl, Qianwen: qw}
+
+	mux.Handle("GET /", home)
+	mux.Handle("POST /divine", divine)
 
 	log.Printf("☯ 易观服务启动 http://localhost:%s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, mux))

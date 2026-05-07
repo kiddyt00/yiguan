@@ -1,0 +1,30 @@
+{{define "content"}}
+<div class="text-center mb-8">
+    <h2 class="text-3xl font-bold text-stone-800 mb-2">心有疑虑，问卦于天</h2>
+    <p class="text-stone-500">默想你的问题，诚心求问，AI 为你解卦</p>
+</div>
+
+<!-- 广告位 -->
+<div class="bg-stone-200 rounded-lg h-16 mb-8 flex items-center justify-center text-stone-400 text-sm">
+    广告位 (Banner)
+</div>
+
+<form hx-post="/divine" hx-target="#result" hx-swap="innerHTML"
+      class="bg-white rounded-xl shadow-md p-6">
+    <label class="block text-stone-700 font-medium mb-2">请输入你想问的问题：</label>
+    <textarea name="question" rows="3" required
+              placeholder="例如：我该不该换工作？这段感情能长久吗？..."
+              class="w-full border border-stone-300 rounded-lg p-3 focus:ring-2 focus:ring-red-700 focus:border-transparent resize-none"></textarea>
+    <div class="mt-4 flex items-center justify-between">
+        <span id="loading" class="htmx-indicator text-stone-400 text-sm">
+            ⏳ 诚心起卦中...
+        </span>
+        <button type="submit"
+                class="bg-red-800 text-amber-100 px-8 py-3 rounded-lg font-medium hover:bg-red-700 transition">
+            ☯ 开始提问
+        </button>
+    </div>
+</form>
+
+<div id="result" class="mt-8"></div>
+{{end}}
