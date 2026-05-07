@@ -4,3 +4,5 @@ qianwen:
   api_key: ""
   model: "qwen-plus"
   endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+jwt_secret: "yiguan-dev-secret-change-in-production"
+db_path: "yiguan.db"

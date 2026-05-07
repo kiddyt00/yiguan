@@ -89,3 +89,22 @@ func walkPath(steps int) int {
 	idx := (steps - 1) % len(cycle)
 	return cycle[idx]
 }
+
+// FormatYaoPositions 格式化变爻描述文本（用于 prompt）
+func FormatYaoPositions(positions []int, master int) string {
+	names := []string{"初爻", "二爻", "三爻", "四爻", "五爻", "上爻"}
+	var result string
+	for i, p := range positions {
+		if i > 0 {
+			result += "、"
+		}
+		result += names[p]
+	}
+	if master >= 0 && master < 6 {
+		result += "（主变爻：" + names[master] + "）"
+	}
+	if result == "" {
+		result = "无变爻"
+	}
+	return result
+}
