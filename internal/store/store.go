@@ -8,6 +8,9 @@ import (
 // ErrNotFound 资源不存在
 var ErrNotFound = errors.New("record not found")
 
+// ErrQuotaExhausted quota 次数已用完
+var ErrQuotaExhausted = errors.New("quota exhausted")
+
 // User 用户模型
 type User struct {
 	ID        int64     `json:"id"`
