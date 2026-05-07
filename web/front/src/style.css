@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* 浅色主题 (A站-中国风) */
+:root {
+  --bg: #faf7f0;
+  --card: #ffffff;
+  --text: #3c2415;
+  --accent: #991b1b;
+  --accent-light: #fef2f2;
+}
+/* 深色主题 (B站-科技风) */
+.dark {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --accent: #38bdf8;
+  --accent-light: #0c4a6e;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+}
