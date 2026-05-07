@@ -1,6 +1,12 @@
 package store
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// ErrNotFound 资源不存在
+var ErrNotFound = errors.New("record not found")
 
 // User 用户模型
 type User struct {
