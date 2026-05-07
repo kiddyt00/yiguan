@@ -27,6 +27,10 @@ type Config struct {
 	} `yaml:"llm"`
 	JWTSecret string `yaml:"jwt_secret"`
 	DBPath    string `yaml:"db_path"`
+	Admin     struct {
+		Phone    string `yaml:"phone"`
+		Password string `yaml:"password"`
+	} `yaml:"admin"`
 }
 
 func loadConfig(path string) *Config {
@@ -67,6 +71,12 @@ func main() {
 	if port := os.Getenv("SERVER_PORT"); port != "" {
 		cfg.Server.Port = port
 	}
+	if phone := os.Getenv("ADMIN_PHONE"); phone != "" {
+		cfg.Admin.Phone = phone
+	}
+	if pwd := os.Getenv("ADMIN_PASSWORD"); pwd != "" {
+		cfg.Admin.Password = pwd
+	}
 
 	// 数据库
 	st, err := sqlite.New(cfg.DBPath)
@@ -74,6 +84,25 @@ func main() {
 		log.Fatalf("数据库初始化失败: %v", err)
 	}
 	defer st.Close()
+
+	// 管理员初始化
+	if phone := cfg.Admin.Phone; phone != "" {
+		existing, _ := st.GetUserByPhone(phone)
+		if existing != nil {
+			if existing.Role != "admin" {
+				st.UpdateUserRole(existing.ID, "admin")
+				log.Printf("已将用户 %s 升级为管理员", phone)
+			}
+		} else {
+			_, err := st.CreateUser(phone, cfg.Admin.Password, "管理员")
+			if err != nil {
+				log.Printf("创建管理员失败: %v", err)
+			} else {
+				st.UpdateUserRole(1, "admin")
+				log.Printf("已创建管理员账号: %s", phone)
+			}
+		}
+	}
 
 	// LLM 客户端
 	defaultProvider := cfg.LLM.Providers[cfg.LLM.Default]
@@ -86,6 +115,7 @@ func main() {
 
 	// 中间件
 	authMW := middleware.AuthRequired(cfg.JWTSecret)
+	adminMW := middleware.AdminOnly(cfg.JWTSecret)
 
 	// 路由
 	mux := http.NewServeMux()
@@ -110,8 +140,8 @@ func main() {
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
-	mux.Handle("GET /api/admin/dashboard", authMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
-	mux.Handle("GET /api/admin/users", authMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
+	mux.Handle("GET /api/admin/dashboard", adminMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
+	mux.Handle("GET /api/admin/users", adminMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
 
 	// 日志中间件
 	logMux := loggingMiddleware(mux)
