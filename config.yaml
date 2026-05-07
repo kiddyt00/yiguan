@@ -3,6 +3,10 @@ server:
 jwt_secret: "yiguan-dev-secret-change-in-production"
 db_path: "yiguan.db"
 
+admin:
+  phone: "13800000000"
+  password: "admin123"
+
 llm:
   default: "qwen"
   providers:
