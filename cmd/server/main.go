@@ -60,6 +60,12 @@ func main() {
 			cfg.LLM.Providers[k] = p
 		}
 	}
+	if db := os.Getenv("DB_PATH"); db != "" {
+		cfg.DBPath = db
+	}
+	if port := os.Getenv("SERVER_PORT"); port != "" {
+		cfg.Server.Port = port
+	}
 
 	// 数据库
 	st, err := sqlite.New(cfg.DBPath)
