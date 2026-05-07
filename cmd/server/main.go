@@ -104,14 +104,17 @@ func main() {
 		}
 	}
 
-	// LLM 客户端
+	// LLM Router（模型热切换，数据库无模型时用 config 兜底）
 	defaultProvider := cfg.LLM.Providers[cfg.LLM.Default]
-	llmClient := llm.New(llm.Config{
+	llmRouter, err := llm.NewRouterWithFallback(st, llm.Config{
 		APIKey:   defaultProvider.APIKey,
 		Endpoint: defaultProvider.Endpoint,
 		Model:    defaultProvider.Model,
 	})
-	log.Printf("LLM: %s (%s)", cfg.LLM.Default, defaultProvider.Model)
+	if err != nil {
+		log.Fatalf("LLM 路由器初始化失败: %v", err)
+	}
+	log.Printf("LLM Router: %s (%s)", cfg.LLM.Default, llmRouter.Get().ModelName())
 
 	// 中间件
 	authMW := middleware.AuthRequired(cfg.JWTSecret)
@@ -133,15 +136,52 @@ func main() {
 
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
-	dh := handler.NewDivineHandler(st, llmClient)
+	dh := handler.NewDivineHandler(st, llmRouter.Get())
 	ah := handler.NewAdminHandler(st)
 
+	// 用户端
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
+
+	// SSE 流式起卦
+	streamHandler := handler.NewDivineStreamHandler(st, llmRouter)
+	mux.Handle("POST /api/divine/stream", authMW(corsWrap(streamHandler)))
+
+	// 后台管理
 	mux.Handle("GET /api/admin/dashboard", adminMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
 	mux.Handle("GET /api/admin/users", adminMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
+	mux.Handle("POST /api/admin/users/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(ah.ToggleUser))))
+	mux.Handle("POST /api/admin/users/{id}/quota", adminMW(corsWrap(http.HandlerFunc(ah.AdjustUserQuota))))
+	mux.Handle("GET /api/admin/users/{id}/history", adminMW(corsWrap(http.HandlerFunc(ah.GetUserHistory))))
+
+	// 卦象记录管理
+	hh2 := handler.NewHexagramHandler(st)
+	mux.Handle("GET /api/admin/hexagrams", adminMW(corsWrap(http.HandlerFunc(hh2.ListHistory))))
+	mux.Handle("GET /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.GetHistoryDetail))))
+	mux.Handle("DELETE /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.DeleteHistory))))
+
+	// 模型管理
+	mh := handler.NewModelHandler(st, func() { _ = llmRouter.Reload() })
+	mux.Handle("GET /api/admin/models", adminMW(corsWrap(http.HandlerFunc(mh.ListModels))))
+	mux.Handle("POST /api/admin/models", adminMW(corsWrap(http.HandlerFunc(mh.CreateModel))))
+	mux.Handle("PUT /api/admin/models/{id}", adminMW(corsWrap(http.HandlerFunc(mh.UpdateModel))))
+	mux.Handle("DELETE /api/admin/models/{id}", adminMW(corsWrap(http.HandlerFunc(mh.DeleteModel))))
+	mux.Handle("POST /api/admin/models/{id}/set-default", adminMW(corsWrap(http.HandlerFunc(mh.SetDefaultModel))))
+	mux.Handle("POST /api/admin/models/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(mh.ToggleModel))))
+
+	// 广告管理
+	adH := handler.NewAdHandler(st)
+	mux.Handle("GET /api/admin/ads", adminMW(corsWrap(http.HandlerFunc(adH.ListAds))))
+	mux.Handle("POST /api/admin/ads", adminMW(corsWrap(http.HandlerFunc(adH.CreateAd))))
+	mux.Handle("PUT /api/admin/ads/{id}", adminMW(corsWrap(http.HandlerFunc(adH.UpdateAd))))
+	mux.Handle("DELETE /api/admin/ads/{id}", adminMW(corsWrap(http.HandlerFunc(adH.DeleteAd))))
+	mux.Handle("POST /api/admin/ads/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(adH.ToggleAd))))
+	mux.Handle("GET /api/admin/ads/stats", adminMW(corsWrap(http.HandlerFunc(adH.GetAdStats))))
+	mux.Handle("GET /api/ads/active", corsWrap(http.HandlerFunc(adH.ListActiveAds)))
+	mux.Handle("POST /api/ads/{id}/watch", authMW(corsWrap(http.HandlerFunc(adH.StartWatch))))
+	mux.Handle("POST /api/ads/{id}/complete", authMW(corsWrap(http.HandlerFunc(adH.CompleteWatch))))
 
 	// 日志中间件
 	logMux := loggingMiddleware(mux)
