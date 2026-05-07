@@ -88,6 +88,13 @@ func main() {
 
 	// 路由
 	mux := http.NewServeMux()
+
+	// 健康检查（无需鉴权）
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	})
+
 	// OPTIONS preflight 已统一由 corsWrap 中间件处理（见文件底部）
 
 	authHandler := handler.NewAuthHandler(st, cfg.JWTSecret)
