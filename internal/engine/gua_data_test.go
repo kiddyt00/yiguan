@@ -37,9 +37,9 @@ func TestFindGuaByYaoPattern(t *testing.T) {
 
 func TestYaoDescConvention(t *testing.T) {
 	// 验证 YaoDesc 约定: 索引0=初爻(下), 索引5=上爻(上)
-	// 地天泰: 上坤下乾 → 初爻到三爻为乾(111), 四爻到上爻为坤(000) → "000111"
-	g := FindGuaByYaoPattern("000111")
+	// 地天泰: 下乾(111) + 上坤(000) → "111000"
+	g := FindGuaByYaoPattern("111000")
 	if g == nil || g.Name != "地天泰" {
-		t.Errorf("expected 地天泰 for '000111', got %v", g)
+		t.Errorf("expected 地天泰 for '111000', got %v", g)
 	}
 }
