@@ -1,21 +1,10 @@
-# Stage 1: Build
-FROM golang:1.24-alpine AS builder
-RUN apk add --no-cache git
-
-WORKDIR /build
-COPY go.mod go.sum ./
-ENV GOPROXY=https://goproxy.cn,direct
-RUN go mod download
-
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/yiguan ./cmd/server/
-
-# Stage 2: Run
+# Pre-built binary — no Go toolchain needed at all
 FROM alpine:3.21
-RUN apk add --no-cache ca-certificates sqlite-libs
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache ca-certificates sqlite-libs
 
 WORKDIR /app
-COPY --from=builder /build/yiguan /app/yiguan
+COPY deploy/bin/yiguan /app/yiguan
 COPY config.yaml /app/config.yaml
 COPY deploy/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
