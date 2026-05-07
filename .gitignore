@@ -24,3 +24,5 @@ Thumbs.db
 .env.local
 web/front/node_modules/
 web/front/dist/
+web/admin/node_modules/
+web/admin/dist/
