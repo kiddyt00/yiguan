@@ -6,21 +6,24 @@ import (
 	"os"
 
 	"github.com/kiddyt00/yiguan/internal/handler"
+	"github.com/kiddyt00/yiguan/internal/llm"
 	"github.com/kiddyt00/yiguan/internal/middleware"
-	"github.com/kiddyt00/yiguan/internal/qianwen"
 	"github.com/kiddyt00/yiguan/internal/store/sqlite"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Server struct {
+	Server    struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
-	Qianwen struct {
-		APIKey   string `yaml:"api_key"`
-		Model    string `yaml:"model"`
-		Endpoint string `yaml:"endpoint"`
-	} `yaml:"qianwen"`
+	LLM struct {
+		Default   string `yaml:"default"`
+		Providers map[string]struct {
+			APIKey   string `yaml:"api_key"`
+			Endpoint string `yaml:"endpoint"`
+			Model    string `yaml:"model"`
+		} `yaml:"providers"`
+	} `yaml:"llm"`
 	JWTSecret string `yaml:"jwt_secret"`
 	DBPath    string `yaml:"db_path"`
 }
@@ -45,11 +48,17 @@ func loadConfig(path string) *Config {
 
 func main() {
 	cfg := loadConfig("config.yaml")
-	if key := os.Getenv("DASHSCOPE_API_KEY"); key != "" {
-		cfg.Qianwen.APIKey = key
-	}
+
+	// 环境变量覆盖
 	if s := os.Getenv("JWT_SECRET"); s != "" {
 		cfg.JWTSecret = s
+	}
+	if key := os.Getenv("LLM_API_KEY"); key != "" {
+		for k := range cfg.LLM.Providers {
+			p := cfg.LLM.Providers[k]
+			p.APIKey = key
+			cfg.LLM.Providers[k] = p
+		}
 	}
 
 	// 数据库
@@ -58,53 +67,45 @@ func main() {
 		log.Fatalf("数据库初始化失败: %v", err)
 	}
 	defer st.Close()
-	log.Printf("数据库已连接: %s", cfg.DBPath)
 
-	// 千问客户端
-	qw := qianwen.NewClient(cfg.Qianwen.APIKey, cfg.Qianwen.Model, cfg.Qianwen.Endpoint)
+	// LLM 客户端
+	defaultProvider := cfg.LLM.Providers[cfg.LLM.Default]
+	llmClient := llm.New(llm.Config{
+		APIKey:   defaultProvider.APIKey,
+		Endpoint: defaultProvider.Endpoint,
+		Model:    defaultProvider.Model,
+	})
+	log.Printf("LLM: %s (%s)", cfg.LLM.Default, defaultProvider.Model)
 
 	// 中间件
 	authMW := middleware.AuthRequired(cfg.JWTSecret)
 
 	// 路由
 	mux := http.NewServeMux()
-
-	// CORS 预检
 	mux.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.WriteHeader(204)
 	})
 
-	// 认证路由（无需登录）
 	authHandler := handler.NewAuthHandler(st, cfg.JWTSecret)
-	mux.Handle("/api/auth/", corsMiddleware(authHandler.ServeMux()))
+	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
 
-	// 需要登录的路由
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
-	dh := handler.NewDivineHandler(st, qw)
+	dh := handler.NewDivineHandler(st, llmClient)
 
-	mux.Handle("GET /api/user", authMW(corsHandler(http.HandlerFunc(uh.GetUser))))
-	mux.Handle("PUT /api/user", authMW(corsHandler(http.HandlerFunc(uh.UpdateUser))))
-	mux.Handle("GET /api/history", authMW(corsHandler(http.HandlerFunc(hh.GetHistory))))
-	mux.Handle("POST /api/divine", authMW(corsHandler(dh)))
+	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
+	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
+	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
+	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
 
-	log.Printf("☯ 易观 v2.0 API 启动 http://localhost:%s", cfg.Server.Port)
+	log.Printf("☯ 易观 v2.0 http://localhost:%s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, mux))
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		next.ServeHTTP(w, r)
-	})
-}
-
-func corsHandler(next http.Handler) http.Handler {
+func corsWrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)

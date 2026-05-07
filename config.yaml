@@ -1,8 +1,16 @@
 server:
   port: 8080
-qianwen:
-  ***REMOVED***
-  model: "qwen-plus"
-  endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 jwt_***REMOVED***
 db_path: "yiguan.db"
+
+llm:
+  default: "qwen"
+  providers:
+    qwen:
+      ***REMOVED***
+      endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+      model: "qwen-plus"
+    deepseek:
+      ***REMOVED***
+      endpoint: "https://api.deepseek.com/v1/chat/completions"
+      model: "deepseek-chat"

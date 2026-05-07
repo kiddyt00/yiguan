@@ -5,20 +5,20 @@ import (
 	"net/http"
 
 	"github.com/kiddyt00/yiguan/internal/engine"
+	"github.com/kiddyt00/yiguan/internal/llm"
 	"github.com/kiddyt00/yiguan/internal/middleware"
-	"github.com/kiddyt00/yiguan/internal/qianwen"
 	"github.com/kiddyt00/yiguan/internal/store"
 )
 
 // DivineHandler 算卦处理器
 type DivineHandler struct {
-	store   store.Store
-	qianwen *qianwen.Client
+	store store.Store
+	llm   *llm.Client
 }
 
 // NewDivineHandler 创建算卦处理器
-func NewDivineHandler(st store.Store, qw *qianwen.Client) *DivineHandler {
-	return &DivineHandler{store: st, qianwen: qw}
+func NewDivineHandler(st store.Store, llmClient *llm.Client) *DivineHandler {
+	return &DivineHandler{store: st, llm: llmClient}
 }
 
 type divineReq struct {
@@ -81,9 +81,9 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	yaoPositions := buildYaoPositions(positions, master)
 	yaoDesc := engine.FormatYaoPositions(positions, master)
 
-	// 调用千问解卦
-	prompt := qianwen.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
-	interpretation, err := h.qianwen.Divine(prompt)
+	// 调用 LLM 解卦
+	prompt := llm.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
+	interpretation, err := h.llm.Divine(prompt)
 	if err != nil {
 		interpretation = "解卦服务暂不可用：" + err.Error()
 	}
