@@ -29,6 +29,11 @@ func New(cfg Config) *Client {
 	}
 }
 
+// ModelName 返回当前模型名
+func (c *Client) ModelName() string {
+	return c.cfg.Model
+}
+
 type chatReq struct {
 	Model    string    `json:"model"`
 	Messages []message `json:"messages"`
