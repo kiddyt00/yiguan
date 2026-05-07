@@ -88,12 +88,7 @@ func main() {
 
 	// 路由
 	mux := http.NewServeMux()
-	mux.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.WriteHeader(204)
-	})
+	// OPTIONS preflight 已统一由 corsWrap 中间件处理（见文件底部）
 
 	authHandler := handler.NewAuthHandler(st, cfg.JWTSecret)
 	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
@@ -117,6 +112,12 @@ func main() {
 func corsWrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(204)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
