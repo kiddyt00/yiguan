@@ -1,0 +1,40 @@
+/* 结果区域淡入动画 */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+#result {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* HTMX 加载指示器 */
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 0.2s ease-in;
+}
+.htmx-request .htmx-indicator,
+.htmx-indicator.htmx-request {
+    opacity: 1;
+}
+
+/* 二维码区域过渡 */
+#qr-code {
+    transition: all 0.3s ease;
+}
+#qr-code:not(.hidden) {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* 卦象爻线悬浮微动 */
+.hexagram-line {
+    transition: transform 0.15s ease;
+}
+.hexagram-line:hover {
+    transform: scaleX(1.02);
+}
+
+/* 按钮点击反馈 */
+button[type="submit"]:active {
+    transform: scale(0.97);
+}
