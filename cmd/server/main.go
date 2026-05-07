@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/kiddyt00/yiguan/internal/handler"
 	"github.com/kiddyt00/yiguan/internal/llm"
@@ -112,8 +113,19 @@ func main() {
 	mux.Handle("GET /api/admin/dashboard", authMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
 	mux.Handle("GET /api/admin/users", authMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
 
+	// 日志中间件
+	logMux := loggingMiddleware(mux)
+
 	log.Printf("☯ 易观 v2.0 http://localhost:%s", cfg.Server.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, mux))
+	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, logMux))
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("%s %s %s %v", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start))
+	})
 }
 
 func corsWrap(next http.Handler) http.Handler {
