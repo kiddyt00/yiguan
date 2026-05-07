@@ -22,3 +22,5 @@ Thumbs.db
 # Env
 .env
 .env.local
+web/front/node_modules/
+web/front/dist/
