@@ -1,144 +1,122 @@
 package handler
 
 import (
-	"fmt"
-	"html/template"
+	"encoding/json"
 	"net/http"
-	"sort"
 
 	"github.com/kiddyt00/yiguan/internal/engine"
+	"github.com/kiddyt00/yiguan/internal/middleware"
 	"github.com/kiddyt00/yiguan/internal/qianwen"
+	"github.com/kiddyt00/yiguan/internal/store"
 )
-
-// LineDisplay 前端六爻展示数据
-type LineDisplay struct {
-	Label    string // 初爻～上爻
-	IsYang   bool
-	Changing bool // 是否为变爻
-	IsMaster bool // 是否为主变爻
-}
-
-// ResultData 结果页模板数据
-type ResultData struct {
-	Primary           *engine.GuaInfo
-	Changing          *engine.GuaInfo
-	ChangingPositions []int
-	MasterYao         int
-	Interpretation    string
-	LineDisplays      []LineDisplay
-}
 
 // DivineHandler 算卦处理器
 type DivineHandler struct {
-	Tmpl    *template.Template
-	Qianwen *qianwen.Client
+	store   store.Store
+	qianwen *qianwen.Client
 }
 
+// NewDivineHandler 创建算卦处理器
+func NewDivineHandler(st store.Store, qw *qianwen.Client) *DivineHandler {
+	return &DivineHandler{store: st, qianwen: qw}
+}
+
+type divineReq struct {
+	Question string `json:"question"`
+}
+
+type divineResp struct {
+	Primary        *engine.GuaInfo `json:"primary"`
+	Changing       *engine.GuaInfo `json:"changing"`
+	YaoPositions   []yaoPos        `json:"yao_positions"`
+	Interpretation string          `json:"interpretation"`
+	RemainingQuota int             `json:"remaining_quota"`
+}
+
+type yaoPos struct {
+	Position int    `json:"position"` // 0-5
+	Label    string `json:"label"`    // 初爻~上爻
+	IsMaster bool   `json:"is_master"`
+}
+
+// ServeHTTP 处理算卦请求
 func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "表单解析失败", http.StatusBadRequest)
+	userID := r.Context().Value(middleware.UserIDKey).(int64)
+
+	// 检查 quota
+	remaining, err := h.store.GetRemainingQuota(userID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "查询配额失败"})
 		return
 	}
-	question := r.FormValue("question")
-	if question == "" {
-		http.Error(w, "请输入问题", http.StatusBadRequest)
+	if remaining <= 0 {
+		writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
+			"error":           "次数不足",
+			"remaining_quota": 0,
+		})
 		return
 	}
 
-	// 1. 起卦
+	var req divineReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
+		return
+	}
+	if req.Question == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请输入问题"})
+		return
+	}
+
+	// 扣减 quota
+	if err := h.store.ConsumeQuota(userID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "扣减配额失败"})
+		return
+	}
+
+	// 起卦
 	lines := engine.CastSixLines()
-
-	// 2. 构建本卦变卦
 	primary, changing, positions, master := engine.BuildHexagrams(lines)
 
-	// 3. 生成变爻描述
-	yaoDesc := formatYaoPositions(positions, master)
+	// 格式化变爻
+	yaoPositions := buildYaoPositions(positions, master)
+	yaoDesc := engine.FormatYaoPositions(positions, master)
 
-	// 4. 调用千问解卦
-	prompt := qianwen.BuildPrompt(question, primary.Name, changing.Name, yaoDesc)
-	interpretation, err := h.Qianwen.Divine(prompt)
+	// 调用千问解卦
+	prompt := qianwen.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
+	interpretation, err := h.qianwen.Divine(prompt)
 	if err != nil {
-		interpretation = fmt.Sprintf("解卦服务暂不可用：%v", err)
+		interpretation = "解卦服务暂不可用：" + err.Error()
 	}
 
-	// 5. 构建六爻展示数据
-	displays := buildLineDisplays(lines, positions, master)
+	// 保存历史
+	h.store.SaveHistory(&store.History{
+		UserID:         userID,
+		Question:       req.Question,
+		PrimaryGua:     primary.Name,
+		ChangingGua:    changing.Name,
+		YaoPositions:   yaoDesc,
+		Interpretation: interpretation,
+	})
 
-	data := ResultData{
-		Primary:           primary,
-		Changing:          changing,
-		ChangingPositions: positions,
-		MasterYao:         master,
-		Interpretation:    interpretation,
-		LineDisplays:      displays,
-	}
-
-	if err := h.Tmpl.ExecuteTemplate(w, "result", data); err != nil {
-		http.Error(w, fmt.Sprintf("模板渲染失败: %v", err), http.StatusInternalServerError)
-	}
+	remaining, _ = h.store.GetRemainingQuota(userID)
+	writeJSON(w, http.StatusOK, divineResp{
+		Primary:        primary,
+		Changing:       changing,
+		YaoPositions:   yaoPositions,
+		Interpretation: interpretation,
+		RemainingQuota: remaining,
+	})
 }
 
-// formatYaoPositions 格式化变爻描述文本
-func formatYaoPositions(positions []int, master int) string {
+func buildYaoPositions(positions []int, master int) []yaoPos {
 	names := []string{"初爻", "二爻", "三爻", "四爻", "五爻", "上爻"}
-	var result string
-	for i, p := range positions {
-		if i > 0 {
-			result += "、"
-		}
-		result += names[p]
-	}
-	if master >= 0 {
-		result += fmt.Sprintf("（主变爻：%s）", names[master])
-	}
-	if result == "" {
-		result = "无变爻"
+	var result []yaoPos
+	for _, p := range positions {
+		result = append(result, yaoPos{
+			Position: p,
+			Label:    names[p],
+			IsMaster: p == master,
+		})
 	}
 	return result
-}
-
-// buildLineDisplays 构建前端六爻展示数据
-func buildLineDisplays(lines [6]int, changing []int, master int) []LineDisplay {
-	names := []string{"上爻", "五爻", "四爻", "三爻", "二爻", "初爻"}
-	displays := make([]LineDisplay, 6)
-
-	// 从上到下展示 (index 5→0)
-	for i := 0; i < 6; i++ {
-		pos := 5 - i // 实际数组索引 (5=上爻, 0=初爻)
-		displays[i] = LineDisplay{
-			Label:    names[pos],
-			IsYang:   (lines[pos] == 7 || lines[pos] == 9),
-			Changing: containsInt(changing, pos),
-			IsMaster: pos == master,
-		}
-	}
-	return displays
-}
-
-func containsInt(slice []int, val int) bool {
-	for _, v := range slice {
-		if v == val {
-			return true
-		}
-	}
-	return false
-}
-
-// YaoLabel 模板函数：0-based索引转中文爻名
-func YaoLabel(pos int) string {
-	names := []string{"初爻", "二爻", "三爻", "四爻", "五爻", "上爻"}
-	if pos < 0 || pos >= 6 {
-		return "？爻"
-	}
-	return names[pos]
-}
-
-// YaoLabelFunc 暴露给模板的 yaoLabel 函数
-func YaoLabelFunc() func(int) string {
-	return YaoLabel
-}
-
-// sortPositions 排序变爻位置
-func sortPositions(positions []int) {
-	sort.Ints(positions)
 }
