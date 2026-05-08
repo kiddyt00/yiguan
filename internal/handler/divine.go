@@ -31,6 +31,7 @@ type divineResp struct {
 	YaoPositions   []yaoPos        `json:"yao_positions"`
 	Interpretation string          `json:"interpretation"`
 	RemainingQuota int             `json:"remaining_quota"`
+	Nickname       string          `json:"nickname"`
 }
 
 type yaoPos struct {
@@ -42,6 +43,13 @@ type yaoPos struct {
 // ServeHTTP 处理算卦请求
 func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIDKey).(int64)
+
+	// 获取用户昵称
+	user, err := h.store.GetUserByID(userID)
+	nickname := ""
+	if err == nil && user != nil {
+		nickname = user.Nickname
+	}
 
 	// 检查 quota
 	remaining, err := h.store.GetRemainingQuota(userID)
@@ -81,7 +89,7 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	yaoPositions := buildYaoPositions(positions, master)
 	yaoDesc := engine.FormatYaoPositions(positions, master)
 
-	// 调用 LLM 解卦
+	// 构建 markdown 格式的 prompt，让 AI 返回 markdown
 	prompt := llm.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
 	interpretation, err := h.llm.Divine(prompt)
 	if err != nil {
@@ -105,6 +113,7 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		YaoPositions:   yaoPositions,
 		Interpretation: interpretation,
 		RemainingQuota: remaining,
+		Nickname:       nickname,
 	})
 }
 

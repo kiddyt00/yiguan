@@ -72,6 +72,17 @@ func migrate(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_quotas_user_id ON quotas(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_quotas_used_at ON quotas(used_at)`,
 		`CREATE INDEX IF NOT EXISTS idx_history_user_id ON history(user_id)`,
+		`CREATE TABLE IF NOT EXISTS llm_providers (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL DEFAULT '',
+			provider TEXT NOT NULL UNIQUE,
+			api_key TEXT NOT NULL DEFAULT '',
+			endpoint TEXT NOT NULL DEFAULT '',
+			model TEXT NOT NULL DEFAULT '',
+			is_default INTEGER NOT NULL DEFAULT 0,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 		`PRAGMA foreign_keys = ON`,
 	}
 

@@ -4,5 +4,6 @@ export default createRouter({
   routes: [
     { path: '/', component: () => import('../views/Dashboard.vue') },
     { path: '/users', component: () => import('../views/Users.vue') },
+    { path: '/llm', component: () => import('../views/LlmProviders.vue') },
   ]
 })

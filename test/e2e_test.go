@@ -41,7 +41,7 @@ func newE2EServer(t *testing.T) (*httptest.Server, *sqlite.Store, string) {
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
 	dh := handler.NewDivineHandler(st, llmClient)
-	admin := handler.NewAdminHandler(st)
+	admin := handler.NewAdminHandler(st, nil) // e2e test 不需要 LLM 管理器
 
 	mux.Handle("GET /api/user", authMW(wcors(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(wcors(http.HandlerFunc(uh.UpdateUser))))

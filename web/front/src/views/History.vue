@@ -10,12 +10,13 @@
           <span class="font-medium">{{ h.primary_gua }}</span>
           <span class="mx-2 opacity-30">→</span>
           <span class="opacity-70">{{ h.changing_gua }}</span>
+          <span v-if="h.nickname" class="ml-2 text-xs opacity-40">— {{ h.nickname }}</span>
         </div>
         <span class="text-xs opacity-40">{{ formatDate(h.created_at) }}</span>
       </div>
       <p class="text-sm opacity-60 mt-1">问：{{ h.question }}</p>
       <div v-if="selected?.id === h.id" class="mt-3 pt-3 border-t" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
-        <p class="text-sm opacity-70 whitespace-pre-wrap">{{ h.interpretation }}</p>
+        <div class="markdown-body text-sm opacity-70" v-html="renderMD(h.interpretation)"></div>
       </div>
     </div>
     <div v-if="total > items.length" class="text-center mt-4">
@@ -29,6 +30,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { marked } from 'marked'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
@@ -38,6 +40,11 @@ const offset = ref(0)
 const loading = ref(false)
 const selected = ref(null)
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
+
+marked.setOptions({ breaks: true, gfm: true })
+function renderMD(text) {
+  return marked.parse(text || '')
+}
 
 async function loadMore() {
   loading.value = true
@@ -59,3 +66,30 @@ function formatDate(d) {
 
 onMounted(loadMore)
 </script>
+
+<style scoped>
+.markdown-body :deep(h2) {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+.markdown-body :deep(h3) {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+.markdown-body :deep(p) {
+  margin-bottom: 0.5rem;
+}
+.markdown-body :deep(strong) {
+  font-weight: 700;
+}
+.markdown-body :deep(blockquote) {
+  border-left: 3px solid rgba(0,0,0,0.15);
+  padding-left: 0.75rem;
+  opacity: 0.7;
+  margin: 0.4rem 0;
+}
+</style>
