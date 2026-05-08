@@ -7,6 +7,7 @@
     </div>
     <el-table :data="items" stripe>
       <el-table-column prop="id" label="ID" width="60" />
+      <el-table-column prop="nickname" label="用户" width="100" />
       <el-table-column prop="user_id" label="用户ID" width="80" />
       <el-table-column prop="question" label="问题" min-width="200" show-overflow-tooltip />
       <el-table-column prop="primary_gua" label="本卦" width="80" />

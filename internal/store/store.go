@@ -39,6 +39,7 @@ type Quota struct {
 type History struct {
 	ID             int64     `json:"id"`
 	UserID         int64     `json:"user_id"`
+	Nickname       string    `json:"nickname,omitempty"`
 	Question       string    `json:"question"`
 	PrimaryGua     string    `json:"primary_gua"`
 	ChangingGua    string    `json:"changing_gua"`
