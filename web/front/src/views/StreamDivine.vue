@@ -87,12 +87,17 @@ async function startStream() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${props.token}`,
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ question: props.question }),
+      body: JSON.stringify({ question: question }),
     })
 
     if (!resp.ok) {
+      if (resp.status === 401) {
+        auth.logout()
+        router.push('/login')
+        return
+      }
       const err = await resp.json()
       error.value = err.error || '起卦失败'
       phase.value = 'error'
@@ -112,34 +117,33 @@ async function startStream() {
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
 
+      let currentEvent = ''
       for (const line of lines) {
         if (line.startsWith('event:')) {
-          const eventType = line.replace('event:', '').trim()
+          currentEvent = line.replace('event:', '').trim()
         } else if (line.startsWith('data:')) {
           const dataStr = line.replace('data:', '').trim()
           if (!dataStr) continue
 
           try {
-            const parsed = JSON.parse(dataStr)
-            const evt = parsed.event
-            const data = parsed.data
+            const data = JSON.parse(dataStr)
 
-            if (evt === 'phase') {
+            if (currentEvent === 'phase') {
               if (data.phase === 'coins') {
                 phase.value = 'coins'
-                coinsLabel.value = `${data.label} — ${data.result}`
+                coinsLabel.value = `${data.data.label} — ${data.data.result}`
               } else if (data.phase === 'hexagram') {
                 phase.value = 'hexagram'
-                hexagram.value = { primary_gua: data.primary_gua, changing_gua: data.changing_gua }
+                hexagram.value = { primary_gua: data.data.primary_gua, changing_gua: data.data.changing_gua }
               }
-            } else if (evt === 'ai') {
+            } else if (currentEvent === 'ai') {
               if (phase.value === 'hexagram') phase.value = 'ai'
               aiText.value += data.chunk
-            } else if (evt === 'done') {
+            } else if (currentEvent === 'done') {
               phase.value = 'done'
               recordData.value = data
               emit('complete', data)
-            } else if (evt === 'error') {
+            } else if (currentEvent === 'error') {
               error.value = data.error
               phase.value = 'done'
               emit('error', data.error)
