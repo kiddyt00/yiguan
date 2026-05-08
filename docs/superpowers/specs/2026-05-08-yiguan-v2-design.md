@@ -342,15 +342,15 @@ ADMIN_PASSWORD=admin123
 
 ## 6. 验收标准
 
-1. [ ] 管理员初始化：启动后 admin 用户存在且 role='admin'
-2. [ ] 非管理员访问 `/api/admin/*` 返回 403
-3. [ ] `/api/admin/dashboard` 返回完整统计数据
-4. [ ] 用户管理：列表/编辑/禁用/配额调整/查看记录
-5. [ ] 卦象管理：列表/详情/删除
-6. [ ] 模型管理：CRUD + 设为默认 + 热切换
-7. [ ] 广告管理：CRUD + 启用/禁用 + 播放统计
-8. [ ] 用户端：`/api/ads/active` + watch + complete 完整流程
-9. [ ] SSE 流式起卦：coins → hexagram → ai → done 全链路
-10. [ ] 前台"看广告领次数"功能可正常使用
-11. [ ] SSE 连接不被 nginx 缓冲
-12. [ ] 后台登录页拦截非管理员
+1. [x] 管理员初始化：启动后 admin 用户存在且 role='admin'
+2. [x] 非管理员访问 `/api/admin/*` 返回 403
+3. [x] `/api/admin/dashboard` 返回完整统计数据
+4. [x] 用户管理：列表/编辑/禁用/配额调整/查看记录
+5. [x] 卦象管理：列表/详情/删除
+6. [x] 模型管理：CRUD + 设为默认 + 热切换
+7. [x] 广告管理：CRUD + 启用/禁用 + 播放统计
+8. [x] 用户端：`/api/ads/active` + watch + complete 完整流程
+9. [x] SSE 流式起卦：coins → hexagram → ai → done 全链路
+10. [x] 前台"看广告领次数"功能可正常使用 (API 层面验证通过)
+11. [x] SSE 连接不被 nginx 缓冲 (事件流实时推送)
+12. [x] 后台登录页拦截非管理员 (401 无token / 403 非admin)

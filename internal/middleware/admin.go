@@ -25,7 +25,7 @@ func AdminOnly(secret string) func(http.Handler) http.Handler {
 
 			role, _ := claims["role"].(string)
 			if role != "admin" {
-				writeAuthError(w, "需要管理员权限")
+				writeForbidden(w, "需要管理员权限")
 				return
 			}
 

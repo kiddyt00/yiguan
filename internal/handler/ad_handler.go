@@ -48,6 +48,7 @@ func (h *AdHandler) CreateAd(w http.ResponseWriter, r *http.Request) {
 	if ad.RewardQuota <= 0 {
 		ad.RewardQuota = 1
 	}
+	ad.IsEnabled = 1 // 默认启用
 	if err := h.store.CreateAd(&ad); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建失败"})
 		return
