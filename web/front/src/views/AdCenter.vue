@@ -46,8 +46,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
-const props = defineProps(['token', 'isDark'])
+const auth = useAuthStore()
+const router = useRouter()
+const props = defineProps(['isDark'])
 const emit = defineEmits(['rewarded'])
 
 const ads = ref([])
@@ -70,10 +74,11 @@ onMounted(async () => {
 
 async function watchAd(ad) {
   try {
-    await fetch(`/api/ads/${ad.id}/watch`, {
+    const res = await fetch(`/api/ads/${ad.id}/watch`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${props.token}` },
+      headers: { 'Authorization': `Bearer ${auth.token}` },
     })
+    if (res.status === 401) { auth.logout(); router.push('/login'); return }
     watchingAd.value = ad
     countdown.value = ad.watch_duration
     timer = setInterval(() => {
@@ -91,7 +96,7 @@ async function claimReward() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${props.token}`,
+        'Authorization': `Bearer ${auth.token}`,
       },
       body: JSON.stringify({ duration: watchingAd.value.watch_duration }),
     })

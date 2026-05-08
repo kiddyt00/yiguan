@@ -7,6 +7,12 @@ async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...getAuthHeader() }
   const res = await fetch(`/api${path}`, { ...options, headers })
   if (!res.ok) {
+    if (res.status === 401) {
+      const { logout } = await import('../stores/auth')
+      logout()
+      window.location.replace('/admin/login')
+      throw new Error('登录已过期')
+    }
     const err = await res.json().catch(() => ({ error: '请求失败' }))
     throw new Error(err.error || `HTTP ${res.status}`)
   }

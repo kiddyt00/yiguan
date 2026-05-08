@@ -6,6 +6,7 @@ const routes = [
   { path: '/profile', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { auth: true } },
   { path: '/history', name: 'History', component: () => import('../views/History.vue'), meta: { auth: true } },
   { path: '/stream', name: 'StreamDivine', component: () => import('../views/StreamDivine.vue'), meta: { auth: true } },
+  { path: '/result', name: 'Result', component: () => import('../views/Result.vue'), meta: { auth: true } },
   { path: '/ads', name: 'AdCenter', component: () => import('../views/AdCenter.vue'), meta: { auth: true } },
 ]
 
