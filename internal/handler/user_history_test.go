@@ -62,10 +62,15 @@ func TestGetUserProfile(t *testing.T) {
 		t.Fatalf("status = %d", w.Code)
 	}
 
-	var user map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &user)
-	if user["nickname"] != "张三" {
-		t.Errorf("nickname = %v", user["nickname"])
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	userObj := resp["user"].(map[string]interface{})
+	if userObj["nickname"] != "张三" {
+		t.Errorf("nickname = %v", userObj["nickname"])
+
+	}
+	if _, ok := resp["remaining_quota"]; !ok {
+		t.Error("response missing remaining_quota")
 	}
 }
 

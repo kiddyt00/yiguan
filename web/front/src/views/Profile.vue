@@ -36,8 +36,9 @@ const isDark = computed(() => document.documentElement.classList.contains('dark'
 
 onMounted(async () => {
   const res = await fetch('/api/user', { headers: { Authorization: `Bearer ${auth.token}` } })
-  const data = await res.json()
+  const json = await res.json()
   if (res.ok) {
+    const data = json.user || json
     form.value.nickname = data.nickname
     form.value.address = data.address || ''
   }
@@ -51,8 +52,8 @@ async function save() {
     body: JSON.stringify(form.value),
   })
   if (res.ok) {
-    const data = await res.json()
-    auth.setAuth(auth.token, data)
+    const json = await res.json()
+    auth.setAuth(auth.token, json.user || json)
     msg.value = '保存成功'
   }
   saving.value = false

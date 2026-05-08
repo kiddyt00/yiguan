@@ -32,7 +32,11 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Password = ""
-	writeJSON(w, http.StatusOK, user)
+	remaining, _ := h.store.GetRemainingQuota(userID)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"user":            user,
+		"remaining_quota": remaining,
+	})
 }
 
 // UpdateUser 更新用户信息
@@ -52,5 +56,9 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, _ := h.store.GetUserByID(userID)
 	user.Password = ""
-	writeJSON(w, http.StatusOK, user)
+	remaining, _ := h.store.GetRemainingQuota(userID)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"user":            user,
+		"remaining_quota": remaining,
+	})
 }

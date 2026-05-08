@@ -12,9 +12,9 @@
 
       <input v-model="phone" placeholder="手机号"
         class="w-full border rounded-lg p-3 mb-3 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
-      <input v-model="password" type="password" placeholder="密码（至少6位）"
+      <input v-model="password" type="password" :placeholder="isRegister ? '密码（至少6位）' : '密码'"
         class="w-full border rounded-lg p-3 mb-3 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
-      <input v-if="isRegister" v-model="nickname" placeholder="昵称（选填）"
+      <input v-if="isRegister" v-model="nickname" placeholder="昵称"
         class="w-full border rounded-lg p-3 mb-4 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
 
       <div v-if="error" class="text-red-500 text-sm mb-3 text-center">{{ error }}</div>

@@ -39,7 +39,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeSSE := func(event string, data interface{}) {
-		jsonData, _ := json.Marshal(map[string]interface{}{"event": event, "data": data})
+		jsonData, _ := json.Marshal(data)
 		fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, string(jsonData))
 		flusher.Flush()
 	}

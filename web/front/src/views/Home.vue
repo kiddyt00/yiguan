@@ -17,8 +17,13 @@
         :class="isDark ? 'border-slate-600' : 'border-stone-300'"></textarea>
 
       <!-- 未登录提示 -->
-      <div v-if="!auth.isLoggedIn()" class="mt-4 text-center text-sm opacity-60">
-        请先 <router-link to="/login" class="underline text-red-600">登录</router-link> 后使用（新用户赠送3次免费）
+      <div v-if="!auth.isLoggedIn()" class="mt-6 text-center">
+        <p class="text-sm opacity-50 mb-3">登录后即可免费使用（新用户赠送3次）</p>
+        <router-link to="/login"
+          class="inline-block px-8 py-3 rounded-lg font-medium transition"
+          :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
+          登录 / 注册
+        </router-link>
       </div>
 
       <div v-else class="mt-4 flex items-center justify-between">
