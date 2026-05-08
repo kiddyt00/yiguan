@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kiddyt00/yiguan/internal/handler"
@@ -186,8 +189,34 @@ func main() {
 	// 日志中间件
 	logMux := loggingMiddleware(mux)
 
-	log.Printf("☯ 易观 v2.0 http://localhost:%s", cfg.Server.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, logMux))
+	// 带超时配置的 HTTP Server
+	srv := &http.Server{
+		Addr:         ":" + cfg.Server.Port,
+		Handler:      logMux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 120 * time.Second, // SSE 流式响应需要较长写超时
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// 优雅关闭
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-ctx.Done()
+		log.Printf("收到退出信号，正在关闭服务...")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("关闭服务出错: %v", err)
+		}
+	}()
+
+	log.Printf("☯ 易观 v2.1 http://localhost:%s", cfg.Server.Port)
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("服务启动失败: %v", err)
+	}
+	log.Println("服务已关闭")
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
