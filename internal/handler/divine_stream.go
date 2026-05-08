@@ -102,11 +102,11 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	prompt := llm.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
 
 	var interpretation strings.Builder
-	llmErr := llmClient.DivineStream(prompt, func(chunk string) error {
+	llmErr := llmClient.DivineStreamWithRetry(prompt, func(chunk string) error {
 		interpretation.WriteString(chunk)
 		writeSSE("ai", map[string]interface{}{"chunk": chunk}, flusher)
 		return nil
-	})
+	}, 2)
 
 	if llmErr != nil {
 		writeSSE("error", map[string]interface{}{"error": "解卦服务暂不可用: " + llmErr.Error()}, flusher)

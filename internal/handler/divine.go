@@ -83,7 +83,7 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 调用 LLM 解卦
 	prompt := llm.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
-	interpretation, err := h.llm.Divine(prompt)
+	interpretation, err := h.llm.DivineWithRetry(prompt, 2)
 	if err != nil {
 		interpretation = "解卦服务暂不可用：" + err.Error()
 	}
