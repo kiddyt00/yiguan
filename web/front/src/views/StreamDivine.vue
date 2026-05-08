@@ -25,9 +25,7 @@
     <!-- AI 解卦流式渲染 -->
     <div v-if="showAI" class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
       <h4 class="text-lg font-medium mb-3">🤖 AI 解卦</h4>
-      <div class="leading-relaxed whitespace-pre-wrap opacity-80">
-        {{ aiText }}<span v-if="phase === 'ai'" class="animate-pulse">▊</span>
-      </div>
+      <div class="markdown-body leading-relaxed" v-html="renderedAI"></div>
     </div>
 
     <!-- 错误 -->
@@ -48,6 +46,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { marked } from 'marked'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -73,6 +72,13 @@ const showAI = computed(() => ['ai', 'done'].includes(phase.value))
 const statusText = computed(() => {
   const map = { coins: '起卦中...', hexagram: '卦象已现', ai: 'AI 解卦中...', done: '解卦完成', error: '出错了' }
   return map[phase.value] || ''
+})
+
+marked.setOptions({ breaks: true, gfm: true })
+const renderedAI = computed(() => {
+  let html = marked.parse(aiText.value || '')
+  if (phase.value === 'ai') html += '<span class="animate-pulse">▊</span>'
+  return html
 })
 
 async function startStream() {
@@ -153,3 +159,36 @@ async function startStream() {
 
 onMounted(startStream)
 </script>
+
+<style scoped>
+.markdown-body :deep(h2) {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.markdown-body :deep(h3) {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+.markdown-body :deep(p) {
+  margin-bottom: 0.6rem;
+}
+.markdown-body :deep(strong) {
+  font-weight: 700;
+}
+.markdown-body :deep(blockquote) {
+  border-left: 3px solid rgba(0,0,0,0.15);
+  padding-left: 0.75rem;
+  opacity: 0.7;
+  margin: 0.5rem 0;
+}
+.markdown-body :deep(ul), .markdown-body :deep(ol) {
+  padding-left: 1.25rem;
+  margin-bottom: 0.6rem;
+}
+</style>
