@@ -26,4 +26,9 @@ web/front/node_modules/
 web/front/dist/
 web/admin/node_modules/
 web/admin/dist/
-server
+# Go binary (root only)
+/yiguan
+/server
+# Database
+*.db
+.worktrees/

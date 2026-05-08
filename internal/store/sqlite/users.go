@@ -35,9 +35,9 @@ func (s *Store) CreateUser(phone, password, nickname string) (*store.User, error
 func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, nickname, avatar, address, password, created_at FROM users WHERE phone = ?",
+		"SELECT id, phone, nickname, avatar, address, password, role, is_active, created_at FROM users WHERE phone = ?",
 		phone,
-	).Scan(&u.ID, &u.Phone, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -51,9 +51,9 @@ func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 func (s *Store) GetUserByID(id int64) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, nickname, avatar, address, password, created_at FROM users WHERE id = ?",
+		"SELECT id, phone, nickname, avatar, address, password, role, is_active, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&u.ID, &u.Phone, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
