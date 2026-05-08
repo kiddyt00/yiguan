@@ -26,15 +26,22 @@
         </router-link>
       </div>
 
-      <div v-else class="mt-4 flex items-center justify-between">
-        <div class="flex gap-3 items-center">
+      <div v-else class="mt-4">
+        <div class="flex gap-3 items-center justify-between flex-wrap">
           <router-link to="/ads" class="text-sm underline" :class="isDark ? 'text-cyan-400' : 'text-amber-600'">📢 看广告领次数</router-link>
+          <div class="flex gap-2">
+            <button @click="divine(false)" :disabled="!question || loading"
+              class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
+              :class="isDark ? 'bg-slate-600 text-white hover:bg-slate-500' : 'bg-stone-600 text-white hover:bg-stone-500'">
+              {{ loading ? '起卦中...' : '常规算卦' }}
+            </button>
+            <button @click="divine(true)" :disabled="!question || loading"
+              class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
+              :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
+              {{ loading ? '起卦中...' : '☯ AI 流式算卦' }}
+            </button>
+          </div>
         </div>
-        <button @click="divine" :disabled="!question"
-          class="px-8 py-3 rounded-lg font-medium transition disabled:opacity-40"
-          :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
-          ☯ 开始提问
-        </button>
       </div>
     </div>
   </div>
@@ -48,10 +55,17 @@ import { useRouter } from 'vue-router'
 const auth = useAuthStore()
 const router = useRouter()
 const question = ref('')
+const loading = ref(false)
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
-function divine() {
+const API = import.meta.env.PROD ? '' : ''
+function divine(stream) {
   if (!question.value || !auth.token) return
-  router.push({ path: '/stream', state: { question: question.value } })
+  loading.value = true
+  if (stream) {
+    router.push({ path: '/stream', state: { question: question.value } })
+  } else {
+    router.push({ path: '/result', state: { question: question.value } })
+  }
 }
 </script>

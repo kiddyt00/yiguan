@@ -32,8 +32,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { marked } from 'marked'
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
+const router = useRouter()
 const items = ref([])
 const total = ref(0)
 const offset = ref(0)
@@ -56,6 +58,10 @@ async function loadMore() {
     items.value.push(...data.items)
     total.value = data.total
     offset.value += data.items.length
+  } else if (res.status === 401) {
+    auth.logout()
+    router.push('/login')
+    return
   }
   loading.value = false
 }
