@@ -1,14 +1,23 @@
-# Pre-built binary — no Go toolchain needed at all
+# Stage 1: Build Go binary in Docker (zero external deps)
+FROM golang:1.24-alpine AS builder
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache git ca-certificates
+WORKDIR /build
+ENV GOPROXY=https://goproxy.cn,direct
+ENV CGO_ENABLED=0
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -ldflags="-s -w" -o yiguan ./cmd/server/
+
+# Stage 2: Minimal runtime
 FROM alpine:3.21
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk add --no-cache ca-certificates sqlite-libs wget
-
 WORKDIR /app
-COPY deploy/bin/yiguan /app/yiguan
+COPY --from=builder /build/yiguan /app/yiguan
 COPY config.yaml /app/config.yaml
 COPY deploy/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/yiguan /app/entrypoint.sh
-
 EXPOSE 8080
-
 ENTRYPOINT ["/app/entrypoint.sh"]
