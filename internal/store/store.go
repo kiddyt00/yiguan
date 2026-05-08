@@ -11,6 +11,8 @@ var ErrNotFound = errors.New("record not found")
 // ErrQuotaExhausted quota 次数已用完
 var ErrQuotaExhausted = errors.New("quota exhausted")
 
+// ========== 数据模型 ==========
+
 // User 用户模型
 type User struct {
 	ID        int64     `json:"id"`
@@ -18,7 +20,7 @@ type User struct {
 	Nickname  string    `json:"nickname"`
 	Avatar    string    `json:"avatar"`
 	Address   string    `json:"address,omitempty"`
-	Password  string    `json:"-"` // bcrypt hash
+	Password  string    `json:"-"`
 	Role      string    `json:"role"`
 	IsActive  int       `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
@@ -28,7 +30,7 @@ type User struct {
 type Quota struct {
 	ID        int64      `json:"id"`
 	UserID    int64      `json:"user_id"`
-	QuotaType string     `json:"quota_type"` // "free", "paid", "share", "ad"
+	QuotaType string     `json:"quota_type"`
 	CreatedAt time.Time  `json:"created_at"`
 	UsedAt    *time.Time `json:"used_at,omitempty"`
 }
@@ -92,46 +94,45 @@ type AdStat struct {
 	RewardTotal int64  `json:"reward_total"`
 }
 
-// Store 数据库抽象接口
-type Store interface {
-	// 用户
+// ========== 子接口 ==========
+
+// UserStore 用户与配额操作
+type UserStore interface {
 	CreateUser(phone, password, nickname string) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByID(id int64) (*User, error)
 	UpdateUser(id int64, nickname, address string) error
 
-	// 用户管理
 	ToggleUser(id int64, active bool) error
 	UpdateUserRole(id int64, role string) error
 	UpdateUserQuota(userID int64, delta int) error
 	GetUserQuota(userID int64) (int, error)
 
-	// Quota
 	GetRemainingQuota(userID int64) (int, error)
 	AddQuota(userID int64, quotaType string) error
 	ConsumeQuota(userID int64) error
 
-	// 历史记录
-	SaveHistory(h *History) error
-	GetHistory(userID int64, limit, offset int) ([]History, error)
-	GetHistoryCount(userID int64) (int64, error)
-
-	// 卦象管理（管理员全量查询）
-	ListAllHistory(limit, offset int, userID int64) ([]History, error)
-	GetHistoryByID(id int64) (*History, error)
-	DeleteHistory(id int64) error
-	GetUserHistory(userID int64, limit, offset int) ([]History, error)
-
-	// 管理统计
 	GetTotalUsers() (int64, error)
 	ListUsers(limit, offset int) ([]User, error)
 	GetTodayDivineCount() (int64, error)
 	GetActiveUserCount() (int64, error)
 	GetTotalDivineCount() (int64, error)
-	GetTodayAdWatchCount() (int64, error)
-	GetTotalAdWatchCount() (int64, error)
+}
 
-	// LLM 模型
+// HistoryStore 历史记录与卦象管理
+type HistoryStore interface {
+	SaveHistory(h *History) error
+	GetHistory(userID int64, limit, offset int) ([]History, error)
+	GetHistoryCount(userID int64) (int64, error)
+
+	ListAllHistory(limit, offset int, userID int64) ([]History, error)
+	GetHistoryByID(id int64) (*History, error)
+	DeleteHistory(id int64) error
+	GetUserHistory(userID int64, limit, offset int) ([]History, error)
+}
+
+// ModelStore LLM 模型管理
+type ModelStore interface {
 	ListModels() ([]LLMModel, error)
 	GetModelByID(id int64) (*LLMModel, error)
 	GetDefaultModel() (*LLMModel, error)
@@ -140,8 +141,10 @@ type Store interface {
 	DeleteModel(id int64) error
 	SetDefaultModel(id int64) error
 	ToggleModel(id int64, enabled bool) error
+}
 
-	// 广告
+// AdStore 广告管理
+type AdStore interface {
 	ListAds() ([]Ad, error)
 	ListActiveAds() ([]Ad, error)
 	GetAdByID(id int64) (*Ad, error)
@@ -153,6 +156,15 @@ type Store interface {
 	UpdateAdRecord(rec *AdRecord) error
 	GetAdRecord(userID, adID int64) (*AdRecord, error)
 	GetAdStats() ([]AdStat, error)
+	GetTodayAdWatchCount() (int64, error)
+	GetTotalAdWatchCount() (int64, error)
+}
 
+// Store 组合接口（向后兼容）
+type Store interface {
+	UserStore
+	HistoryStore
+	ModelStore
+	AdStore
 	Close() error
 }
