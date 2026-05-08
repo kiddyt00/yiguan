@@ -43,6 +43,19 @@ type History struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
+// LLMProvider 大模型提供商配置（存储在数据库）
+type LLMProvider struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`      // 显示名称，如 "千问"、"DeepSeek"
+	Provider  string    `json:"provider"`  // provider key，如 "qwen"、"deepseek"
+	APIKey    string    `json:"api_key"`   // API 密钥
+	Endpoint  string    `json:"endpoint"`  // API 地址
+	Model     string    `json:"model"`     // 模型名
+	IsDefault bool      `json:"is_default"` // 是否默认
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // Store 数据库抽象接口
 type Store interface {
 	// 用户
@@ -65,6 +78,15 @@ type Store interface {
 	GetTotalUsers() (int64, error)
 	ListUsers(limit, offset int) ([]User, error)
 	GetTodayDivineCount() (int64, error)
+
+	// LLM 提供商管理
+	ListLLMProviders() ([]LLMProvider, error)
+	GetLLMProvider(id int64) (*LLMProvider, error)
+	CreateLLMProvider(p *LLMProvider) error
+	UpdateLLMProvider(p *LLMProvider) error
+	DeleteLLMProvider(id int64) error
+	GetDefaultLLMProvider() (*LLMProvider, error)
+	SetDefaultLLMProvider(id int64) error
 
 	Close() error
 }

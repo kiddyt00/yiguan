@@ -13,6 +13,12 @@ type HistoryHandler struct {
 	store store.Store
 }
 
+// historyItem 历史记录响应（含用户昵称）
+type historyItem struct {
+	store.History
+	Nickname string `json:"nickname"`
+}
+
 // NewHistoryHandler 创建历史处理器
 func NewHistoryHandler(st store.Store) *HistoryHandler {
 	return &HistoryHandler{store: st}
@@ -37,13 +43,26 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	total, _ := h.store.GetHistoryCount(userID)
-	if list == nil {
-		list = []store.History{} // 返回空数组而非 null
+	// 获取用户昵称
+	user, err := h.store.GetUserByID(userID)
+	nickname := ""
+	if err == nil && user != nil {
+		nickname = user.Nickname
 	}
 
+	// 包装历史记录，附加昵称
+	items := make([]historyItem, len(list))
+	for i, hh := range list {
+		items[i] = historyItem{History: hh, Nickname: nickname}
+	}
+	if items == nil {
+		items = []historyItem{}
+	}
+
+	total, _ := h.store.GetHistoryCount(userID)
+
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"items": list,
+		"items": items,
 		"total": total,
 	})
 }

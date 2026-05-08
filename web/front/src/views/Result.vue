@@ -2,6 +2,11 @@
   <div class="bg-white/80 backdrop-blur rounded-xl shadow-md p-6" :class="{ '!bg-slate-800/80': isDark }">
     <h3 class="text-xl font-bold mb-4 text-center">📜 卦象结果</h3>
 
+    <!-- 用户昵称 -->
+    <p v-if="data.nickname" class="text-center text-sm opacity-50 mb-4">
+      求卦人：{{ data.nickname }}
+    </p>
+
     <div class="grid grid-cols-2 gap-6 mb-6">
       <div class="rounded-lg p-4 text-center" :class="isDark ? 'bg-slate-700' : 'bg-amber-50'">
         <span class="text-sm opacity-60">本卦</span>
@@ -30,10 +35,10 @@
     <!-- 卦象图 -->
     <Hexagram :lines="hexagramLines" :is-dark="isDark" />
 
-    <!-- AI 解卦 -->
+    <!-- AI 解卦 (Markdown) -->
     <div class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
       <h4 class="text-lg font-medium mb-3">🤖 AI 解卦</h4>
-      <div class="leading-relaxed whitespace-pre-wrap opacity-80">{{ data.interpretation }}</div>
+      <div class="markdown-body leading-relaxed" v-html="renderedMarkdown"></div>
     </div>
 
     <!-- 广告 -->
@@ -59,9 +64,17 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { marked } from 'marked'
 import Hexagram from '../components/Hexagram.vue'
 const props = defineProps(['data', 'isDark'])
 const showQR = ref(false)
+
+// Markdown 渲染
+marked.setOptions({ breaks: true, gfm: true })
+const renderedMarkdown = computed(() => {
+  const text = props.data.interpretation || ''
+  return marked.parse(text)
+})
 
 const hexagramLines = computed(() => {
   const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻']
@@ -75,3 +88,36 @@ const hexagramLines = computed(() => {
   }))
 })
 </script>
+
+<style scoped>
+.markdown-body :deep(h2) {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.markdown-body :deep(h3) {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+.markdown-body :deep(p) {
+  margin-bottom: 0.6rem;
+}
+.markdown-body :deep(strong) {
+  font-weight: 700;
+}
+.markdown-body :deep(blockquote) {
+  border-left: 3px solid rgba(0,0,0,0.15);
+  padding-left: 0.75rem;
+  opacity: 0.7;
+  margin: 0.5rem 0;
+}
+.markdown-body :deep(ul), .markdown-body :deep(ol) {
+  padding-left: 1.25rem;
+  margin-bottom: 0.6rem;
+}
+</style>
