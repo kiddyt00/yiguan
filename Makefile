@@ -67,5 +67,6 @@ docker-logs:
 
 # ========== 一键部署 ==========
 
-deploy: build-backend docker-build docker-up
+deploy:
+	$(DOCKER) up -d --build
 	@echo "🚀 部署完成! http://localhost:$${HTTP_PORT:-80}"
