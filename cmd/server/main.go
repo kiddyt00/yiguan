@@ -1,20 +1,23 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/kiddyt00/yiguan/internal/handler"
 	"github.com/kiddyt00/yiguan/internal/llm"
 	"github.com/kiddyt00/yiguan/internal/middleware"
-	"github.com/kiddyt00/yiguan/internal/store"
-	sqlitestore "github.com/kiddyt00/yiguan/internal/store/sqlite"
+	"github.com/kiddyt00/yiguan/internal/store/sqlite"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Server struct {
+	Server    struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
 	LLM struct {
@@ -27,6 +30,10 @@ type Config struct {
 	} `yaml:"llm"`
 	JWTSecret string `yaml:"jwt_secret"`
 	DBPath    string `yaml:"db_path"`
+	Admin     struct {
+		Phone    string `yaml:"phone"`
+		Password string `yaml:"password"`
+	} `yaml:"admin"`
 }
 
 func loadConfig(path string) *Config {
@@ -54,89 +61,181 @@ func main() {
 	if s := os.Getenv("JWT_SECRET"); s != "" {
 		cfg.JWTSecret = s
 	}
+	if key := os.Getenv("LLM_API_KEY"); key != "" {
+		for k := range cfg.LLM.Providers {
+			p := cfg.LLM.Providers[k]
+			p.APIKey = key
+			cfg.LLM.Providers[k] = p
+		}
+	}
+	if db := os.Getenv("DB_PATH"); db != "" {
+		cfg.DBPath = db
+	}
+	if port := os.Getenv("SERVER_PORT"); port != "" {
+		cfg.Server.Port = port
+	}
+	if phone := os.Getenv("ADMIN_PHONE"); phone != "" {
+		cfg.Admin.Phone = phone
+	}
+	if pwd := os.Getenv("ADMIN_PASSWORD"); pwd != "" {
+		cfg.Admin.Password = pwd
+	}
 
 	// 数据库
-	st, err := sqlitestore.New(cfg.DBPath)
+	st, err := sqlite.New(cfg.DBPath)
 	if err != nil {
 		log.Fatalf("数据库初始化失败: %v", err)
 	}
 	defer st.Close()
 
-	// 从配置文件导入 LLM provider 到数据库（如果数据库为空）
-	seedLLMProviders(st, cfg)
-
-	// LLM 管理器（从数据库读取配置）
-	llmMgr := llm.NewManager(st)
-	llmClient, err := llmMgr.GetDefault()
-	if err != nil {
-		log.Fatalf("LLM 初始化失败: %v", err)
+	// 管理员初始化
+	if phone := cfg.Admin.Phone; phone != "" {
+		existing, _ := st.GetUserByPhone(phone)
+		if existing != nil {
+			if existing.Role != "admin" {
+				st.UpdateUserRole(existing.ID, "admin")
+				log.Printf("已将用户 %s 升级为管理员", phone)
+			}
+		} else {
+			_, err := st.CreateUser(phone, cfg.Admin.Password, "管理员")
+			if err != nil {
+				log.Printf("创建管理员失败: %v", err)
+			} else {
+				st.UpdateUserRole(1, "admin")
+				log.Printf("已创建管理员账号: %s", phone)
+			}
+		}
 	}
+
+	// LLM Router（模型热切换，数据库无模型时用 config 兜底）
+	defaultProvider := cfg.LLM.Providers[cfg.LLM.Default]
+	llmRouter, err := llm.NewRouterWithFallback(st, llm.Config{
+		APIKey:   defaultProvider.APIKey,
+		Endpoint: defaultProvider.Endpoint,
+		Model:    defaultProvider.Model,
+	})
+	if err != nil {
+		log.Fatalf("LLM 路由器初始化失败: %v", err)
+	}
+	log.Printf("LLM Router: %s (%s)", cfg.LLM.Default, llmRouter.Get().ModelName())
 
 	// 中间件
 	authMW := middleware.AuthRequired(cfg.JWTSecret)
+	adminMW := middleware.AdminOnly(cfg.JWTSecret)
 
 	// 路由
 	mux := http.NewServeMux()
-	mux.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.WriteHeader(204)
+
+	// 健康检查（无需鉴权）
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
 	})
+
+	// OPTIONS preflight 已统一由 corsWrap 中间件处理（见文件底部）
 
 	authHandler := handler.NewAuthHandler(st, cfg.JWTSecret)
 	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
 
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
-	dh := handler.NewDivineHandler(st, llmClient)
-	ah := handler.NewAdminHandler(st, llmMgr)
+	dh := handler.NewDivineHandler(st, llmRouter.Get())
+	ah := handler.NewAdminHandler(st)
 
+	// 用户端
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
-	mux.Handle("GET /api/admin/dashboard", authMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
-	mux.Handle("GET /api/admin/users", authMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
 
-	// LLM Provider 管理路由
-	mux.Handle("GET /api/admin/llm", authMW(corsWrap(http.HandlerFunc(ah.ListLLMProviders))))
-	mux.Handle("POST /api/admin/llm", authMW(corsWrap(http.HandlerFunc(ah.CreateLLMProvider))))
-	mux.Handle("PUT /api/admin/llm/", authMW(corsWrap(http.HandlerFunc(ah.UpdateLLMProvider))))
-	mux.Handle("DELETE /api/admin/llm/", authMW(corsWrap(http.HandlerFunc(ah.DeleteLLMProvider))))
+	// SSE 流式起卦
+	streamHandler := handler.NewDivineStreamHandler(st, llmRouter)
+	mux.Handle("POST /api/divine/stream", authMW(corsWrap(streamHandler)))
 
-	log.Printf("☯ 易观 v2.0 http://localhost:%s", cfg.Server.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, mux))
+	// 后台管理
+	mux.Handle("GET /api/admin/dashboard", adminMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
+	mux.Handle("GET /api/admin/users", adminMW(corsWrap(http.HandlerFunc(ah.ListUsers))))
+	mux.Handle("POST /api/admin/users/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(ah.ToggleUser))))
+	mux.Handle("POST /api/admin/users/{id}/quota", adminMW(corsWrap(http.HandlerFunc(ah.AdjustUserQuota))))
+	mux.Handle("GET /api/admin/users/{id}/history", adminMW(corsWrap(http.HandlerFunc(ah.GetUserHistory))))
+
+	// 卦象记录管理
+	hh2 := handler.NewHexagramHandler(st)
+	mux.Handle("GET /api/admin/hexagrams", adminMW(corsWrap(http.HandlerFunc(hh2.ListHistory))))
+	mux.Handle("GET /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.GetHistoryDetail))))
+	mux.Handle("DELETE /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.DeleteHistory))))
+
+	// 模型管理
+	mh := handler.NewModelHandler(st, func() { _ = llmRouter.Reload() })
+	mux.Handle("GET /api/admin/models", adminMW(corsWrap(http.HandlerFunc(mh.ListModels))))
+	mux.Handle("POST /api/admin/models", adminMW(corsWrap(http.HandlerFunc(mh.CreateModel))))
+	mux.Handle("PUT /api/admin/models/{id}", adminMW(corsWrap(http.HandlerFunc(mh.UpdateModel))))
+	mux.Handle("DELETE /api/admin/models/{id}", adminMW(corsWrap(http.HandlerFunc(mh.DeleteModel))))
+	mux.Handle("POST /api/admin/models/{id}/set-default", adminMW(corsWrap(http.HandlerFunc(mh.SetDefaultModel))))
+	mux.Handle("POST /api/admin/models/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(mh.ToggleModel))))
+
+	// 广告管理
+	adH := handler.NewAdHandler(st)
+	mux.Handle("GET /api/admin/ads", adminMW(corsWrap(http.HandlerFunc(adH.ListAds))))
+	mux.Handle("POST /api/admin/ads", adminMW(corsWrap(http.HandlerFunc(adH.CreateAd))))
+	mux.Handle("PUT /api/admin/ads/{id}", adminMW(corsWrap(http.HandlerFunc(adH.UpdateAd))))
+	mux.Handle("DELETE /api/admin/ads/{id}", adminMW(corsWrap(http.HandlerFunc(adH.DeleteAd))))
+	mux.Handle("POST /api/admin/ads/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(adH.ToggleAd))))
+	mux.Handle("GET /api/admin/ads/stats", adminMW(corsWrap(http.HandlerFunc(adH.GetAdStats))))
+	mux.Handle("GET /api/ads/active", corsWrap(http.HandlerFunc(adH.ListActiveAds)))
+	mux.Handle("POST /api/ads/{id}/watch", authMW(corsWrap(http.HandlerFunc(adH.StartWatch))))
+	mux.Handle("POST /api/ads/{id}/complete", authMW(corsWrap(http.HandlerFunc(adH.CompleteWatch))))
+
+	// 日志中间件
+	logMux := loggingMiddleware(mux)
+
+	// 带超时配置的 HTTP Server
+	srv := &http.Server{
+		Addr:         ":" + cfg.Server.Port,
+		Handler:      logMux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 120 * time.Second, // SSE 流式响应需要较长写超时
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// 优雅关闭
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-ctx.Done()
+		log.Printf("收到退出信号，正在关闭服务...")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("关闭服务出错: %v", err)
+		}
+	}()
+
+	log.Printf("☯ 易观 v2.1 http://localhost:%s", cfg.Server.Port)
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("服务启动失败: %v", err)
+	}
+	log.Println("服务已关闭")
 }
 
-// seedLLMProviders 首次启动时从 config.yaml 导入 LLM 配置到数据库
-func seedLLMProviders(st store.Store, cfg *Config) {
-	providers, err := st.ListLLMProviders()
-	if err != nil || len(providers) > 0 {
-		return // 已有数据，跳过
-	}
-
-	// 导入 config.yaml 中的 providers
-	for key, p := range cfg.LLM.Providers {
-		provider := &store.LLMProvider{
-			Name:      key,
-			Provider:  key,
-			APIKey:    p.APIKey,
-			Endpoint:  p.Endpoint,
-			Model:     p.Model,
-			IsDefault: key == cfg.LLM.Default,
-		}
-		if err := st.CreateLLMProvider(provider); err != nil {
-			log.Printf("[seed] 导入 LLM provider '%s' 失败: %v", key, err)
-		} else {
-			log.Printf("[seed] 已导入 LLM provider: %s (%s)", key, p.Model)
-		}
-	}
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("%s %s %s %v", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start))
+	})
 }
 
 func corsWrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(204)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

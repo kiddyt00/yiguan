@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/kiddyt00/yiguan/internal/engine"
 	"github.com/kiddyt00/yiguan/internal/llm"
-	"github.com/kiddyt00/yiguan/internal/middleware"
 	"github.com/kiddyt00/yiguan/internal/store"
 )
 
@@ -31,7 +29,6 @@ type divineResp struct {
 	YaoPositions   []yaoPos        `json:"yao_positions"`
 	Interpretation string          `json:"interpretation"`
 	RemainingQuota int             `json:"remaining_quota"`
-	Nickname       string          `json:"nickname"`
 }
 
 type yaoPos struct {
@@ -42,78 +39,35 @@ type yaoPos struct {
 
 // ServeHTTP 处理算卦请求
 func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(middleware.UserIDKey).(int64)
-
-	// 获取用户昵称
-	user, err := h.store.GetUserByID(userID)
-	nickname := ""
-	if err == nil && user != nil {
-		nickname = user.Nickname
-	}
-
-	// 检查 quota
-	remaining, err := h.store.GetRemainingQuota(userID)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "查询配额失败"})
-		return
-	}
-	if remaining <= 0 {
-		writeJSON(w, http.StatusPaymentRequired, map[string]interface{}{
-			"error":           "次数不足",
-			"remaining_quota": 0,
-		})
+	result := divineCore(w, r, h.store)
+	if result == nil {
 		return
 	}
 
-	var req divineReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
-		return
-	}
-	if req.Question == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请输入问题"})
-		return
-	}
-
-	// 扣减 quota
-	if err := h.store.ConsumeQuota(userID); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "扣减配额失败"})
-		return
-	}
-
-	// 起卦
-	lines := engine.CastSixLines()
-	primary, changing, positions, master := engine.BuildHexagrams(lines)
-
-	// 格式化变爻
-	yaoPositions := buildYaoPositions(positions, master)
-	yaoDesc := engine.FormatYaoPositions(positions, master)
-
-	// 构建 markdown 格式的 prompt，让 AI 返回 markdown
-	prompt := llm.BuildPrompt(req.Question, primary.Name, changing.Name, yaoDesc)
-	interpretation, err := h.llm.Divine(prompt)
+	// 调用 LLM 解卦
+	prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
+	interpretation, err := h.llm.DivineWithRetry(prompt, 2)
 	if err != nil {
 		interpretation = "解卦服务暂不可用：" + err.Error()
 	}
 
 	// 保存历史
 	h.store.SaveHistory(&store.History{
-		UserID:         userID,
-		Question:       req.Question,
-		PrimaryGua:     primary.Name,
-		ChangingGua:    changing.Name,
-		YaoPositions:   yaoDesc,
+		UserID:         result.UserID,
+		Question:       result.Question,
+		PrimaryGua:     result.Primary.Name,
+		ChangingGua:    result.Changing.Name,
+		YaoPositions:   result.YaoDesc,
 		Interpretation: interpretation,
 	})
 
-	remaining, _ = h.store.GetRemainingQuota(userID)
+	remaining, _ := h.store.GetRemainingQuota(result.UserID)
 	writeJSON(w, http.StatusOK, divineResp{
-		Primary:        primary,
-		Changing:       changing,
-		YaoPositions:   yaoPositions,
+		Primary:        result.Primary,
+		Changing:       result.Changing,
+		YaoPositions:   result.YaoPositions,
 		Interpretation: interpretation,
 		RemainingQuota: remaining,
-		Nickname:       nickname,
 	})
 }
 

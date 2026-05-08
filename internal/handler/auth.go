@@ -82,7 +82,7 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 		h.store.AddQuota(user.ID, "free")
 	}
 
-	token, err := h.generateToken(user.ID)
+	token, err := h.generateToken(user.ID, "user")
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "生成token失败"})
 		return
@@ -109,7 +109,12 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.generateToken(user.ID)
+	if user.IsActive == 0 {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "账号已被禁用"})
+		return
+	}
+
+	token, err := h.generateToken(user.ID, user.Role)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "生成token失败"})
 		return
@@ -119,10 +124,11 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
-func (h *AuthHandler) generateToken(userID int64) (string, error) {
+func (h *AuthHandler) generateToken(userID int64, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(15 * time.Minute).Unix(),
+		"role":    role,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 		"iat":     time.Now().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
