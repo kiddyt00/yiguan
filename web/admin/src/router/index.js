@@ -5,7 +5,7 @@ import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Users from '../views/Users.vue'
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory('/admin/'),
   routes: [
     { path: '/login', component: Login },
@@ -33,3 +33,5 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+
+export default router

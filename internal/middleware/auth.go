@@ -69,3 +69,9 @@ func writeAuthError(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusUnauthorized)
 	w.Write([]byte(`{"error":"` + msg + `"}`))
 }
+
+func writeForbidden(w http.ResponseWriter, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusForbidden)
+	w.Write([]byte(`{"error":"` + msg + `"}`))
+}

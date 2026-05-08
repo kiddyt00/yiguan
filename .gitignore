@@ -28,4 +28,7 @@ web/admin/node_modules/
 web/admin/dist/
 # Go binary (root only)
 /yiguan
+/server
+# Database
+*.db
 .worktrees/
