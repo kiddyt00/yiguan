@@ -1,6 +1,7 @@
 <template>
   <div class="bg-white/80 backdrop-blur rounded-xl shadow-md p-6" :class="{ '!bg-slate-800/80': isDark }">
-    <h3 class="text-xl font-bold mb-4 text-center">📜 卦象结果</h3>
+    <h3 class="text-sm font-medium text-center mb-1" :class="isDark ? 'text-cyan-400' : 'text-amber-700'">结果展示</h3>
+    <h2 class="text-xl font-bold mb-4 text-center">占卜结果</h2>
 
     <div v-if="loading" class="text-center py-8 opacity-50">起卦中，请稍候...</div>
     <div v-else-if="error" class="text-center py-8 text-red-500">{{ error }}</div>
