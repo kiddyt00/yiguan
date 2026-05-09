@@ -25,6 +25,42 @@
         </div>
       </div>
 
+      <!-- 6 次摇卦结果列表 -->
+      <div class="mb-6">
+        <h4 class="text-sm text-stone-400 mb-3">摇卦记录</h4>
+        <div class="space-y-2">
+          <div v-for="t in tossResults" :key="t.throw"
+            class="flex items-center gap-3 rounded-lg p-3 bg-slate-800/40">
+            <!-- 爻位 -->
+            <span class="text-sm font-medium w-10 text-stone-300">{{ t.label }}</span>
+            <!-- 3 枚铜钱 -->
+            <div class="flex gap-1.5">
+              <span v-for="(c, i) in t.coinValues" :key="i"
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                :class="c === '正' ? 'bg-amber-500/80 text-amber-950' : 'bg-slate-600/60 text-stone-300'">
+                {{ c }}
+              </span>
+            </div>
+            <!-- 总和与类型 -->
+            <span class="text-xs text-stone-400">= {{ t.sum }}</span>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+              :class="t.result === '老阳' || t.result === '老阴'
+                ? 'bg-red-500/20 text-red-300'
+                : 'bg-amber-500/10 text-amber-300'">
+              {{ t.result }}
+            </span>
+            <!-- 爻线 -->
+            <span class="ml-auto">
+              <span v-if="t.yang" class="block w-12 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阳' }"></span>
+              <span v-else class="flex gap-1">
+                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阴' }"></span>
+                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阴' }"></span>
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       <!-- 本卦 + 变卦 -->
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="rounded-lg p-4 text-center bg-slate-800/50">
@@ -117,6 +153,7 @@ const phase = ref('coins')
 const currentThrow = ref(1)
 const isAnimating = ref(true)
 const currentCoins = ref([null, null, null])
+const tossResults = ref([]) // 收集 6 次摇卦结果
 const guaResult = ref({ primary: null, changing: null, yaoPositions: [], masterYao: null })
 const aiText = ref('')
 const error = ref('')
@@ -218,6 +255,15 @@ async function startStream() {
                 await new Promise(r => setTimeout(r, 800))
                 currentCoins.value = [val, val, val]
                 isAnimating.value = false
+                // 收集摇卦结果
+                tossResults.value.push({
+                  throw: data.data.throw,
+                  label: data.data.label,
+                  coinValues: data.data.coin_values || ['?', '?', '?'],
+                  sum: data.data.sum,
+                  result: data.data.result,
+                  yang: data.data.yang,
+                })
                 // 再停 400ms 让用户看清结果
                 await new Promise(r => setTimeout(r, 400))
               } else if (data.phase === 'hexagram') {
