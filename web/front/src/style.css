@@ -17,22 +17,38 @@
   --input-border: #52525b;
 }
 
-/* 浅色主题 */
+/* ===== 浅色主题 ===== */
 .light {
-  --bg: #f5f0e8;
-  --bg-deep: #ede4d3;
-  --card: rgba(255, 255, 255, 0.85);
-  --card-hover: rgba(255, 255, 255, 0.95);
-  --text: #3c2415;
-  --text-secondary: #78716c;
+  --bg: #faf8f5;
+  --bg-deep: #f0ebe0;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-hover: rgba(255, 255, 255, 1);
+  --text: #1c1917;
+  --text-secondary: #6b6560;
   --gold: #b8860b;
   --gold-light: #d4a853;
   --green: #16a34a;
   --red: #dc2626;
-  --red-glow: rgba(220, 38, 38, 0.4);
-  --border: rgba(180, 130, 50, 0.15);
+  --red-glow: rgba(220, 38, 38, 0.3);
+  --border: rgba(180, 130, 50, 0.22);
   --input-bg: #ffffff;
-  --input-border: #d4c5a9;
+  --input-border: #d6cec0;
+}
+
+/* 浅色主题下 glass-card 退化为白色卡片+阴影 */
+.light .glass-card {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #e8e0d5;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* 浅色主题下 step-inactive 用浅色 */
+.light .step-inactive {
+  background: rgba(180, 130, 50, 0.08);
+  color: var(--gold);
+  border: 1px solid rgba(180, 130, 50, 0.25);
 }
 
 * {
