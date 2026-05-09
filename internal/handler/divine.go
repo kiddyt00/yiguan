@@ -51,21 +51,16 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	clients := h.router.GetAllEnabled()
 	var interpretation string
 	var lastErr error
-	usedModel := ""
 	for _, client := range clients {
-		modelName := client.ModelName()
 		interpretation, lastErr = client.DivineWithRetry(prompt, 1)
 		if lastErr == nil {
-			usedModel = modelName
 			break
 		}
-		log.Printf("模型 %s 调用失败: %v, 尝试下一个", modelName, lastErr)
+		log.Printf("默认模型调用失败: %v, 尝试下一个", lastErr)
 	}
 
 	if lastErr != nil {
 		interpretation = "解卦服务暂不可用：" + lastErr.Error()
-	} else if usedModel != "" {
-		log.Printf("解卦成功，使用模型: %s", usedModel)
 	}
 
 	// 保存历史

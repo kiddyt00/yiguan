@@ -78,7 +78,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		if llmErr == nil {
 			break
 		}
-		writeSSE("status", map[string]interface{}{"msg": "模型 " + client.ModelName() + " 不可用，切换中..."})
+		writeSSE("status", map[string]interface{}{"msg": "正在切换线路..."})
 	}
 
 	if llmErr != nil {
