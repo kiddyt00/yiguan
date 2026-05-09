@@ -45,6 +45,7 @@ func migrate(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			phone TEXT UNIQUE NOT NULL,
+			openid TEXT DEFAULT '',
 			nickname TEXT NOT NULL,
 			avatar TEXT DEFAULT '',
 			address TEXT DEFAULT '',
@@ -164,7 +165,6 @@ func migrate(db *sql.DB) error {
 	var colCount int
 	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('llm_models') WHERE name = 'display_name'").Scan(&colCount)
 	if colCount == 0 {
-		// 旧表缺少 display_name 列，先加列
 		if _, err := db.Exec("ALTER TABLE llm_models ADD COLUMN display_name TEXT DEFAULT ''"); err != nil {
 			return fmt.Errorf("添加 display_name 列失败: %w", err)
 		}
@@ -174,6 +174,15 @@ func migrate(db *sql.DB) error {
 	db.QueryRow("SELECT COUNT(*) FROM llm_models WHERE display_name = '' OR display_name IS NULL").Scan(&emptyCount)
 	if emptyCount > 0 {
 		db.Exec("UPDATE llm_models SET display_name = provider || ' ' || name WHERE display_name = '' OR display_name IS NULL")
+	}
+
+	// v2.3: openid 列迁移
+	var openidCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = 'openid'").Scan(&openidCol)
+	if openidCol == 0 {
+		if _, err := db.Exec("ALTER TABLE users ADD COLUMN openid TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 openid 列失败: %w", err)
+		}
 	}
 
 	return nil
