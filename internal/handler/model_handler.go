@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -170,7 +172,30 @@ func (h *ModelHandler) FetchModels(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"models": ids})
 }
 
-// TestConnection 测试供应商连接 — 调用 /models 接口验证 endpoint + api_key 是否有效
+// testHTTP 发起请求并返回 status, body, elapsed
+func testHTTP(ctx context.Context, method, url, apiKey string, body []byte) (int, string, time.Duration) {
+	start := time.Now()
+	var req *http.Request
+	if body != nil {
+		req, _ = http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, _ = http.NewRequestWithContext(ctx, method, url, nil)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	elapsed := time.Since(start).Round(time.Millisecond)
+	if err != nil {
+		return 0, err.Error(), elapsed
+	}
+	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+	return resp.StatusCode, strings.TrimSpace(string(respBody)), elapsed
+}
+
+// TestConnection 测试供应商连接 — 先试 /models，不支持则回退到 chat/completions
 func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Endpoint string `json:"endpoint"`
@@ -186,34 +211,32 @@ func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	base := strings.TrimRight(req.Endpoint, "/")
-	url := base + "/models"
 
-	httpReq, _ := http.NewRequestWithContext(r.Context(), "GET", url, nil)
-	httpReq.Header.Set("Authorization", "Bearer "+req.APIKey)
-
-	start := time.Now()
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(httpReq)
-	elapsed := time.Since(start).Round(time.Millisecond)
-
-	if err != nil {
+	// 方案 1: GET /models
+	status, body, elapsed := testHTTP(r.Context(), "GET", base+"/models", req.APIKey, nil)
+	if status == http.StatusOK {
 		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"ok": false, "error": err.Error(), "latency_ms": elapsed.Milliseconds(),
+			"ok": true, "method": "/models", "status": status, "latency_ms": elapsed.Milliseconds(),
 		})
 		return
 	}
-	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-	ok := resp.StatusCode == http.StatusOK
+	// 方案 2: 回退到 POST chat/completions（兼容不支持 /models 的端点）
+	chatBody, _ := json.Marshal(map[string]interface{}{
+		"model": "qwen-plus",
+		"messages": []map[string]string{{"role": "user", "content": "hi"}},
+		"max_tokens": 1,
+	})
+	status, body, elapsed2 := testHTTP(r.Context(), "POST", base+"/chat/completions", req.APIKey, chatBody)
 
+	ok := status == http.StatusOK
 	result := map[string]interface{}{
-		"ok":         ok,
-		"status":     resp.StatusCode,
-		"latency_ms": elapsed.Milliseconds(),
+		"ok": ok, "method": "/chat/completions", "status": status, "latency_ms": elapsed2.Milliseconds(),
 	}
-	if !ok {
-		result["error"] = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	if ok {
+		result["note"] = "端点不支持 /models 但 chat/completions 可用"
+	} else {
+		result["error"] = fmt.Sprintf("HTTP %d: %s", status, body)
 	}
 	writeJSON(w, http.StatusOK, result)
 }
