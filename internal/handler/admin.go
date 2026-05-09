@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -81,7 +82,8 @@ func (h *AdminHandler) AdjustUserQuota(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.store.UpdateUserQuota(id, req.Delta); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "调整配额失败"})
+		log.Printf("调整配额失败 user=%d delta=%d: %v", id, req.Delta, err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "调整配额失败: " + err.Error()})
 		return
 	}
 	remaining, _ := h.store.GetUserQuota(id)
