@@ -59,6 +59,9 @@ func TestModelHandler_CreateAndList(t *testing.T) {
 	if resp.Items[0].Name != "qwen-turbo" {
 		t.Fatalf("expected qwen-turbo, got %s", resp.Items[0].Name)
 	}
+	if resp.Items[0].DisplayName == "" {
+		t.Fatal("expected display_name to be set")
+	}
 }
 
 func TestModelHandler_CreateValidation(t *testing.T) {
