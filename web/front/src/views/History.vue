@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-xl font-bold mb-4">{{ t('nav.history') }}</h3>
+    <h3 class="text-xl font-bold mb-4" :class="isDark ? 'text-white' : 'text-stone-800'">{{ t('nav.history') }}</h3>
     <div v-if="items.length === 0" class="text-center opacity-50 py-12">暂无记录</div>
     <div v-for="h in items" :key="h.id"
       class="bg-white/80 backdrop-blur rounded-xl shadow-sm p-4 mb-3 cursor-pointer hover:shadow-md transition"
