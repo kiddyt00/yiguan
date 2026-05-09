@@ -211,8 +211,15 @@ async function startStream() {
               if (data.phase === 'coins') {
                 currentThrow.value = data.data.throw
                 const val = data.data.yang ? 3 : 2
-                currentCoins.value = [val, val, val]
+                // 先显示 ? 并跳动动画
+                currentCoins.value = [null, null, null]
                 isAnimating.value = true
+                // 延迟 800ms 后显示结果，让用户看清动画
+                await new Promise(r => setTimeout(r, 800))
+                currentCoins.value = [val, val, val]
+                isAnimating.value = false
+                // 再停 400ms 让用户看清结果
+                await new Promise(r => setTimeout(r, 400))
               } else if (data.phase === 'hexagram') {
                 isAnimating.value = false
                 phase.value = 'result'
