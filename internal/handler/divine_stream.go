@@ -81,7 +81,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	var llmErr error
 	clients := h.router.GetAllEnabled()
 	for _, client := range clients {
-		prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
+		prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc, getLang(r))
 		llmErr = client.DivineStreamWithRetry(prompt, func(chunk string) error {
 			interpretation.WriteString(chunk)
 			writeSSE("ai", map[string]interface{}{"chunk": chunk})
@@ -123,13 +123,13 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func lineType(line int) string {
 	switch line {
 	case 6:
-		return "老阴"
+		return "old_yin"
 	case 7:
-		return "少阳"
+		return "young_yang"
 	case 8:
-		return "少阴"
+		return "young_yin"
 	case 9:
-		return "老阳"
+		return "old_yang"
 	default:
 		return "unknown"
 	}
