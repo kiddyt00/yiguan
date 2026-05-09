@@ -71,6 +71,7 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ChangingGua:    result.Changing.Name,
 		YaoPositions:   result.YaoDesc,
 		Interpretation: interpretation,
+		Lang:           getLang(r),
 	})
 
 	remaining, _ := h.store.GetRemainingQuota(result.UserID)

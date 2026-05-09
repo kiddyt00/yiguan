@@ -10,7 +10,7 @@ func (s *Store) ListAllHistory(limit, offset int, userID int64) ([]store.History
 	var rows *sql.Rows
 	var err error
 	query := `SELECT h.id, h.user_id, u.nickname, h.question, h.primary_gua, h.changing_gua,
-	           h.yao_positions, h.interpretation, h.created_at
+	           h.yao_positions, h.interpretation, h.lang, h.created_at
 	          FROM history h LEFT JOIN users u ON h.user_id = u.id`
 	if userID > 0 {
 		rows, err = s.db.Query(query+` WHERE h.user_id = ? ORDER BY h.id DESC LIMIT ? OFFSET ?`, userID, limit, offset)
@@ -25,7 +25,7 @@ func (s *Store) ListAllHistory(limit, offset int, userID int64) ([]store.History
 	var list []store.History
 	for rows.Next() {
 		var h store.History
-		if err := rows.Scan(&h.ID, &h.UserID, &h.Nickname, &h.Question, &h.PrimaryGua, &h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.CreatedAt); err != nil {
+		if err := rows.Scan(&h.ID, &h.UserID, &h.Nickname, &h.Question, &h.PrimaryGua, &h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.Lang, &h.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, h)
@@ -36,10 +36,10 @@ func (s *Store) ListAllHistory(limit, offset int, userID int64) ([]store.History
 func (s *Store) GetHistoryByID(id int64) (*store.History, error) {
 	h := &store.History{}
 	err := s.db.QueryRow(
-		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, interpretation, created_at
+		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, interpretation, lang, created_at
 		 FROM history WHERE id = ?`,
 		id,
-	).Scan(&h.ID, &h.UserID, &h.Question, &h.PrimaryGua, &h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.CreatedAt)
+	).Scan(&h.ID, &h.UserID, &h.Question, &h.PrimaryGua, &h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.Lang, &h.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}

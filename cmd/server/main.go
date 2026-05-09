@@ -156,6 +156,11 @@ func main() {
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
 
+	// 翻译 AI 解读（利用已有 llmRouter）
+	th := handler.NewTranslateHandler(st, llmRouter)
+	mux.Handle("GET /api/history/{id}/translate", authMW(corsWrap(th)))
+	mux.Handle("POST /api/history/{id}/translate", authMW(corsWrap(th)))
+
 	// SSE 流式起卦
 	streamHandler := handler.NewDivineStreamHandler(st, llmRouter)
 	mux.Handle("POST /api/divine/stream", authMW(corsWrap(streamHandler)))

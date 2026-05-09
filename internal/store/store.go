@@ -46,7 +46,17 @@ type History struct {
 	ChangingGua    string    `json:"changing_gua"`
 	YaoPositions   string    `json:"yao_positions"`
 	Interpretation string    `json:"interpretation"`
+	Lang           string    `json:"lang"`
 	CreatedAt      time.Time `json:"created_at"`
+}
+
+// Translation AI 解读翻译缓存
+type Translation struct {
+	ID        int64     `json:"id"`
+	HistoryID int64     `json:"history_id"`
+	Lang      string    `json:"lang"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // LLMModel LLM 模型配置
@@ -136,6 +146,12 @@ type HistoryStore interface {
 	GetUserHistory(userID int64, limit, offset int) ([]History, error)
 }
 
+// TranslationStore 翻译缓存
+type TranslationStore interface {
+	GetTranslation(historyID int64, lang string) (*Translation, error)
+	SaveTranslation(t *Translation) error
+}
+
 // ModelStore LLM 模型管理
 type ModelStore interface {
 	ListModels() ([]LLMModel, error)
@@ -169,6 +185,7 @@ type AdStore interface {
 type Store interface {
 	UserStore
 	HistoryStore
+	TranslationStore
 	ModelStore
 	AdStore
 	Close() error

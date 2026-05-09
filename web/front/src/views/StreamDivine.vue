@@ -102,7 +102,20 @@
     <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t border-stone-700 pt-6 mt-6">
       <h3 class="text-sm font-medium text-center mb-1 text-green-400">{{ t('stream.interpret.label') }}</h3>
       <h2 class="text-xl font-bold mb-4 text-center text-stone-100">{{ t('stream.interpret.title') }}</h2>
-      <div class="markdown-body leading-relaxed" v-html="renderedAI"></div>
+
+      <!-- 翻译提示条 -->
+      <div v-if="showTranslateBanner" class="mb-4 px-4 py-2.5 rounded-lg flex items-center justify-between gap-3 bg-amber-500/10 border border-amber-500/30">
+        <span class="text-xs text-amber-300">
+          {{ historyLang === 'zh' ? '⚠ 此解读以中文生成' : '⚠ This reading was generated in English' }}
+        </span>
+        <button @click="doTranslate" :disabled="isTranslating"
+          class="text-xs px-3 py-1 rounded-full font-medium transition border border-amber-500/50 text-amber-400 hover:bg-amber-500/20 disabled:opacity-50">
+          {{ isTranslating ? '...' : (historyLang === 'zh' ? '翻译为 English →' : '翻译为 中文 →') }}
+        </button>
+      </div>
+      <div v-if="translateError" class="mb-4 text-xs text-red-400 text-center">{{ translateError }}</div>
+
+      <div class="markdown-body leading-relaxed" v-html="renderedTranslation"></div>
     </div>
 
     <!-- 阶段 4: 感谢页 -->
@@ -140,12 +153,14 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
 import { useI18n } from 'vue-i18n'
+import { useTranslation } from '../composables/useTranslation'
 import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { t, locale } = useI18n()
+const { needsTranslation, getTranslation, generateTranslation, targetLang } = useTranslation()
 const question = history.state?.question || ''
 
 if (!question) { router.push('/') }
@@ -161,6 +176,11 @@ const aiText = ref('')
 const error = ref('')
 const showMaster = ref(false)
 const loadingDots = ref('...')
+const historyId = ref(null)
+const historyLang = ref('zh')
+const translationText = ref('')
+const isTranslating = ref(false)
+const translateError = ref('')
 
 const showLoading = computed(() => phase.value === 'result' && aiText.value === '')
 
@@ -188,6 +208,39 @@ const renderedAI = computed(() => {
   if (phase.value === 'interpretation') html += '<span class="animate-pulse">▊</span>'
   return html
 })
+
+// 翻译相关
+const showTranslateBanner = computed(() => {
+  return (phase.value === 'interpretation' || phase.value === 'done') &&
+    historyLang.value && locale.value !== historyLang.value &&
+    !translationText.value
+})
+
+const displayedInterpretation = computed(() => {
+  if (translationText.value) return translationText.value
+  return aiText.value
+})
+
+const renderedTranslation = computed(() => {
+  if (!displayedInterpretation.value) return ''
+  let html = marked.parse(displayedInterpretation.value)
+  if (phase.value === 'interpretation' && !translationText.value) html += '<span class="animate-pulse">▊</span>'
+  return html
+})
+
+async function doTranslate() {
+  if (!historyId.value || isTranslating.value) return
+  isTranslating.value = true
+  translateError.value = ''
+  try {
+    const text = await generateTranslation(historyId.value, targetLang())
+    translationText.value = text
+  } catch (e) {
+    translateError.value = e.message
+  } finally {
+    isTranslating.value = false
+  }
+}
 
 let dotsTimer = null
 function startDots() {
@@ -298,6 +351,8 @@ async function startStream() {
             } else if (currentEvent === 'done') {
               stopDots()
               phase.value = 'done'
+              if (data.id) historyId.value = data.id
+              if (data.lang) historyLang.value = data.lang
             } else if (currentEvent === 'error') {
               stopDots()
               error.value = data.error
