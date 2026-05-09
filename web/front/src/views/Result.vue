@@ -14,15 +14,15 @@
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div class="rounded-lg p-4 text-center bg-slate-800/50">
           <span class="text-sm text-stone-400">{{ t('stream.hex.primary') }}</span>
-          <div class="text-2xl font-bold mt-1 text-amber-400">{{ primaryName }}</div>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ t('gua.' + data.primary.name) }}</div>
           <div class="text-3xl">{{ data.primary.symbol }}</div>
-          <p class="text-xs text-stone-500 mt-1">{{ primaryGuaCi }}</p>
+          <p class="text-xs text-stone-500 mt-1">{{ data.primary.gua_ci }}</p>
         </div>
         <div class="rounded-lg p-4 text-center bg-slate-700/40">
           <span class="text-sm text-stone-400">{{ t('stream.hex.changing') }}</span>
-          <div class="text-2xl font-bold mt-1 text-amber-400">{{ changingName }}</div>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ t('gua.' + data.changing.name) }}</div>
           <div class="text-3xl">{{ data.changing.symbol }}</div>
-          <p class="text-xs text-stone-500 mt-1">{{ changingGuaCi }}</p>
+          <p class="text-xs text-stone-500 mt-1">{{ data.changing.gua_ci }}</p>
         </div>
       </div>
 
@@ -64,7 +64,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
 import { useI18n } from 'vue-i18n'
-import { translateGuaName, translateGuaCi } from '../i18n/gua-translations'
 import Hexagram from '../components/Hexagram.vue'
 
 const { t, locale } = useI18n()
