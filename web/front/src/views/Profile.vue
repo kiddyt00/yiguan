@@ -1,16 +1,18 @@
 <template>
   <div class="max-w-md mx-auto">
     <div class="glass-card p-6">
-      <h3 class="text-xl font-bold mb-4 text-stone-100">{{ t('profile.title') }}</h3>
+      <h3 class="text-xl font-bold mb-4" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ t('profile.title') }}</h3>
       <div class="space-y-3">
-        <div><span class="text-sm text-stone-400">{{ t('profile.phone') }}</span><p>{{ user.phone }}</p></div>
+        <div><span class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('profile.phone') }}</span><p>{{ user.phone }}</p></div>
         <div>
-          <span class="text-sm text-stone-400">{{ t('profile.nickname') }}</span>
-          <input v-model="form.nickname" class="w-full border rounded-lg p-2 mt-1 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
+          <span class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('profile.nickname') }}</span>
+          <input v-model="form.nickname" class="w-full border rounded-lg p-2 mt-1 bg-transparent outline-none focus:border-amber-500"
+            :class="isDark ? 'text-stone-100 border-stone-600' : 'text-stone-800 border-stone-300'" />
         </div>
         <div>
-          <span class="text-sm text-stone-400">{{ t('profile.address') }}</span>
-          <input v-model="form.address" :placeholder="t('profile.address.placeholder')" class="w-full border rounded-lg p-2 mt-1 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
+          <span class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('profile.address') }}</span>
+          <input v-model="form.address" :placeholder="t('profile.address.placeholder')" class="w-full border rounded-lg p-2 mt-1 bg-transparent outline-none focus:border-amber-500"
+            :class="isDark ? 'text-stone-100 border-stone-600' : 'text-stone-800 border-stone-300'" />
         </div>
         <button @click="save" :disabled="saving"
           class="w-full py-3 rounded-lg font-medium transition bg-amber-600 text-white hover:bg-amber-500">
@@ -26,6 +28,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
+
+defineProps({ isDark: Boolean })
 
 const { t } = useI18n()
 const auth = useAuthStore()
