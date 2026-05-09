@@ -27,7 +27,7 @@
     </el-table>
 
     <el-dialog v-model="quotaVisible" title="调整配额" width="400px">
-      <el-input-number v-model="quotaDelta" :min="-100" :max="100" />
+      <el-input-number v-model="quotaDelta" :min="-10000" :max="10000" />
       <template #footer>
         <el-button @click="quotaVisible = false">取消</el-button>
         <el-button type="primary" @click="confirmQuota">确认</el-button>
