@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -53,6 +54,15 @@ type chatResp struct {
 	} `json:"choices"`
 }
 
+// chatURL 返回 chat/completions 端点 URL
+func (c *Client) chatURL() string {
+	base := strings.TrimRight(c.cfg.Endpoint, "/")
+	if strings.HasSuffix(base, "/chat/completions") {
+		return base
+	}
+	return base + "/chat/completions"
+}
+
 // Divine 调用 LLM 解卦
 func (c *Client) Divine(prompt string) (string, error) {
 	if c.mockDivine != nil {
@@ -66,7 +76,7 @@ func (c *Client) Divine(prompt string) (string, error) {
 		},
 	})
 
-	req, err := http.NewRequest("POST", c.cfg.Endpoint, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.chatURL(), bytes.NewReader(body))
 	if err != nil {
 		return "", fmt.Errorf("创建请求失败: %w", err)
 	}
