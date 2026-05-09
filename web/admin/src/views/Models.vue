@@ -144,7 +144,8 @@ async function testConnection() {
   if (!form.value.endpoint || !form.value.api_key) return
   testingConn.value = true
   try {
-    const data = await adminApi.testConnection(form.value.endpoint, form.value.api_key)
+    const fallbackModel = currentModels.value[0] || form.value.name || 'gpt-3.5-turbo'
+    const data = await adminApi.testConnection(form.value.endpoint, form.value.api_key, fallbackModel)
     if (data.ok) {
       ElMessage.success(`连接成功 (${data.latency_ms}ms)`)
       // 自动拉取模型列表

@@ -195,11 +195,12 @@ func testHTTP(ctx context.Context, method, url, apiKey string, body []byte) (int
 	return resp.StatusCode, strings.TrimSpace(string(respBody)), elapsed
 }
 
-// TestConnection 测试供应商连接 — 先试 /models，不支持则回退到 chat/completions
+// TestConnection 测试供应商连接 — 先试 /models，不支持则用指定模型回退到 chat/completions
 func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Endpoint string `json:"endpoint"`
 		APIKey   string `json:"api_key"`
+		Model    string `json:"model"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
@@ -208,6 +209,9 @@ func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	if req.Endpoint == "" || req.APIKey == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "endpoint 和 api_key 不能为空"})
 		return
+	}
+	if req.Model == "" {
+		req.Model = "gpt-3.5-turbo" // 兜底
 	}
 
 	base := strings.TrimRight(req.Endpoint, "/")
@@ -221,9 +225,9 @@ func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 方案 2: 回退到 POST chat/completions（兼容不支持 /models 的端点）
+	// 方案 2: 回退到 POST chat/completions
 	chatBody, _ := json.Marshal(map[string]interface{}{
-		"model": "qwen-plus",
+		"model": req.Model,
 		"messages": []map[string]string{{"role": "user", "content": "hi"}},
 		"max_tokens": 1,
 	})
