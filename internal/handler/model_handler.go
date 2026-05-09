@@ -2,8 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/kiddyt00/yiguan/internal/store"
 )
@@ -103,4 +107,65 @@ func (h *ModelHandler) ToggleModel(w http.ResponseWriter, r *http.Request) {
 		h.onReload()
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"ok": "ok"})
+}
+
+// FetchModels 代理请求供应商 /v1/models 接口，返回可用模型列表
+func (h *ModelHandler) FetchModels(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Endpoint string `json:"endpoint"`
+		APIKey   string `json:"api_key"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
+		return
+	}
+	if req.Endpoint == "" || req.APIKey == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "endpoint 和 api_key 不能为空"})
+		return
+	}
+
+	// 构造 models 接口 URL：去掉 endpoint 尾部斜杠后拼接 /models
+	base := strings.TrimRight(req.Endpoint, "/")
+	url := base + "/models"
+
+	httpReq, err := http.NewRequestWithContext(r.Context(), "GET", url, nil)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "构造请求失败"})
+		return
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+req.APIKey)
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "请求供应商失败: " + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		writeJSON(w, http.StatusBadGateway, map[string]string{
+			"error": fmt.Sprintf("供应商返回 %d: %s", resp.StatusCode, string(body)),
+		})
+		return
+	}
+
+	var result struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "解析模型列表失败"})
+		return
+	}
+
+	ids := make([]string, 0, len(result.Data))
+	for _, m := range result.Data {
+		if m.ID != "" {
+			ids = append(ids, m.ID)
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"models": ids})
 }
