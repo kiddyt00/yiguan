@@ -17,6 +17,7 @@ var ErrQuotaExhausted = errors.New("quota exhausted")
 type User struct {
 	ID        int64     `json:"id"`
 	Phone     string    `json:"phone"`
+	OpenID    string    `json:"openid,omitempty"`
 	Nickname  string    `json:"nickname"`
 	Avatar    string    `json:"avatar"`
 	Address   string    `json:"address,omitempty"`
@@ -101,7 +102,9 @@ type AdStat struct {
 // UserStore 用户与配额操作
 type UserStore interface {
 	CreateUser(phone, password, nickname string) (*User, error)
+	CreateUserByOpenID(openid, nickname string) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
+	GetUserByOpenID(openid string) (*User, error)
 	GetUserByID(id int64) (*User, error)
 	UpdateUser(id int64, nickname, address string) error
 

@@ -57,7 +57,7 @@ func (s *Store) GetTotalUsers() (int64, error) {
 // ListUsers 分页列出用户
 func (s *Store) ListUsers(limit, offset int) ([]store.User, error) {
 	rows, err := s.db.Query(
-		"SELECT id, phone, nickname, avatar, address, role, is_active, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, address, role, is_active, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
 		limit, offset,
 	)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *Store) ListUsers(limit, offset int) ([]store.User, error) {
 	var list []store.User
 	for rows.Next() {
 		var u store.User
-		if err := rows.Scan(&u.ID, &u.Phone, &u.Nickname, &u.Avatar, &u.Address, &u.Role, &u.IsActive, &u.CreatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.Address, &u.Role, &u.IsActive, &u.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, u)

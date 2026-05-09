@@ -135,6 +135,10 @@ func main() {
 	// OPTIONS preflight 已统一由 corsWrap 中间件处理（见文件底部）
 
 	authHandler := handler.NewAuthHandler(st, cfg.JWTSecret)
+	if appID := os.Getenv("WX_APPID"); appID != "" {
+		authHandler.SetWechatConfig(appID, os.Getenv("WX_SECRET"))
+		log.Printf("微信小程序登录已配置: %s", appID)
+	}
 	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
 
 	uh := handler.NewUserHandler(st)
