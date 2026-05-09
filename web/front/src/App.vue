@@ -5,7 +5,7 @@
       <router-view :is-dark="isDark" />
     </main>
     <footer class="text-center text-stone-400 dark:text-slate-500 text-sm py-8">
-      易观 · AI 算卦 | 仅供娱乐参考
+      易观 · AI 卦象解读 | 仅供文化学习交流
     </footer>
   </div>
 </template>

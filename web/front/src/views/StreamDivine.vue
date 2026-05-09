@@ -37,7 +37,7 @@
 
     <!-- AI 解卦流式渲染 -->
     <div v-if="showAI" class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
-      <h4 class="text-lg font-medium mb-3">🤖 AI 解卦</h4>
+      <h4 class="text-lg font-medium mb-3">🤖 AI 解读</h4>
       <div class="markdown-body leading-relaxed" v-html="renderedAI"></div>
     </div>
 
@@ -51,6 +51,22 @@
         :class="isDark ? 'bg-cyan-600 text-white' : 'bg-red-800 text-amber-100'">
         返回
       </router-link>
+
+      <!-- 大师入口 -->
+      <div class="mt-4 pt-4 border-t" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
+        <button @click="showMaster = !showMaster"
+          class="w-full py-3 rounded-lg text-center font-medium transition"
+          :class="isDark ? 'bg-slate-700 text-cyan-400' : 'bg-amber-50 text-amber-800'">
+          🎓 周易大师一对一详解
+        </button>
+        <div v-if="showMaster" class="mt-3">
+          <div class="w-48 h-48 mx-auto rounded-lg border flex items-center justify-center text-4xl"
+            :class="isDark ? 'border-slate-600 bg-slate-700' : 'border-stone-300 bg-stone-100'">
+            📱
+          </div>
+          <p class="text-xs opacity-50 mt-2">扫码添加大师微信，获取深度解读</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -80,6 +96,7 @@ const aiText = ref('')
 const error = ref('')
 const recordData = ref(null)
 const statusMsg = ref('')
+const showMaster = ref(false)
 
 // 加载动画的点（... → .... → ..... → ...）
 const loadingDots = ref('...')

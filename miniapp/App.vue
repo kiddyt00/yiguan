@@ -1,0 +1,48 @@
+<script>
+export default {
+  onLaunch() {
+    console.log('观己斋 启动')
+  }
+}
+</script>
+
+<style>
+page {
+  background-color: #F8F5F0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #3D3226;
+}
+.container {
+  padding: 24rpx;
+}
+.card {
+  background: rgba(255,255,255,0.85);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.btn-primary {
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: #FFF8DC;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+.btn-secondary {
+  background: #E8DCC8;
+  color: #5D4037;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 30rpx;
+}
+.text-muted { color: #9E8C7A; font-size: 26rpx; }
+.text-center { text-align: center; }
+.mt-3 { margin-top: 24rpx; }
+.mb-3 { margin-bottom: 24rpx; }
+.flex { display: flex; }
+.gap-2 { gap: 16rpx; }
+</style>

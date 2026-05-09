@@ -31,12 +31,28 @@
       <hexagram :lines="hexagramLines" :is-dark="isDark" />
 
       <div class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
-        <h4 class="text-lg font-medium mb-3">🤖 AI 解卦</h4>
+        <h4 class="text-lg font-medium mb-3">🤖 AI 解读</h4>
         <div class="markdown-body leading-relaxed" v-html="renderedMarkdown"></div>
       </div>
 
       <div class="mt-6 text-center">
         <span class="text-xs opacity-40">剩余 {{ data.remaining_quota }} 次</span>
+      </div>
+
+      <!-- 大师入口 -->
+      <div class="mt-4 pt-4 border-t" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
+        <button @click="showMaster = !showMaster"
+          class="w-full py-3 rounded-lg text-center font-medium transition"
+          :class="isDark ? 'bg-slate-700 text-cyan-400 hover:bg-slate-600' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'">
+          🎓 周易大师一对一详解
+        </button>
+        <div v-if="showMaster" class="mt-3 text-center">
+          <div class="w-48 h-48 mx-auto rounded-lg border flex items-center justify-center text-4xl"
+            :class="isDark ? 'border-slate-600 bg-slate-700' : 'border-stone-300 bg-stone-100'">
+            📱
+          </div>
+          <p class="text-xs opacity-50 mt-2">扫码添加大师微信，获取深度解读</p>
+        </div>
       </div>
     </template>
   </div>
@@ -55,6 +71,7 @@ const question = history.state?.question || ''
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 const loading = ref(true)
 const error = ref('')
+const showMaster = ref(false)
 const data = ref(null)
 
 marked.setOptions({ breaks: true, gfm: true })

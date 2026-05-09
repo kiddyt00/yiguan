@@ -25,7 +25,7 @@
         {{ loading ? '处理中...' : (isRegister ? '注册' : '登录') }}
       </button>
 
-      <p v-if="isRegister" class="text-center text-xs opacity-50 mt-3">新用户注册即赠 3 次免费算卦</p>
+      <p v-if="isRegister" class="text-center text-xs opacity-50 mt-3">新用户注册即赠 3 次免费起卦</p>
     </div>
   </div>
 </template>
