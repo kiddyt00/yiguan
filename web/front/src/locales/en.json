@@ -58,7 +58,7 @@
   "yao.6": "6th Yao",
   "yao.changing": "○ changing",
 
-  "login.tab.password": "Password",
+  "login.tab.login": "Login",
   "login.tab.sms": "SMS",
   "login.tab.qrcode": "WeChat QR",
   "login.tab.register": "Register",
