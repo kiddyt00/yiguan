@@ -120,8 +120,6 @@ func migrate(db *sql.DB) error {
 			FOREIGN KEY (ad_id) REFERENCES ads(id)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_ad_records_user_ad ON ad_records(user_id, ad_id)`,
-
-		`PRAGMA foreign_keys = ON`,
 	}
 
 	for _, s := range schemas {

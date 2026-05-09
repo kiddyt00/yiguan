@@ -81,6 +81,15 @@ func (h *AdminHandler) AdjustUserQuota(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
 		return
 	}
+	if req.Delta == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "delta 不能为 0"})
+		return
+	}
+	// 检查用户是否存在
+	if _, err := h.store.GetUserByID(id); err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "用户不存在"})
+		return
+	}
 	if err := h.store.UpdateUserQuota(id, req.Delta); err != nil {
 		log.Printf("调整配额失败 user=%d delta=%d: %v", id, req.Delta, err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "调整配额失败: " + err.Error()})
