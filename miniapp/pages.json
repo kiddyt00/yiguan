@@ -1,0 +1,18 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "观己斋" } },
+    { "path": "pages/result/result", "style": { "navigationBarTitleText": "卦象解读" } },
+    { "path": "pages/login/login", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/user/user", "style": { "navigationBarTitleText": "个人中心" } },
+    { "path": "pages/history/history", "style": { "navigationBarTitleText": "历史记录" } },
+    { "path": "pages/ads/ads", "style": { "navigationBarTitleText": "获取次数" } },
+    { "path": "pages/about/about", "style": { "navigationBarTitleText": "关于我们" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "观己斋",
+    "navigationBarBackgroundColor": "#F8F5F0",
+    "backgroundColor": "#F8F5F0"
+  },
+  "easycom": { "autoscan": true }
+}

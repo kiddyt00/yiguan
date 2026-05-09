@@ -11,7 +11,7 @@
         <div class="text-3xl font-bold mt-2 text-green-600">{{ stats.active_users }}</div>
       </el-card>
       <el-card>
-        <div class="text-sm text-gray-500">今日算卦</div>
+        <div class="text-sm text-gray-500">今日起卦</div>
         <div class="text-3xl font-bold mt-2">{{ stats.today_divines }}</div>
       </el-card>
       <el-card>

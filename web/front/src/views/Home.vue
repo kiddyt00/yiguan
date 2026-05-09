@@ -33,12 +33,12 @@
             <button @click="divine(false)" :disabled="!question || loading"
               class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
               :class="isDark ? 'bg-slate-600 text-white hover:bg-slate-500' : 'bg-stone-600 text-white hover:bg-stone-500'">
-              {{ loading ? '起卦中...' : '常规算卦' }}
+              {{ loading ? '起卦中...' : '常规起卦' }}
             </button>
             <button @click="divine(true)" :disabled="!question || loading"
               class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
               :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
-              {{ loading ? '起卦中...' : '☯ AI 流式算卦' }}
+              {{ loading ? '起卦中...' : '☯ AI 流式解读' }}
             </button>
           </div>
         </div>
