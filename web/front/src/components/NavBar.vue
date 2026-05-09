@@ -2,9 +2,16 @@
   <header class="shadow-lg bg-transparent">
     <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
-        <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto brightness-0 invert" />
+        <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto"
+          :class="isDark ? 'brightness-0 invert' : ''" />
       </router-link>
       <div class="flex items-center gap-3 text-sm">
+        <!-- 主题切换 -->
+        <button @click="$emit('toggle-theme')" class="text-lg leading-none opacity-70 hover:opacity-100 transition"
+          :title="isDark ? '切换浅色' : '切换深色'">
+          {{ isDark ? '☀️' : '🌙' }}
+        </button>
+        <!-- 语言切换 -->
         <div class="relative">
           <button @click="langOpen = !langOpen" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition font-medium flex items-center gap-1">
             {{ locale === 'zh' ? '中文' : 'EN' }}
@@ -41,6 +48,7 @@ import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 defineProps(['isDark'])
+defineEmits(['toggle-theme'])
 const { t, locale } = useI18n()
 const auth = useAuthStore()
 const $router = useRouter()

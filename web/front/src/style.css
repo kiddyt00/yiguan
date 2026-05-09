@@ -12,6 +12,27 @@
   --green: #4ade80;
   --red: #ef4444;
   --red-glow: rgba(239, 68, 68, 0.6);
+  --border: rgba(255, 255, 255, 0.08);
+  --input-bg: transparent;
+  --input-border: #52525b;
+}
+
+/* 浅色主题 */
+.light {
+  --bg: #f5f0e8;
+  --bg-deep: #ede4d3;
+  --card: rgba(255, 255, 255, 0.85);
+  --card-hover: rgba(255, 255, 255, 0.95);
+  --text: #3c2415;
+  --text-secondary: #78716c;
+  --gold: #b8860b;
+  --gold-light: #d4a853;
+  --green: #16a34a;
+  --red: #dc2626;
+  --red-glow: rgba(220, 38, 38, 0.4);
+  --border: rgba(180, 130, 50, 0.15);
+  --input-bg: #ffffff;
+  --input-border: #d4c5a9;
 }
 
 * {
@@ -19,7 +40,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, var(--bg-deep) 0%, var(--bg) 50%, #2a1f3d 100%);
+  background: linear-gradient(135deg, var(--bg-deep) 0%, var(--bg) 50%, var(--bg-deep) 100%);
   color: var(--text);
   font-family: 'Noto Sans SC', sans-serif;
   min-height: 100vh;
@@ -30,7 +51,7 @@ body {
   background: var(--card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 1rem;
 }
 
