@@ -174,6 +174,7 @@ func main() {
 	mux.Handle("POST /api/admin/models/{id}/set-default", adminMW(corsWrap(http.HandlerFunc(mh.SetDefaultModel))))
 	mux.Handle("POST /api/admin/models/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(mh.ToggleModel))))
 	mux.Handle("POST /api/admin/models/fetch", adminMW(corsWrap(http.HandlerFunc(mh.FetchModels))))
+	mux.Handle("POST /api/admin/models/test", adminMW(corsWrap(http.HandlerFunc(mh.TestConnection))))
 
 	// 广告管理
 	adH := handler.NewAdHandler(st)

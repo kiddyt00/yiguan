@@ -169,3 +169,51 @@ func (h *ModelHandler) FetchModels(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"models": ids})
 }
+
+// TestConnection 测试供应商连接 — 调用 /models 接口验证 endpoint + api_key 是否有效
+func (h *ModelHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Endpoint string `json:"endpoint"`
+		APIKey   string `json:"api_key"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
+		return
+	}
+	if req.Endpoint == "" || req.APIKey == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "endpoint 和 api_key 不能为空"})
+		return
+	}
+
+	base := strings.TrimRight(req.Endpoint, "/")
+	url := base + "/models"
+
+	httpReq, _ := http.NewRequestWithContext(r.Context(), "GET", url, nil)
+	httpReq.Header.Set("Authorization", "Bearer "+req.APIKey)
+
+	start := time.Now()
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(httpReq)
+	elapsed := time.Since(start).Round(time.Millisecond)
+
+	if err != nil {
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"ok": false, "error": err.Error(), "latency_ms": elapsed.Milliseconds(),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+	ok := resp.StatusCode == http.StatusOK
+
+	result := map[string]interface{}{
+		"ok":         ok,
+		"status":     resp.StatusCode,
+		"latency_ms": elapsed.Milliseconds(),
+	}
+	if !ok {
+		result["error"] = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	writeJSON(w, http.StatusOK, result)
+}
