@@ -45,7 +45,7 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
+	prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc, getLang(r))
 
 	// 容错链：逐个尝试已启用模型
 	clients := h.router.GetAllEnabled()

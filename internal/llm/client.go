@@ -103,8 +103,25 @@ func (c *Client) Divine(prompt string) (string, error) {
 	return cr.Choices[0].Message.Content, nil
 }
 
-// BuildPrompt 构建解卦 prompt（要求返回 markdown 格式）
-func BuildPrompt(question, primary, changing, yaoPositions string) string {
+// BuildPrompt 构建解卦 prompt，lang 为 "zh" 或 "en"
+func BuildPrompt(question, primary, changing, yaoPositions, lang string) string {
+	if lang == "en" {
+		return fmt.Sprintf(
+			"Please provide a professional I Ching divination reading for the user's question: \"%s\".\n"+
+				"Primary hexagram: %s, Changed hexagram: %s, Changing lines: %s\n\n"+
+				"Please structure your reading in Markdown format as follows:\n\n"+
+				"## Primary Hexagram\n"+
+				"(Interpretation of the primary hexagram in the context of the question)\n\n"+
+				"## Changing Lines\n"+
+				"(Insights from the changing lines)\n\n"+
+				"## Changed Hexagram\n"+
+				"(What the changed hexagram reveals about the future trend)\n\n"+
+				"## Overall Advice\n"+
+				"(Practical advice combining all aspects)\n\n"+
+				"> Please write in clear, accessible English. Include Chinese hexagram names with English explanations.",
+			question, primary, changing, yaoPositions,
+		)
+	}
 	return fmt.Sprintf(
 		"请以专业易经解卦角度，结合用户问题「%s」和卦象进行分析：\n"+
 			"本卦：%s，变卦：%s，变爻：%s\n\n"+

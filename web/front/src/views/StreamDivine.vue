@@ -3,7 +3,7 @@
 
     <!-- 阶段 1: 摇卦中 -->
     <div v-if="phase === 'coins'">
-      <h3 class="text-xl font-bold mb-4 text-center text-white">🔮 起卦中</h3>
+      <h3 class="text-xl font-bold mb-4 text-center text-white">{{ t('stream.divining') }}</h3>
       <CoinAnimation
         :current-throw="currentThrow"
         :is-animating="isAnimating"
@@ -14,12 +14,12 @@
 
     <!-- 阶段 2: 结果展示 + 阶段 3: 解读 + 阶段 4: 感谢页 -->
     <div v-if="phase === 'result' || phase === 'interpretation' || phase === 'done'">
-      <h3 class="text-sm font-medium text-center mb-1 text-green-400">结果展示</h3>
-      <h2 class="text-xl font-bold mb-6 text-center text-stone-100">占卜结果</h2>
+      <h3 class="text-sm font-medium text-center mb-1 text-green-400">{{ t('stream.result.label') }}</h3>
+      <h2 class="text-xl font-bold mb-6 text-center text-stone-100">{{ t('stream.result.title') }}</h2>
 
       <!-- 问题 -->
       <div class="mb-6">
-        <p class="text-sm text-stone-400 mb-1">您的问题</p>
+        <p class="text-sm text-stone-400 mb-1">{{ t('stream.question') }}</p>
         <div class="rounded-lg p-3 text-sm bg-slate-800/60 text-stone-200">
           {{ question }}
         </div>
@@ -27,34 +27,34 @@
 
       <!-- 6 次摇卦结果列表 -->
       <div class="mb-6">
-        <h4 class="text-sm text-stone-400 mb-3">摇卦记录</h4>
+        <h4 class="text-sm text-stone-400 mb-3">{{ t('stream.toss.history') }}</h4>
         <div class="space-y-2">
-          <div v-for="t in tossResults" :key="t.throw"
+          <div v-for="toss in tossResults" :key="toss.throw"
             class="flex items-center gap-3 rounded-lg p-3 bg-slate-800/40">
             <!-- 爻位 -->
-            <span class="text-sm font-medium w-10 text-stone-300">{{ t.label }}</span>
+            <span class="text-sm font-medium w-14 text-stone-300">{{ t(`yao.${toss.throw}`) }}</span>
             <!-- 3 枚铜钱 -->
             <div class="flex gap-1.5">
-              <span v-for="(c, i) in t.coinValues" :key="i"
+              <span v-for="(c, i) in toss.coins" :key="i"
                 class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                :class="c === '正' ? 'bg-amber-500/80 text-amber-950' : 'bg-slate-600/60 text-stone-300'">
-                {{ c }}
+                :class="c === 'front' ? 'bg-amber-500/80 text-amber-950' : 'bg-slate-600/60 text-stone-300'">
+                {{ t(c === 'front' ? 'coin.front' : 'coin.back') }}
               </span>
             </div>
             <!-- 总和与类型 -->
-            <span class="text-xs text-stone-400">= {{ t.sum }}</span>
+            <span class="text-xs text-stone-400">= {{ toss.sum }}</span>
             <span class="text-xs font-medium px-2 py-0.5 rounded-full"
-              :class="t.result === '老阳' || t.result === '老阴'
+              :class="toss.result === 'old_yang' || toss.result === 'old_yin'
                 ? 'bg-red-500/20 text-red-300'
                 : 'bg-amber-500/10 text-amber-300'">
-              {{ t.result }}
+              {{ t(`gua.${toss.result}`) }}
             </span>
             <!-- 爻线 -->
             <span class="ml-auto">
-              <span v-if="t.yang" class="block w-12 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阳' }"></span>
+              <span v-if="toss.yang" class="block w-12 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yang' }"></span>
               <span v-else class="flex gap-1">
-                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阴' }"></span>
-                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': t.result === '老阴' }"></span>
+                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yin' }"></span>
+                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yin' }"></span>
               </span>
             </span>
           </div>
@@ -64,13 +64,13 @@
       <!-- 本卦 + 变卦 -->
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="rounded-lg p-4 text-center bg-slate-800/50">
-          <span class="text-sm text-stone-400">本卦</span>
+          <span class="text-sm text-stone-400">{{ t('stream.hex.primary') }}</span>
           <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.primary?.name }}</div>
           <div class="text-2xl my-1">{{ guaResult.primary?.symbol }}</div>
           <p v-if="guaResult.primary?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.primary.gua_ci }}</p>
         </div>
         <div class="rounded-lg p-4 text-center bg-slate-700/40">
-          <span class="text-sm text-stone-400">变卦</span>
+          <span class="text-sm text-stone-400">{{ t('stream.hex.changing') }}</span>
           <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.changing?.name }}</div>
           <div class="text-2xl my-1">{{ guaResult.changing?.symbol }}</div>
           <p v-if="guaResult.changing?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.changing.gua_ci }}</p>
@@ -79,8 +79,8 @@
 
       <!-- 变爻提示 -->
       <div v-if="guaResult.yaoPositions?.length" class="rounded-lg p-3 mb-6 text-center text-sm bg-red-900/40 text-amber-100">
-        变爻：{{ yaoLabels }}
-        <template v-if="guaResult.masterYao !== null"> | 主变爻：第{{ guaResult.masterYao + 1 }}爻（最重要）</template>
+        {{ t('stream.yao.changing.label') }}{{ yaoLabels }}
+        <template v-if="guaResult.masterYao !== null"> | {{ t('stream.yao.master', { n: guaResult.masterYao + 1 }) }}</template>
       </div>
 
       <!-- Hexagram 爻线展示 -->
@@ -94,25 +94,25 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
-        <span class="text-sm font-medium">AI 正在思考中{{ loadingDots }}</span>
+        <span class="text-sm font-medium">{{ t('stream.ai.thinking') }}{{ loadingDots }}</span>
       </div>
     </div>
 
     <!-- 阶段 3: 解读 -->
     <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t border-stone-700 pt-6 mt-6">
-      <h3 class="text-sm font-medium text-center mb-1 text-green-400">解读</h3>
-      <h2 class="text-xl font-bold mb-4 text-center text-stone-100">解卦</h2>
+      <h3 class="text-sm font-medium text-center mb-1 text-green-400">{{ t('stream.interpret.label') }}</h3>
+      <h2 class="text-xl font-bold mb-4 text-center text-stone-100">{{ t('stream.interpret.title') }}</h2>
       <div class="markdown-body leading-relaxed" v-html="renderedAI"></div>
     </div>
 
     <!-- 阶段 4: 感谢页 -->
     <div v-if="phase === 'done'" class="border-t border-stone-700 pt-8 mt-8 text-center">
-      <img src="../assets/laozi.svg" alt="老子" class="w-32 h-auto mx-auto mb-4 rounded-lg opacity-80" />
-      <p class="text-lg font-medium mb-2 text-stone-200">感谢您的信任</p>
-      <p class="text-sm text-stone-500">诸善奉行，福生无量</p>
+      <img src="../assets/laozi.svg" alt="Laozi" class="w-32 h-auto mx-auto mb-4 rounded-lg opacity-80" />
+      <p class="text-lg font-medium mb-2 text-stone-200">{{ t('stream.thanks.title') }}</p>
+      <p class="text-sm text-stone-500">{{ t('stream.thanks.blessing') }}</p>
 
       <button @click="goHome" class="mt-6 px-8 py-3 rounded-lg font-medium border-2 transition border-amber-600 text-amber-400 hover:bg-amber-600 hover:text-white">
-        再测一次
+        {{ t('stream.retry') }}
       </button>
     </div>
 
@@ -124,11 +124,11 @@
       <button @click="showMaster = !showMaster"
         class="w-full py-3 rounded-lg text-center font-medium transition flex items-center justify-center gap-2 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20">
         <span class="text-xl">🎓</span>
-        周易大师一对一详解
+        {{ t('stream.master.title') }}
       </button>
       <div v-if="showMaster" class="mt-3 text-center">
-        <img src="/qr-master.png" alt="大师二维码" class="w-48 h-auto mx-auto rounded-lg border border-stone-600" />
-        <p class="text-xs text-stone-500 mt-2">扫码添加大师微信，获取深度解读</p>
+        <img src="/qr-master.png" alt="QR" class="w-48 h-auto mx-auto rounded-lg border border-stone-600" />
+        <p class="text-xs text-stone-500 mt-2">{{ t('stream.master.qr') }}</p>
       </div>
     </div>
   </div>
@@ -139,11 +139,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
+import { useI18n } from 'vue-i18n'
 import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t, locale } = useI18n()
 const question = history.state?.question || ''
 
 if (!question) { router.push('/') }
@@ -153,7 +155,7 @@ const phase = ref('coins')
 const currentThrow = ref(1)
 const isAnimating = ref(true)
 const currentCoins = ref([null, null, null])
-const tossResults = ref([]) // 收集 6 次摇卦结果
+const tossResults = ref([])
 const guaResult = ref({ primary: null, changing: null, yaoPositions: [], masterYao: null })
 const aiText = ref('')
 const error = ref('')
@@ -163,15 +165,16 @@ const loadingDots = ref('...')
 const showLoading = computed(() => phase.value === 'result' && aiText.value === '')
 
 const yaoLabels = computed(() => {
+  const joiner = locale.value === 'zh' ? '、' : ', '
   return (guaResult.value.yaoPositions || [])
-    .map(y => `第${y.position + 1}爻`)
-    .join('、')
+    .map(y => t(`yao.${y.position + 1}`))
+    .join(joiner)
 })
 
 const hexLines = computed(() => {
   const desc = guaResult.value.primary?.yao_desc || ''
   const changing = (guaResult.value.yaoPositions || []).map(y => y.position)
-  const names = ['上爻', '五爻', '四爻', '三爻', '二爻', '初爻']
+  const names = [t('yao.6'), t('yao.5'), t('yao.4'), t('yao.3'), t('yao.2'), t('yao.1')]
   return names.map((name, i) => ({
     label: name,
     yang: desc[5 - i] === '1',
@@ -209,6 +212,7 @@ async function startStream() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${auth.token}`,
+        'Accept-Language': locale.value,
       },
       body: JSON.stringify({ question }),
     })
@@ -216,7 +220,7 @@ async function startStream() {
     if (!resp.ok) {
       if (resp.status === 401) { auth.logout(); router.push('/login'); return }
       const err = await resp.json()
-      error.value = err.error || '起卦失败'
+      error.value = err.error || t('stream.error.divination')
       phase.value = 'done'
       return
     }
@@ -248,23 +252,21 @@ async function startStream() {
               if (data.phase === 'coins') {
                 currentThrow.value = data.data.throw
                 const val = data.data.yang ? 3 : 2
-                // 先显示 ? 并跳动动画
                 currentCoins.value = [null, null, null]
                 isAnimating.value = true
-                // 延迟 800ms 后显示结果，让用户看清动画
                 await new Promise(r => setTimeout(r, 800))
                 currentCoins.value = [val, val, val]
                 isAnimating.value = false
-                // 收集摇卦结果
+                // 收集结果：coins 存 'front'/'back'
+                const coins = (data.data.coin_values || ['?', '?', '?']).map(v => v === '正' ? 'front' : 'back')
                 tossResults.value.push({
                   throw: data.data.throw,
                   label: data.data.label,
-                  coinValues: data.data.coin_values || ['?', '?', '?'],
+                  coins,
                   sum: data.data.sum,
                   result: data.data.result,
                   yang: data.data.yang,
                 })
-                // 再停 400ms 让用户看清结果
                 await new Promise(r => setTimeout(r, 400))
               } else if (data.phase === 'hexagram') {
                 isAnimating.value = false
@@ -309,7 +311,7 @@ async function startStream() {
     }
   } catch (e) {
     stopDots()
-    error.value = '网络连接失败: ' + e.message
+    error.value = t('stream.error.network.prefix') + e.message
     phase.value = 'done'
   }
 }

@@ -2,7 +2,7 @@
   <div class="text-center py-8">
     <!-- 当前爻位提示 -->
     <p class="text-lg mb-6 text-green-400">
-      正在摇卦... 第{{ currentThrow }}爻（{{ yaoName }}）
+      {{ t('coin.divining', { n: currentThrow, name: yaoName }) }}
     </p>
 
     <!-- 三枚铜钱 -->
@@ -22,9 +22,7 @@
     <div class="flex justify-center gap-3 mb-4">
       <span v-for="n in 6" :key="n"
         class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
-        :class="n <= currentThrow
-          ? 'step-active'
-          : 'step-inactive'">
+        :class="n <= currentThrow ? 'step-active' : 'step-inactive'">
         {{ n }}
       </span>
     </div>
@@ -35,7 +33,7 @@
     <!-- 计算结果展示 -->
     <div v-if="showResult" class="mt-4 text-center">
       <p class="text-base font-medium text-amber-300">
-        三枚铜钱：{{ coinValues.join('+') }} = {{ sum }} -> {{ resultType }}
+        {{ t('coin.back') }}/{{ t('coin.front') }}: {{ coinValues.join('+') }} = {{ sum }} → {{ t(`gua.${resultType}`) }}
       </p>
     </div>
   </div>
@@ -43,6 +41,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const props = defineProps({
   currentThrow: { type: Number, default: 1 },
@@ -51,11 +52,11 @@ const props = defineProps({
   isDark: { type: Boolean, default: false }
 })
 
-const yaoNames = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
-const yaoName = computed(() => yaoNames[props.currentThrow - 1] || '')
+const yaoNames = computed(() => [t('yao.1'), t('yao.2'), t('yao.3'), t('yao.4'), t('yao.5'), t('yao.6')])
+const yaoName = computed(() => yaoNames.value[props.currentThrow - 1] || '')
 
 const displayCoins = computed(() => {
-  return props.coinValues.map(v => v === null ? '?' : (v === 2 ? '正' : '反'))
+  return props.coinValues.map(v => v === null ? '?' : (v === 2 ? t('coin.front') : t('coin.back')))
 })
 
 const sum = computed(() => props.coinValues.reduce((a, b) => a + (b || 0), 0))
@@ -63,14 +64,14 @@ const sum = computed(() => props.coinValues.reduce((a, b) => a + (b || 0), 0))
 const resultType = computed(() => {
   const s = sum.value
   if (s === 0) return ''
-  return s === 6 ? '老阴' : s === 7 ? '少阳' : s === 8 ? '少阴' : '老阳'
+  return s === 6 ? 'old_yin' : s === 7 ? 'young_yang' : s === 8 ? 'young_yin' : 'old_yang'
 })
 
 const showResult = computed(() => !props.isAnimating && sum.value > 0)
 
 const statusText = computed(() => {
-  if (props.isAnimating) return '正在摇铜钱...'
-  if (sum.value > 0) return '正在解卦...'
-  return '准备起卦...'
+  if (props.isAnimating) return t('coin.shaking')
+  if (sum.value > 0) return t('coin.done', { n: props.currentThrow })
+  return t('coin.ready')
 })
 </script>
