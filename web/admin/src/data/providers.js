@@ -93,7 +93,13 @@ export const PROVIDERS = [
   },
   {
     key: 'qwen-code', label: 'Qwen Coding Plan', baseURL: 'https://coding.dashscope.aliyuncs.com/v1',
-    models: ['qwen3.6-plus'],
+    models: [
+      'qwen3.6-plus', 'qwen3.5-plus', 'qwen3-max-2026-01-23',
+      'qwen3-coder-next', 'qwen3-coder-plus',
+      'glm-5', 'glm-4.7',
+      'kimi-k2.5',
+      'MiniMax-M2.5',
+    ],
   },
   {
     key: 'custom', label: '自定义', baseURL: '',
