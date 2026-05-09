@@ -64,16 +64,22 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		},
 	})
 
-	// 阶段 3: AI 解卦流式
-	llmClient := h.router.Get()
-	prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
-
+	// 阶段 3: AI 解卦流式（容错链）
 	var interpretation strings.Builder
-	llmErr := llmClient.DivineStreamWithRetry(prompt, func(chunk string) error {
-		interpretation.WriteString(chunk)
-		writeSSE("ai", map[string]interface{}{"chunk": chunk})
-		return nil
-	}, 2)
+	var llmErr error
+	clients := h.router.GetAllEnabled()
+	for _, client := range clients {
+		prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
+		llmErr = client.DivineStreamWithRetry(prompt, func(chunk string) error {
+			interpretation.WriteString(chunk)
+			writeSSE("ai", map[string]interface{}{"chunk": chunk})
+			return nil
+		}, 1)
+		if llmErr == nil {
+			break
+		}
+		writeSSE("status", map[string]interface{}{"msg": "模型 " + client.ModelName() + " 不可用，切换中..."})
+	}
 
 	if llmErr != nil {
 		writeSSE("error", map[string]interface{}{"error": "解卦服务暂不可用: " + llmErr.Error()})

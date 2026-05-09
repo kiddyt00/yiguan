@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/kiddyt00/yiguan/internal/engine"
@@ -10,13 +11,13 @@ import (
 
 // DivineHandler 算卦处理器
 type DivineHandler struct {
-	store store.Store
-	llm   *llm.Client
+	store  store.Store
+	router *llm.Router
 }
 
 // NewDivineHandler 创建算卦处理器
-func NewDivineHandler(st store.Store, llmClient *llm.Client) *DivineHandler {
-	return &DivineHandler{store: st, llm: llmClient}
+func NewDivineHandler(st store.Store, router *llm.Router) *DivineHandler {
+	return &DivineHandler{store: st, router: router}
 }
 
 type divineReq struct {
@@ -37,18 +38,34 @@ type yaoPos struct {
 	IsMaster bool   `json:"is_master"`
 }
 
-// ServeHTTP 处理算卦请求
+// ServeHTTP 处理算卦请求（带模型容错链）
 func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	result := divineCore(w, r, h.store)
 	if result == nil {
 		return
 	}
 
-	// 调用 LLM 解卦
 	prompt := llm.BuildPrompt(result.Question, result.Primary.Name, result.Changing.Name, result.YaoDesc)
-	interpretation, err := h.llm.DivineWithRetry(prompt, 2)
-	if err != nil {
-		interpretation = "解卦服务暂不可用：" + err.Error()
+
+	// 容错链：逐个尝试已启用模型
+	clients := h.router.GetAllEnabled()
+	var interpretation string
+	var lastErr error
+	usedModel := ""
+	for _, client := range clients {
+		modelName := client.ModelName()
+		interpretation, lastErr = client.DivineWithRetry(prompt, 1)
+		if lastErr == nil {
+			usedModel = modelName
+			break
+		}
+		log.Printf("模型 %s 调用失败: %v, 尝试下一个", modelName, lastErr)
+	}
+
+	if lastErr != nil {
+		interpretation = "解卦服务暂不可用：" + lastErr.Error()
+	} else if usedModel != "" {
+		log.Printf("解卦成功，使用模型: %s", usedModel)
 	}
 
 	// 保存历史

@@ -139,7 +139,7 @@ func main() {
 
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
-	dh := handler.NewDivineHandler(st, llmRouter.Get())
+	dh := handler.NewDivineHandler(st, llmRouter)
 	ah := handler.NewAdminHandler(st)
 
 	// 用户端
