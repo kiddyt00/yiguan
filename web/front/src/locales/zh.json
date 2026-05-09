@@ -58,7 +58,7 @@
   "yao.6": "上爻",
   "yao.changing": "○ 变",
 
-  "login.tab.password": "密码登录",
+  "login.tab.login": "登录",
   "login.tab.sms": "短信登录",
   "login.tab.qrcode": "微信扫码",
   "login.tab.register": "注册",
