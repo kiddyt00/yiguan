@@ -1,13 +1,11 @@
 <template>
   <div>
     <div class="text-center mb-8">
-      <h2 class="text-3xl font-bold mb-2">心有疑虑，问卦于天</h2>
-      <p class="opacity-60">默想你的问题，诚心求问，AI 为你解卦</p>
+      <h2 class="text-3xl font-bold mb-2">观己斋</h2>
+      <p class="opacity-60">我们以三枚铜钱的起卦方式，还原古人"观象玩辞"的从容与觉知</p>
     </div>
 
-    <div class="bg-stone-300/30 rounded-lg h-16 mb-8 flex items-center justify-center text-sm opacity-40">
-      广告位 (Banner)
-    </div>
+    <!-- 广告位暂时隐藏 -->
 
     <div class="bg-white/80 backdrop-blur rounded-xl shadow-md p-6" :class="{ '!bg-slate-800/80': isDark }">
       <label class="block font-medium mb-2">请输入你想问的问题：</label>
@@ -26,22 +24,12 @@
         </router-link>
       </div>
 
-      <div v-else class="mt-4">
-        <div class="flex gap-3 items-center justify-between flex-wrap">
-          <router-link to="/ads" class="text-sm underline" :class="isDark ? 'text-cyan-400' : 'text-amber-600'">📢 看广告领次数</router-link>
-          <div class="flex gap-2">
-            <button @click="divine(false)" :disabled="!question || loading"
-              class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
-              :class="isDark ? 'bg-slate-600 text-white hover:bg-slate-500' : 'bg-stone-600 text-white hover:bg-stone-500'">
-              {{ loading ? '起卦中...' : '常规起卦' }}
-            </button>
-            <button @click="divine(true)" :disabled="!question || loading"
-              class="px-6 py-3 rounded-lg font-medium transition disabled:opacity-40"
-              :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
-              {{ loading ? '起卦中...' : '☯ AI 流式解读' }}
-            </button>
-          </div>
-        </div>
+      <div v-else class="mt-6 text-center">
+        <button @click="startDivination" :disabled="!question.trim() || loading"
+          class="px-10 py-3 rounded-lg font-medium text-lg transition disabled:opacity-40"
+          :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
+          {{ loading ? '起卦中...' : '开始提问' }}
+        </button>
       </div>
     </div>
   </div>
@@ -59,13 +47,10 @@ const loading = ref(false)
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const API = import.meta.env.PROD ? '' : ''
-function divine(stream) {
-  if (!question.value || !auth.token) return
+function startDivination() {
+  if (!question.value.trim() || !auth.token) return
   loading.value = true
-  if (stream) {
-    router.push({ path: '/stream', state: { question: question.value } })
-  } else {
-    router.push({ path: '/result', state: { question: question.value } })
-  }
+  // 统一使用流式起卦流程（带铜钱动画）
+  router.push({ path: '/stream', state: { question: question.value.trim() } })
 }
 </script>
