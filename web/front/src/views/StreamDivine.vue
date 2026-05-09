@@ -65,15 +65,15 @@
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="rounded-lg p-4 text-center bg-slate-800/50">
           <span class="text-sm text-stone-400">{{ t('stream.hex.primary') }}</span>
-          <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.primary?.name }}</div>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ primaryName }}</div>
           <div class="text-2xl my-1">{{ guaResult.primary?.symbol }}</div>
-          <p v-if="guaResult.primary?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.primary.gua_ci }}</p>
+          <p v-if="primaryGuaCi" class="text-xs text-stone-500 mt-1">{{ primaryGuaCi }}</p>
         </div>
         <div class="rounded-lg p-4 text-center bg-slate-700/40">
           <span class="text-sm text-stone-400">{{ t('stream.hex.changing') }}</span>
-          <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.changing?.name }}</div>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ changingName }}</div>
           <div class="text-2xl my-1">{{ guaResult.changing?.symbol }}</div>
-          <p v-if="guaResult.changing?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.changing.gua_ci }}</p>
+          <p v-if="changingGuaCi" class="text-xs text-stone-500 mt-1">{{ changingGuaCi }}</p>
         </div>
       </div>
 
@@ -140,6 +140,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
 import { useI18n } from 'vue-i18n'
+import { translateGuaName, translateGuaCi } from '../i18n/gua-translations'
 import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
 
@@ -163,6 +164,12 @@ const showMaster = ref(false)
 const loadingDots = ref('...')
 
 const showLoading = computed(() => phase.value === 'result' && aiText.value === '')
+
+// 卦名/卦辞翻译（响应 locale 切换）
+const primaryName = computed(() => translateGuaName(guaResult.value.primary?.name))
+const changingName = computed(() => translateGuaName(guaResult.value.changing?.name))
+const primaryGuaCi = computed(() => translateGuaCi(guaResult.value.primary?.gua_ci))
+const changingGuaCi = computed(() => translateGuaCi(guaResult.value.changing?.gua_ci))
 
 const yaoLabels = computed(() => {
   const joiner = locale.value === 'zh' ? '、' : ', '
