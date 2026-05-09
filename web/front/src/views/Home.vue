@@ -1,18 +1,19 @@
 <template>
   <div>
     <div class="text-center mb-8">
-      <h2 class="text-4xl font-bold mb-3 text-white">{{ t('home.title') }}</h2>
-      <p class="text-stone-400 text-base">{{ t('home.subtitle') }}</p>
+      <h2 class="text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-stone-800'">{{ t('home.title') }}</h2>
+      <p class="text-base" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('home.subtitle') }}</p>
     </div>
 
     <div class="glass-card p-6">
-      <label class="block font-medium mb-2 text-stone-200">{{ t('home.question.label') }}</label>
+      <label class="block font-medium mb-2" :class="isDark ? 'text-stone-200' : 'text-stone-700'">{{ t('home.question.label') }}</label>
       <textarea v-model="question" rows="3" required
         :placeholder="t('home.question.placeholder')"
-        class="w-full border rounded-lg p-3 resize-none bg-transparent text-stone-100 placeholder-stone-500 border-stone-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 outline-none transition"></textarea>
+        class="w-full border rounded-lg p-3 resize-none bg-transparent outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 transition"
+        :class="isDark ? 'text-stone-100 placeholder-stone-500 border-stone-600' : 'text-stone-800 placeholder-stone-400 border-stone-300'"></textarea>
 
       <div v-if="!auth.isLoggedIn()" class="mt-6 text-center">
-        <p class="text-sm text-stone-400 mb-3">{{ t('home.login.prompt') }}</p>
+        <p class="text-sm mb-3" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('home.login.prompt') }}</p>
         <router-link to="/login"
           class="inline-block px-8 py-3 rounded-lg font-medium transition bg-amber-600 text-white hover:bg-amber-500">
           {{ t('home.login.btn') }}
@@ -34,6 +35,8 @@ import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+
+defineProps({ isDark: Boolean })
 
 const { t } = useI18n()
 const auth = useAuthStore()

@@ -57,7 +57,7 @@ const total = ref(0)
 const offset = ref(0)
 const loading = ref(false)
 const selected = ref(null)
-const isDark = computed(() => document.documentElement.classList.contains('dark'))
+const isDark = computed(() => !document.documentElement.classList.contains('light'))
 const translatingMap = reactive({})
 const transCache = reactive({}) // { [historyId]: text }
 
