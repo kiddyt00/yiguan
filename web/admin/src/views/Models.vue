@@ -47,7 +47,12 @@
         </el-form-item>
 
         <el-form-item label="③ API Key" required>
-          <el-input v-model="form.api_key" type="password" show-password placeholder="sk-..." />
+          <div class="flex gap-2">
+            <el-input v-model="form.api_key" class="flex-1" type="password" show-password placeholder="sk-..." />
+            <el-button :loading="testingConn" @click="testConnection" :disabled="!form.endpoint || !form.api_key">
+              测试连接
+            </el-button>
+          </div>
         </el-form-item>
 
         <el-form-item label="④ 模型选择" required>
@@ -94,6 +99,7 @@ const saving = ref(false)
 const showCustomModel = ref(false)
 const fetchedModels = ref([])
 const fetchingModels = ref(false)
+const testingConn = ref(false)
 
 const form = ref({
   provider: '', endpoint: '', api_key: '', name: '',
@@ -131,6 +137,25 @@ async function fetchModelList() {
     ElMessage.error(e.message || '获取模型列表失败')
   } finally {
     fetchingModels.value = false
+  }
+}
+
+async function testConnection() {
+  if (!form.value.endpoint || !form.value.api_key) return
+  testingConn.value = true
+  try {
+    const data = await adminApi.testConnection(form.value.endpoint, form.value.api_key)
+    if (data.ok) {
+      ElMessage.success(`连接成功 (${data.latency_ms}ms)`)
+      // 自动拉取模型列表
+      await fetchModelList()
+    } else {
+      ElMessage.warning(`连接失败: ${data.error || '未知错误'} (${data.latency_ms}ms)`)
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '测试连接失败')
+  } finally {
+    testingConn.value = false
   }
 }
 
