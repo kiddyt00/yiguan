@@ -1,26 +1,26 @@
 <template>
-  <div class="max-w-md mx-auto">
-    <div class="bg-white/80 backdrop-blur rounded-xl shadow-md p-6" :class="{ '!bg-slate-800/80': isDark }">
-      <h3 class="text-xl font-bold mb-4 text-center">{{ tabLabel }}</h3>
+    <div class="max-w-md mx-auto">
+    <div class="glass-card p-6">
+      <h3 class="text-xl font-bold mb-4 text-center text-stone-100">{{ tabLabel }}</h3>
 
-      <div class="flex mb-4 border-b" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
+      <div class="flex mb-4 border-b border-stone-700">
         <button @click="tab = 'login'" class="flex-1 py-2 text-center text-sm"
-          :class="tab === 'login' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">密码登录</button>
+          :class="tab === 'login' ? 'border-b-2 font-medium border-amber-500 text-amber-400' : 'text-stone-400'">密码登录</button>
         <button @click="tab = 'sms'" class="flex-1 py-2 text-center text-sm"
-          :class="tab === 'sms' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">短信登录</button>
+          :class="tab === 'sms' ? 'border-b-2 font-medium border-amber-500 text-amber-400' : 'text-stone-400'">短信登录</button>
         <button @click="tab = 'qrcode'" class="flex-1 py-2 text-center text-sm"
-          :class="tab === 'qrcode' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">微信扫码</button>
+          :class="tab === 'qrcode' ? 'border-b-2 font-medium border-amber-500 text-amber-400' : 'text-stone-400'">微信扫码</button>
         <button @click="tab = 'register'" class="flex-1 py-2 text-center text-sm"
-          :class="tab === 'register' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">注册</button>
+          :class="tab === 'register' ? 'border-b-2 font-medium border-amber-500 text-amber-400' : 'text-stone-400'">注册</button>
       </div>
 
       <!-- 微信扫码登录 -->
       <template v-if="tab === 'qrcode'">
         <div class="text-center py-4">
-          <div v-if="qrStatus === 'loading'" class="text-sm opacity-50">正在生成二维码...</div>
+          <div v-if="qrStatus === 'loading'" class="text-sm text-stone-400">正在生成二维码...</div>
           <div v-else-if="qrStatus === 'pending'" class="space-y-3">
             <div id="qrcode" class="inline-block bg-white p-3 rounded-lg"></div>
-            <p class="text-sm opacity-50">请使用微信扫描二维码</p>
+            <p class="text-sm text-stone-400">请使用微信扫描二维码</p>
           </div>
           <div v-else-if="qrStatus === 'ok'" class="text-green-500 font-medium">✅ 登录成功</div>
           <div v-else-if="qrStatus === 'expired'" class="space-y-3">
@@ -35,18 +35,16 @@
       <template v-if="tab === 'sms'">
         <div class="flex gap-2 mb-4">
           <input v-model="phone" placeholder="手机号"
-            class="flex-1 border rounded-lg p-3 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
+            class="flex-1 border rounded-lg p-3 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
           <button @click="sendSMS" :disabled="smsCountdown > 0 || phone.length !== 11"
-            class="px-4 py-3 rounded-lg text-sm font-medium whitespace-nowrap transition"
-            :class="isDark ? 'bg-slate-600 text-white' : 'bg-stone-200 text-stone-700'">
+            class="px-4 py-3 rounded-lg text-sm font-medium whitespace-nowrap transition bg-slate-700 text-stone-200 hover:bg-slate-600 disabled:opacity-40">
             {{ smsCountdown > 0 ? smsCountdown + 's' : '获取验证码' }}
           </button>
         </div>
         <input v-model="code" placeholder="验证码" maxlength="6"
-          class="w-full border rounded-lg p-3 mb-4 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
+          class="w-full border rounded-lg p-3 mb-4 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
         <button @click="smsLogin" :disabled="loading"
-          class="w-full py-3 rounded-lg font-medium transition"
-          :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
+          class="w-full py-3 rounded-lg font-medium transition bg-amber-600 text-white hover:bg-amber-500">
           {{ loading ? '处理中...' : '登录 / 注册' }}
         </button>
       </template>
@@ -54,19 +52,18 @@
       <!-- 密码登录 / 注册 -->
       <template v-else>
         <input v-model="phone" placeholder="手机号"
-          class="w-full border rounded-lg p-3 mb-3 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
+          class="w-full border rounded-lg p-3 mb-3 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
         <input v-model="password" type="password" :placeholder="tab === 'register' ? '密码（至少6位）' : '密码'"
-          class="w-full border rounded-lg p-3 mb-3 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
+          class="w-full border rounded-lg p-3 mb-3 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
         <input v-if="tab === 'register'" v-model="nickname" placeholder="昵称"
-          class="w-full border rounded-lg p-3 mb-4 bg-transparent" :class="isDark ? 'border-slate-600' : 'border-stone-300'" />
+          class="w-full border rounded-lg p-3 mb-4 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
 
         <button @click="submit" :disabled="loading"
-          class="w-full py-3 rounded-lg font-medium transition"
-          :class="isDark ? 'bg-cyan-600 text-white hover:bg-cyan-500' : 'bg-red-800 text-amber-100 hover:bg-red-700'">
+          class="w-full py-3 rounded-lg font-medium transition bg-amber-600 text-white hover:bg-amber-500">
           {{ loading ? '处理中...' : (tab === 'register' ? '注册' : '登录') }}
         </button>
 
-        <p v-if="tab === 'register'" class="text-center text-xs opacity-50 mt-3">新用户注册即赠 3 次免费起卦</p>
+        <p v-if="tab === 'register'" class="text-center text-xs text-stone-400 mt-3">新用户注册即赠 3 次免费起卦</p>
       </template>
 
       <div v-if="error" class="text-red-500 text-sm mt-3 text-center">{{ error }}</div>
@@ -93,8 +90,6 @@ const qrStatus = ref('')
 const qrError = ref('')
 const qrTicket = ref('')
 let qrTimer = null
-const isDark = computed(() => document.documentElement.classList.contains('dark'))
-const activeTabClass = computed(() => isDark.value ? 'border-cyan-400 text-cyan-400' : 'border-red-800 text-red-800')
 const tabLabel = computed(() => ({ login: '密码登录', sms: '短信登录', qrcode: '微信扫码登录', register: '注册' }[tab.value]))
 
 async function submit() {

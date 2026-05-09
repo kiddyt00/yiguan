@@ -1,61 +1,59 @@
 <template>
-  <div class="bg-white/80 backdrop-blur rounded-xl shadow-md p-6" :class="{ '!bg-slate-800/80': isDark }">
+  <div class="glass-card p-6">
 
     <!-- 阶段 1: 摇卦中 -->
     <div v-if="phase === 'coins'">
-      <h3 class="text-xl font-bold mb-4 text-center">🔮 起卦中</h3>
+      <h3 class="text-xl font-bold mb-4 text-center text-white">🔮 起卦中</h3>
       <CoinAnimation
         :current-throw="currentThrow"
         :is-animating="isAnimating"
         :coin-values="currentCoins"
-        :is-dark="isDark"
+        :is-dark="true"
       />
     </div>
 
     <!-- 阶段 2: 结果展示 + 阶段 3: 解读 + 阶段 4: 感谢页 -->
     <div v-if="phase === 'result' || phase === 'interpretation' || phase === 'done'">
-      <h3 class="text-sm font-medium text-center mb-1" :class="isDark ? 'text-cyan-400' : 'text-amber-700'">结果展示</h3>
-      <h2 class="text-xl font-bold mb-6 text-center">占卜结果</h2>
+      <h3 class="text-sm font-medium text-center mb-1 text-green-400">结果展示</h3>
+      <h2 class="text-xl font-bold mb-6 text-center text-stone-100">占卜结果</h2>
 
       <!-- 问题 -->
       <div class="mb-6">
-        <p class="text-sm opacity-60 mb-1">您的问题</p>
-        <div class="rounded-lg p-3 text-sm" :class="isDark ? 'bg-slate-700' : 'bg-stone-100'">
+        <p class="text-sm text-stone-400 mb-1">您的问题</p>
+        <div class="rounded-lg p-3 text-sm bg-slate-800/60 text-stone-200">
           {{ question }}
         </div>
       </div>
 
       <!-- 本卦 + 变卦 -->
       <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="rounded-lg p-4 text-center" :class="isDark ? 'bg-slate-700' : 'bg-amber-50'">
-          <span class="text-sm opacity-60">本卦</span>
-          <div class="text-2xl font-bold mt-1" :class="isDark ? 'text-cyan-400' : 'text-red-900'">{{ guaResult.primary?.name }}</div>
+        <div class="rounded-lg p-4 text-center bg-slate-800/50">
+          <span class="text-sm text-stone-400">本卦</span>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.primary?.name }}</div>
           <div class="text-2xl my-1">{{ guaResult.primary?.symbol }}</div>
-          <p v-if="guaResult.primary?.gua_ci" class="text-xs opacity-40 mt-1">{{ guaResult.primary.gua_ci }}</p>
+          <p v-if="guaResult.primary?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.primary.gua_ci }}</p>
         </div>
-        <div class="rounded-lg p-4 text-center" :class="isDark ? 'bg-slate-700' : 'bg-stone-50'">
-          <span class="text-sm opacity-60">变卦</span>
-          <div class="text-2xl font-bold mt-1" :class="isDark ? 'text-cyan-400' : 'text-red-900'">{{ guaResult.changing?.name }}</div>
+        <div class="rounded-lg p-4 text-center bg-slate-700/40">
+          <span class="text-sm text-stone-400">变卦</span>
+          <div class="text-2xl font-bold mt-1 text-amber-400">{{ guaResult.changing?.name }}</div>
           <div class="text-2xl my-1">{{ guaResult.changing?.symbol }}</div>
-          <p v-if="guaResult.changing?.gua_ci" class="text-xs opacity-40 mt-1">{{ guaResult.changing.gua_ci }}</p>
+          <p v-if="guaResult.changing?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.changing.gua_ci }}</p>
         </div>
       </div>
 
       <!-- 变爻提示 -->
-      <div v-if="guaResult.yaoPositions?.length" class="rounded-lg p-3 mb-6 text-center text-sm"
-        :class="isDark ? 'bg-red-900/50 text-amber-100' : 'bg-red-50 text-red-800'">
+      <div v-if="guaResult.yaoPositions?.length" class="rounded-lg p-3 mb-6 text-center text-sm bg-red-900/40 text-amber-100">
         变爻：{{ yaoLabels }}
         <template v-if="guaResult.masterYao !== null"> | 主变爻：第{{ guaResult.masterYao + 1 }}爻（最重要）</template>
       </div>
 
       <!-- Hexagram 爻线展示 -->
-      <hexagram :lines="hexLines" :is-dark="isDark" />
+      <hexagram :lines="hexLines" :is-dark="true" />
     </div>
 
     <!-- 加载中 (等待 AI) -->
     <div v-if="showLoading" class="text-center py-6">
-      <div class="inline-flex items-center gap-3 px-5 py-3 rounded-lg"
-        :class="isDark ? 'bg-slate-700 text-cyan-400' : 'bg-amber-50 text-amber-700'">
+      <div class="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-amber-500/10 text-amber-400">
         <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -65,38 +63,36 @@
     </div>
 
     <!-- 阶段 3: 解读 -->
-    <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
-      <h3 class="text-sm font-medium text-center mb-1" :class="isDark ? 'text-cyan-400' : 'text-amber-700'">解读</h3>
-      <h2 class="text-xl font-bold mb-4 text-center">解卦</h2>
+    <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t border-stone-700 pt-6 mt-6">
+      <h3 class="text-sm font-medium text-center mb-1 text-green-400">解读</h3>
+      <h2 class="text-xl font-bold mb-4 text-center text-stone-100">解卦</h2>
       <div class="markdown-body leading-relaxed" v-html="renderedAI"></div>
     </div>
 
     <!-- 阶段 4: 感谢页 -->
-    <div v-if="phase === 'done'" class="border-t pt-8 mt-8 text-center" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
+    <div v-if="phase === 'done'" class="border-t border-stone-700 pt-8 mt-8 text-center">
       <img src="../assets/laozi.svg" alt="老子" class="w-32 h-auto mx-auto mb-4 rounded-lg opacity-80" />
-      <p class="text-lg font-medium mb-2">感谢您的信任</p>
-      <p class="text-sm opacity-60">诸善奉行，福生无量</p>
+      <p class="text-lg font-medium mb-2 text-stone-200">感谢您的信任</p>
+      <p class="text-sm text-stone-500">诸善奉行，福生无量</p>
 
-      <button @click="goHome" class="mt-6 px-8 py-3 rounded-lg font-medium border-2 transition"
-        :class="isDark ? 'border-cyan-600 text-cyan-400 hover:bg-cyan-600 hover:text-white' : 'border-red-800 text-red-800 hover:bg-red-800 hover:text-amber-100'">
+      <button @click="goHome" class="mt-6 px-8 py-3 rounded-lg font-medium border-2 transition border-amber-600 text-amber-400 hover:bg-amber-600 hover:text-white">
         再测一次
       </button>
     </div>
 
     <!-- 错误 -->
-    <div v-if="error" class="text-center text-red-500 py-4">{{ error }}</div>
+    <div v-if="error" class="text-center text-red-400 py-4">{{ error }}</div>
 
-    <!-- 大师入口（修订项 11：保留，点击弹出二维码） -->
-    <div class="mt-4 pt-4 border-t" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
+    <!-- 大师入口 -->
+    <div class="mt-4 pt-4 border-t border-stone-700">
       <button @click="showMaster = !showMaster"
-        class="w-full py-3 rounded-lg text-center font-medium transition flex items-center justify-center gap-2"
-        :class="isDark ? 'bg-slate-700 text-cyan-400 hover:bg-slate-600' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'">
+        class="w-full py-3 rounded-lg text-center font-medium transition flex items-center justify-center gap-2 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20">
         <span class="text-xl">🎓</span>
         周易大师一对一详解
       </button>
       <div v-if="showMaster" class="mt-3 text-center">
-        <img src="/qr-master.png" alt="大师二维码" class="w-48 h-auto mx-auto rounded-lg border" />
-        <p class="text-xs opacity-50 mt-2">扫码添加大师微信，获取深度解读</p>
+        <img src="/qr-master.png" alt="大师二维码" class="w-48 h-auto mx-auto rounded-lg border border-stone-600" />
+        <p class="text-xs text-stone-500 mt-2">扫码添加大师微信，获取深度解读</p>
       </div>
     </div>
   </div>
@@ -113,12 +109,11 @@ import Hexagram from '../components/Hexagram.vue'
 const router = useRouter()
 const auth = useAuthStore()
 const question = history.state?.question || ''
-const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 if (!question) { router.push('/') }
 
 // 状态
-const phase = ref('coins')  // coins, result, interpretation, done
+const phase = ref('coins')
 const currentThrow = ref(1)
 const isAnimating = ref(true)
 const currentCoins = ref([null, null, null])
@@ -154,7 +149,6 @@ const renderedAI = computed(() => {
   return html
 })
 
-// 加载动画
 let dotsTimer = null
 function startDots() {
   dotsTimer = setInterval(() => {
@@ -171,7 +165,6 @@ function goHome() {
   router.push('/')
 }
 
-// SSE 流处理
 async function startStream() {
   try {
     const resp = await fetch('/api/divine/stream', {
@@ -217,12 +210,10 @@ async function startStream() {
             if (currentEvent === 'phase') {
               if (data.phase === 'coins') {
                 currentThrow.value = data.data.throw
-                // 根据 yang 字段模拟铜钱值（yang=true → 3 背，yang=false → 2 字）
                 const val = data.data.yang ? 3 : 2
                 currentCoins.value = [val, val, val]
                 isAnimating.value = true
               } else if (data.phase === 'hexagram') {
-                // 6 次摇完，展示结果
                 isAnimating.value = false
                 phase.value = 'result'
                 guaResult.value = {
@@ -275,10 +266,10 @@ onUnmounted(stopDots)
 </script>
 
 <style scoped>
-.markdown-body :deep(h2) { font-size: 1.1rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
-.markdown-body :deep(h3) { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
-.markdown-body :deep(p) { margin-bottom: 0.6rem; }
-.markdown-body :deep(strong) { font-weight: 700; }
-.markdown-body :deep(blockquote) { border-left: 3px solid rgba(0,0,0,0.15); padding-left: 0.75rem; opacity: 0.7; margin: 0.5rem 0; }
-.markdown-body :deep(ul), .markdown-body :deep(ol) { padding-left: 1.25rem; margin-bottom: 0.6rem; }
+.markdown-body :deep(h2) { font-size: 1.1rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); color: #e8e4d8; }
+.markdown-body :deep(h3) { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; color: #e8e4d8; }
+.markdown-body :deep(p) { margin-bottom: 0.6rem; color: #d0ccc4; }
+.markdown-body :deep(strong) { font-weight: 700; color: #e8c97a; }
+.markdown-body :deep(blockquote) { border-left: 3px solid rgba(212,168,83,0.3); padding-left: 0.75rem; color: #9ca3af; margin: 0.5rem 0; }
+.markdown-body :deep(ul), .markdown-body :deep(ol) { padding-left: 1.25rem; margin-bottom: 0.6rem; color: #d0ccc4; }
 </style>
