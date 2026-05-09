@@ -1,0 +1,18 @@
+<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="200" height="280" fill="#f5f0e8" rx="8"/>
+  <!-- 水墨风格装饰 -->
+  <rect x="10" y="10" width="180" height="260" fill="none" stroke="#d4c5a9" stroke-width="1" rx="4"/>
+  <!-- 人物轮廓 -->
+  <ellipse cx="100" cy="100" rx="25" ry="30" fill="#8b7355" opacity="0.6"/>
+  <!-- 身体 -->
+  <path d="M 75 130 Q 100 120 125 130 L 120 200 Q 100 210 80 200 Z" fill="#8b7355" opacity="0.5"/>
+  <!-- 袖子 -->
+  <path d="M 75 135 L 50 170 L 65 175 L 80 145" fill="#8b7355" opacity="0.4"/>
+  <path d="M 125 135 L 150 170 L 135 175 L 120 145" fill="#8b7355" opacity="0.4"/>
+  <!-- 胡须 -->
+  <path d="M 85 115 Q 100 140 115 115" fill="none" stroke="#8b7355" stroke-width="2" opacity="0.7"/>
+  <!-- 文字 -->
+  <text x="100" y="235" text-anchor="middle" font-size="16" fill="#666" font-family="'Noto Sans SC', serif">老子</text>
+  <text x="100" y="255" text-anchor="middle" font-size="10" fill="#999">（待替换为水墨画像）</text>
+</svg>

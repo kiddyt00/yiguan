@@ -4,8 +4,8 @@
     <main class="max-w-2xl mx-auto px-4 py-8">
       <router-view :is-dark="isDark" />
     </main>
-    <footer class="text-center text-stone-400 dark:text-slate-500 text-sm py-8">
-      易观 · AI 卦象解读 | 仅供文化学习交流
+    <footer class="text-center text-stone-400 dark:text-slate-500 text-xs py-6 px-4">
+      本小程序旨在推广中国传统文化，所有内容基于《周易》公开文献整理，无预测功能，结果仅供学习交流。
     </footer>
   </div>
 </template>
