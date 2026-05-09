@@ -35,7 +35,7 @@ func (c *Client) DivineStream(prompt string, onChunk func(chunk string) error) e
 		Stream: true,
 	})
 
-	req, err := http.NewRequest("POST", c.cfg.Endpoint, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.chatURL(), bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("创建请求失败: %w", err)
 	}
