@@ -139,6 +139,10 @@ func main() {
 		authHandler.SetWechatConfig(appID, os.Getenv("WX_SECRET"))
 		log.Printf("微信小程序登录已配置: %s", appID)
 	}
+	if appID := os.Getenv("WX_OPEN_APPID"); appID != "" {
+		authHandler.SetWechatOpenConfig(appID, os.Getenv("WX_OPEN_SECRET"))
+		log.Printf("微信开放平台扫码登录已配置: %s", appID)
+	}
 	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
 
 	uh := handler.NewUserHandler(st)

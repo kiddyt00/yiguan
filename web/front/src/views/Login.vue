@@ -8,9 +8,28 @@
           :class="tab === 'login' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">密码登录</button>
         <button @click="tab = 'sms'" class="flex-1 py-2 text-center text-sm"
           :class="tab === 'sms' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">短信登录</button>
+        <button @click="tab = 'qrcode'" class="flex-1 py-2 text-center text-sm"
+          :class="tab === 'qrcode' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">微信扫码</button>
         <button @click="tab = 'register'" class="flex-1 py-2 text-center text-sm"
           :class="tab === 'register' ? 'border-b-2 font-medium ' + activeTabClass : 'opacity-50'">注册</button>
       </div>
+
+      <!-- 微信扫码登录 -->
+      <template v-if="tab === 'qrcode'">
+        <div class="text-center py-4">
+          <div v-if="qrStatus === 'loading'" class="text-sm opacity-50">正在生成二维码...</div>
+          <div v-else-if="qrStatus === 'pending'" class="space-y-3">
+            <div id="qrcode" class="inline-block bg-white p-3 rounded-lg"></div>
+            <p class="text-sm opacity-50">请使用微信扫描二维码</p>
+          </div>
+          <div v-else-if="qrStatus === 'ok'" class="text-green-500 font-medium">✅ 登录成功</div>
+          <div v-else-if="qrStatus === 'expired'" class="space-y-3">
+            <p class="text-sm text-red-400">二维码已过期</p>
+            <button @click="genQRCode" class="text-sm underline">重新获取</button>
+          </div>
+          <div v-else class="text-sm text-red-400">{{ qrError }}</div>
+        </div>
+      </template>
 
       <!-- 短信登录 -->
       <template v-if="tab === 'sms'">
@@ -56,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
@@ -70,9 +89,13 @@ const tab = ref('login')
 const error = ref('')
 const loading = ref(false)
 const smsCountdown = ref(0)
+const qrStatus = ref('')
+const qrError = ref('')
+const qrTicket = ref('')
+let qrTimer = null
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 const activeTabClass = computed(() => isDark.value ? 'border-cyan-400 text-cyan-400' : 'border-red-800 text-red-800')
-const tabLabel = computed(() => ({ login: '密码登录', sms: '短信登录', register: '注册' }[tab.value]))
+const tabLabel = computed(() => ({ login: '密码登录', sms: '短信登录', qrcode: '微信扫码登录', register: '注册' }[tab.value]))
 
 async function submit() {
   error.value = ''
@@ -121,5 +144,69 @@ async function smsLogin() {
     else { error.value = data.error || '验证失败' }
   } catch (e) { error.value = '网络错误' }
   finally { loading.value = false }
+}
+
+// ========== 微信扫码登录 ==========
+
+watch(tab, (val) => {
+  if (val === 'qrcode') genQRCode()
+  else { if (qrTimer) { clearInterval(qrTimer); qrTimer = null } }
+})
+
+onUnmounted(() => { if (qrTimer) clearInterval(qrTimer) })
+
+async function genQRCode() {
+  qrStatus.value = 'loading'
+  qrError.value = ''
+  try {
+    const res = await fetch('/api/auth/wechat-qrcode')
+    const data = await res.json()
+    if (!res.ok) { qrStatus.value = 'error'; qrError.value = data.error; return }
+
+    qrTicket.value = data.ticket
+    // 用 canvas 生成二维码
+    const container = document.getElementById('qrcode')
+    if (container) {
+      container.innerHTML = ''
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = 200
+      container.appendChild(canvas)
+      drawQRCode(canvas, data.qrcode_url)
+    }
+    qrStatus.value = 'pending'
+    startPoll()
+  } catch (e) {
+    qrStatus.value = 'error'
+    qrError.value = '网络错误'
+  }
+}
+
+function startPoll() {
+  if (qrTimer) clearInterval(qrTimer)
+  qrTimer = setInterval(async () => {
+    try {
+      const res = await fetch('/api/auth/wechat-check?ticket=' + qrTicket.value)
+      const data = await res.json()
+      if (data.status === 'ok') {
+        clearInterval(qrTimer)
+        qrStatus.value = 'ok'
+        auth.setAuth(data.token, {})
+        setTimeout(() => router.push('/'), 800)
+      } else if (data.status === 'expired') {
+        clearInterval(qrTimer)
+        qrStatus.value = 'expired'
+      }
+    } catch (e) { /* ignore poll errors */ }
+  }, 2000)
+}
+
+function drawQRCode(canvas, url) {
+  // 简单二维码：用 Google Chart API 生成
+  const img = new Image()
+  img.onload = () => {
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0, 200, 200)
+  }
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
 }
 </script>

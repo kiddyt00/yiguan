@@ -17,12 +17,19 @@ import (
 
 // AuthHandler 认证相关处理器
 type AuthHandler struct {
-	mux      *http.ServeMux
-	store    store.Store
-	secret   string
-	wxAppID  string
-	wxSecret string
+	mux         *http.ServeMux
+	store       store.Store
+	secret      string
+	wxAppID     string
+	wxSecret    string
+	wxOpenAppID string
+	wxOpenSecret string
 }
+
+// 微信扫码登录 ticket → token 内存存储
+var (
+	wxTickets   = sync.Map{} // ticket -> "pending" | "token:xxx"
+)
 
 // smsCode 内存存储短信验证码
 var (
@@ -42,7 +49,16 @@ func NewAuthHandler(st store.Store, jwtSecret string) *AuthHandler {
 	h.mux.HandleFunc("POST /api/auth/wechat-login", h.wechatLogin)
 	h.mux.HandleFunc("POST /api/auth/sms-send", h.smsSend)
 	h.mux.HandleFunc("POST /api/auth/sms-login", h.smsLogin)
+	h.mux.HandleFunc("GET /api/auth/wechat-qrcode", h.wechatQRCode)
+	h.mux.HandleFunc("GET /api/auth/wechat-callback", h.wechatCallback)
+	h.mux.HandleFunc("GET /api/auth/wechat-check", h.wechatCheck)
 	return h
+}
+
+// SetWechatOpenConfig 设置微信开放平台配置（网站扫码登录）
+func (h *AuthHandler) SetWechatOpenConfig(appID, appSecret string) {
+	h.wxOpenAppID = appID
+	h.wxOpenSecret = appSecret
 }
 
 // SetWechatConfig 设置微信小程序配置
@@ -288,6 +304,126 @@ func (h *AuthHandler) smsLogin(w http.ResponseWriter, r *http.Request) {
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
+}
+
+// ========== 微信扫码登录（网站用） ==========
+
+// wechatQRCode 生成扫码登录 URL
+func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
+	if h.wxOpenAppID == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "微信开放平台未配置"})
+		return
+	}
+
+	ticket := fmt.Sprintf("wx_%d_%d", time.Now().UnixNano(), rand.Intn(10000))
+	redirectURI := fmt.Sprintf("https://49.235.108.61/api/auth/wechat-callback")
+	url := fmt.Sprintf(
+		"https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s",
+		h.wxOpenAppID, redirectURI, ticket,
+	)
+
+	wxTickets.Store(ticket, "pending")
+
+	// 5 分钟后过期
+	time.AfterFunc(5*time.Minute, func() {
+		if v, ok := wxTickets.Load(ticket); ok && v.(string) == "pending" {
+			wxTickets.Delete(ticket)
+		}
+	})
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"ticket":     ticket,
+		"qrcode_url": url,
+	})
+}
+
+// wechatCallback 微信 OAuth 回调
+func (h *AuthHandler) wechatCallback(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state") // ticket
+
+	if code == "" || state == "" {
+		http.Error(w, "参数错误", http.StatusBadRequest)
+		return
+	}
+
+	// 用 code 换 openid
+	openid, err := h.exchangeOpenCode(code)
+	if err != nil {
+		log.Printf("微信开放平台 code 换 openid 失败: %v", err)
+		http.Error(w, "微信登录失败", http.StatusBadGateway)
+		return
+	}
+
+	// 查找或创建用户
+	user, err := h.store.GetUserByOpenID(openid)
+	if err != nil {
+		user, err = h.store.CreateUserByOpenID(openid, "微信用户")
+		if err != nil {
+			http.Error(w, "创建用户失败", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	token, _ := h.generateToken(user.ID, user.Role)
+	wxTickets.Store(state, "token:"+token)
+
+	// 返回一个简单页面告知扫码成功
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>登录成功</title></head>
+<body style="text-align:center;padding-top:80px;font-family:sans-serif;">
+<h2>✅ 扫码成功</h2><p>正在返回...</p><script>setTimeout(function(){window.close()},1500)</script>
+</body></html>`))
+}
+
+// wechatCheck 轮询扫码状态
+func (h *AuthHandler) wechatCheck(w http.ResponseWriter, r *http.Request) {
+	ticket := r.URL.Query().Get("ticket")
+	if ticket == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 ticket"})
+		return
+	}
+
+	v, ok := wxTickets.Load(ticket)
+	if !ok {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"status": "expired"})
+		return
+	}
+
+	val := v.(string)
+	if val == "pending" {
+		writeJSON(w, http.StatusOK, map[string]interface{}{"status": "pending"})
+		return
+	}
+
+	// "token:xxx"
+	token := strings.TrimPrefix(val, "token:")
+	wxTickets.Delete(ticket)
+	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "token": token})
+}
+
+// exchangeOpenCode 微信开放平台 code 换 openid
+func (h *AuthHandler) exchangeOpenCode(code string) (string, error) {
+	url := fmt.Sprintf(
+		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code",
+		h.wxOpenAppID, h.wxOpenSecret, code,
+	)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		OpenID  string `json:"openid"`
+		ErrCode int    `json:"errcode"`
+		ErrMsg  string `json:"errmsg"`
+	}
+	json.NewDecoder(resp.Body).Decode(&result)
+	if result.ErrCode != 0 {
+		return "", fmt.Errorf("微信错误 %d: %s", result.ErrCode, result.ErrMsg)
+	}
+	return result.OpenID, nil
 }
 
 func (h *AuthHandler) generateToken(userID int64, role string) (string, error) {
