@@ -173,6 +173,7 @@ func main() {
 	mux.Handle("DELETE /api/admin/models/{id}", adminMW(corsWrap(http.HandlerFunc(mh.DeleteModel))))
 	mux.Handle("POST /api/admin/models/{id}/set-default", adminMW(corsWrap(http.HandlerFunc(mh.SetDefaultModel))))
 	mux.Handle("POST /api/admin/models/{id}/toggle", adminMW(corsWrap(http.HandlerFunc(mh.ToggleModel))))
+	mux.Handle("POST /api/admin/models/fetch", adminMW(corsWrap(http.HandlerFunc(mh.FetchModels))))
 
 	// 广告管理
 	adH := handler.NewAdHandler(st)

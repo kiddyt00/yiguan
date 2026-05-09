@@ -51,11 +51,17 @@
         </el-form-item>
 
         <el-form-item label="④ 模型选择" required>
-          <el-select v-model="form.modelSelect" class="w-full" filterable allow-create
-            placeholder="选择或输入模型名" @change="onModelSelect">
-            <el-option v-for="m in currentModels" :key="m" :label="m" :value="m" />
-            <el-option label="✎ 自定义输入..." value="__custom__" />
-          </el-select>
+          <div class="flex gap-2">
+            <el-select v-model="form.modelSelect" class="flex-1" filterable allow-create
+              placeholder="选择或输入模型名" @change="onModelSelect">
+              <el-option v-for="m in currentModels" :key="m" :label="m" :value="m" />
+              <el-option v-for="m in fetchedModels" :key="'f-'+m" :label="m" :value="m" />
+              <el-option label="✎ 自定义输入..." value="__custom__" />
+            </el-select>
+            <el-button :loading="fetchingModels" @click="fetchModelList" :disabled="!form.endpoint || !form.api_key">
+              刷新
+            </el-button>
+          </div>
           <el-input v-if="showCustomModel" v-model="form.customModel" class="mt-2"
             placeholder="输入模型 ID" />
         </el-form-item>
@@ -86,6 +92,8 @@ const isEdit = ref(false)
 const editId = ref(null)
 const saving = ref(false)
 const showCustomModel = ref(false)
+const fetchedModels = ref([])
+const fetchingModels = ref(false)
 
 const form = ref({
   provider: '', endpoint: '', api_key: '', name: '',
@@ -109,6 +117,21 @@ function onProviderChange(key) {
   form.value.name = ''
   form.value.customModel = ''
   showCustomModel.value = false
+  fetchedModels.value = []
+}
+
+async function fetchModelList() {
+  if (!form.value.endpoint || !form.value.api_key) return
+  fetchingModels.value = true
+  try {
+    const data = await adminApi.fetchModels(form.value.endpoint, form.value.api_key)
+    fetchedModels.value = data.models || []
+    ElMessage.success(`获取到 ${fetchedModels.value.length} 个模型`)
+  } catch (e) {
+    ElMessage.error(e.message || '获取模型列表失败')
+  } finally {
+    fetchingModels.value = false
+  }
 }
 
 function onModelSelect(val) {

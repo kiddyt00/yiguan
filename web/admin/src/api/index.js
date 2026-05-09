@@ -43,6 +43,7 @@ export const adminApi = {
   deleteModel: (id) => api(`/admin/models/${id}`, { method: 'DELETE' }),
   setDefaultModel: (id) => api(`/admin/models/${id}/set-default`, { method: 'POST' }),
   toggleModel: (id, enabled) => api(`/admin/models/${id}/toggle?enabled=${enabled}`, { method: 'POST' }),
+  fetchModels: (endpoint, api_key) => api('/admin/models/fetch', { method: 'POST', body: JSON.stringify({ endpoint, api_key }) }),
 
   ads: () => api('/admin/ads'),
   createAd: (data) => api('/admin/ads', { method: 'POST', body: JSON.stringify(data) }),
