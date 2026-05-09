@@ -1,23 +1,20 @@
 <template>
-  <header class="shadow-lg" :class="isDark ? 'bg-slate-800 text-cyan-300' : 'bg-red-900 text-amber-100'">
+  <header class="shadow-lg bg-transparent">
     <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
-        <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto" />
+        <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto brightness-0 invert" />
       </router-link>
       <div class="flex items-center gap-4 text-sm">
-        <button @click="$emit('toggleTheme')" class="opacity-75 hover:opacity-100">
-          {{ isDark ? '☀' : '🌙' }}
-        </button>
         <template v-if="auth.isLoggedIn()">
-          <span v-if="quota !== null" class="text-xs px-2 py-0.5 rounded-full" :class="isDark ? 'bg-slate-700' : 'bg-red-800'">
+          <span v-if="quota !== null" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
             {{ quota }} 次
           </span>
-          <router-link to="/history">历史</router-link>
-          <router-link to="/profile">{{ auth.user?.nickname || '我' }}</router-link>
-          <button @click="doLogout" class="opacity-75">退出</button>
+          <router-link to="/history" class="text-gray-300 hover:text-amber-300 transition">历史</router-link>
+          <router-link to="/profile" class="text-gray-300 hover:text-amber-300 transition">{{ auth.user?.nickname || '我' }}</router-link>
+          <button @click="doLogout" class="text-gray-400 hover:text-amber-300 transition">退出</button>
         </template>
         <template v-else>
-          <router-link to="/login">登录</router-link>
+          <router-link to="/login" class="text-gray-300 hover:text-amber-300 transition">登录</router-link>
         </template>
       </div>
     </div>
@@ -29,7 +26,6 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 defineProps(['isDark'])
-defineEmits(['toggleTheme'])
 const auth = useAuthStore()
 const $router = useRouter()
 const quota = ref(null)

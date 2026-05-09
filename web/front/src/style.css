@@ -1,23 +1,100 @@
 @import "tailwindcss";
 
-/* 浅色主题 (A站-中国风) */
 :root {
-  --bg: #faf7f0;
-  --card: #ffffff;
-  --text: #3c2415;
-  --accent: #991b1b;
-  --accent-light: #fef2f2;
+  --bg: #1a1f3a;
+  --bg-deep: #12152a;
+  --card: rgba(28, 32, 58, 0.85);
+  --card-hover: rgba(35, 40, 70, 0.9);
+  --text: #f5f0e8;
+  --text-secondary: #9ca3af;
+  --gold: #d4a853;
+  --gold-light: #e8c97a;
+  --green: #4ade80;
+  --red: #ef4444;
+  --red-glow: rgba(239, 68, 68, 0.6);
 }
-/* 深色主题 (B站-科技风) */
-.dark {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --text: #e2e8f0;
-  --accent: #38bdf8;
-  --accent-light: #0c4a6e;
+
+* {
+  box-sizing: border-box;
 }
+
 body {
-  background: var(--bg);
+  background: linear-gradient(135deg, var(--bg-deep) 0%, var(--bg) 50%, #2a1f3d 100%);
   color: var(--text);
   font-family: 'Noto Sans SC', sans-serif;
+  min-height: 100vh;
+}
+
+/* 卡片玻璃拟态 */
+.glass-card {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+}
+
+/* 金色文字 */
+.text-gold {
+  color: var(--gold);
+}
+.text-gold-light {
+  color: var(--gold-light);
+}
+
+/* 绿色状态 */
+.text-green {
+  color: var(--green);
+}
+
+/* 红色变爻 */
+.text-red-glow {
+  color: var(--red);
+  text-shadow: 0 0 8px var(--red-glow);
+}
+
+/* 铜钱发光效果 */
+.coin-glow {
+  box-shadow: 0 0 15px rgba(212, 168, 83, 0.4), 0 0 30px rgba(212, 168, 83, 0.2);
+}
+
+/* 进度指示器 */
+.step-active {
+  background: var(--gold);
+  color: #1a1f3a;
+  box-shadow: 0 0 10px rgba(212, 168, 83, 0.5);
+}
+.step-inactive {
+  background: rgba(212, 168, 83, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+}
+
+/* 爻线样式 */
+.yao-yang {
+  height: 4px;
+  background: #e8e4d8;
+  border-radius: 2px;
+}
+.yao-yin {
+  height: 4px;
+  display: flex;
+  gap: 8px;
+}
+.yao-yin::before,
+.yao-yin::after {
+  content: '';
+  flex: 1;
+  height: 100%;
+  background: #e8e4d8;
+  border-radius: 2px;
+}
+.yao-changing {
+  background: var(--red) !important;
+  box-shadow: 0 0 8px var(--red-glow);
+}
+.yao-changing::before,
+.yao-changing::after {
+  background: var(--red) !important;
+  box-shadow: 0 0 8px var(--red-glow);
 }

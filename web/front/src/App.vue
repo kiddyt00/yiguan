@@ -1,11 +1,13 @@
 <template>
-  <div class="min-h-screen">
-    <NavBar :is-dark="isDark" @toggle-theme="toggleTheme" />
-    <main class="max-w-2xl mx-auto px-4 py-8">
-      <router-view :is-dark="isDark" />
+  <div class="min-h-screen flex flex-col">
+    <NavBar :is-dark="true" />
+    <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+      <router-view :is-dark="true" />
     </main>
-    <footer class="text-center text-stone-400 dark:text-slate-500 text-xs py-6 px-4">
-      本小程序旨在推广中国传统文化，所有内容基于《周易》公开文献整理，无预测功能，结果仅供学习交流。
+    <footer class="text-center text-stone-500 text-xs py-6 px-4">
+      <p>本占卜仅供娱乐参考，不构成任何专业建议</p>
+      <p class="mt-1">请理性看待结果，人生抉择请结合自身实际情况</p>
+      <p class="mt-1">如遇重大问题，请咨询相关专业人士</p>
     </footer>
   </div>
 </template>
