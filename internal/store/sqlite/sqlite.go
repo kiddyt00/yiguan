@@ -121,6 +121,18 @@ func migrate(db *sql.DB) error {
 			FOREIGN KEY (ad_id) REFERENCES ads(id)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_ad_records_user_ad ON ad_records(user_id, ad_id)`,
+
+		// 翻译缓存表
+		`CREATE TABLE IF NOT EXISTS translations (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			history_id INTEGER NOT NULL,
+			lang TEXT NOT NULL,
+			content TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (history_id) REFERENCES history(id),
+			UNIQUE(history_id, lang)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_translations_history_id ON translations(history_id)`,
 	}
 
 	for _, s := range schemas {
@@ -182,6 +194,15 @@ func migrate(db *sql.DB) error {
 	if openidCol == 0 {
 		if _, err := db.Exec("ALTER TABLE users ADD COLUMN openid TEXT DEFAULT ''"); err != nil {
 			return fmt.Errorf("添加 openid 列失败: %w", err)
+		}
+	}
+
+	// v2.4: history.lang 列迁移
+	var langCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'lang'").Scan(&langCol)
+	if langCol == 0 {
+		if _, err := db.Exec("ALTER TABLE history ADD COLUMN lang TEXT NOT NULL DEFAULT 'zh'"); err != nil {
+			return fmt.Errorf("添加 lang 列失败: %w", err)
 		}
 	}
 

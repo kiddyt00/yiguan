@@ -105,6 +105,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		ChangingGua:    result.Changing.Name,
 		YaoPositions:   result.YaoDesc,
 		Interpretation: interpretation.String(),
+		Lang:           getLang(r),
 	}
 	if saveErr := h.store.SaveHistory(history); saveErr != nil {
 		writeSSE("error", map[string]interface{}{"error": "保存记录失败"})
@@ -115,6 +116,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	writeSSE("done", map[string]interface{}{
 		"id":              history.ID,
 		"interpretation":  interpretation.String(),
+		"lang":            history.Lang,
 		"remaining_quota": remaining,
 		"created_at":      time.Now().Format(time.RFC3339),
 	})

@@ -139,6 +139,19 @@ func BuildPrompt(question, primary, changing, yaoPositions, lang string) string 
 	)
 }
 
+// BuildTranslatePrompt 构建翻译 prompt，严格限定为字面翻译
+func BuildTranslatePrompt(content, targetLang string) string {
+	if targetLang == "en" {
+		return "Translate the following I Ching divination interpretation from Chinese to English. " +
+			"Strictly preserve all Markdown formatting, heading levels, and bold text. " +
+			"Keep hexagram names in Chinese with English translation in parentheses. " +
+			"Output ONLY the translation, no extra commentary or explanation.\n\n" + content
+	}
+	return "将以下易经解卦内容从英文翻译为中文。严格保留所有 Markdown 格式、标题层级和加粗标记。" +
+		"卦名保留英文并在括号内附中文翻译。" +
+		"仅输出翻译结果，不添加任何额外评论或解释。\n\n" + content
+}
+
 // DivineWithRetry 调用 LLM 解卦，失败自动重试
 func (c *Client) DivineWithRetry(prompt string, maxRetries int) (string, error) {
 	var lastErr error
