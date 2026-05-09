@@ -47,9 +47,16 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// 阶段 1: 铜钱抛掷
 	names := []string{"初爻", "二爻", "三爻", "四爻", "五爻", "上爻"}
 	for i, line := range result.Lines {
+		// 从 line 值还原 3 枚铜钱 (6=2+2+2, 7=2+2+3, 8=2+3+3, 9=3+3+3)
+		coinValues := coinsFromLine(line)
 		writeSSE("phase", map[string]interface{}{
 			"phase": "coins",
-			"data":  map[string]interface{}{"throw": i + 1, "label": names[i], "result": lineType(line), "yang": line%2 != 0},
+			"data": map[string]interface{}{
+				"throw": i + 1, "label": names[i],
+				"result": lineType(line), "yang": line%2 != 0,
+				"sum":     line,
+				"coin_values": coinValues, // ["反","反","正"] 等
+			},
 		})
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -116,14 +123,34 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func lineType(line int) string {
 	switch line {
 	case 6:
-		return "old_yin"
+		return "老阴"
 	case 7:
-		return "young_yang"
+		return "少阳"
 	case 8:
-		return "young_yin"
+		return "少阴"
 	case 9:
-		return "old_yang"
+		return "老阳"
 	default:
 		return "unknown"
 	}
+}
+
+// coinsFromLine 从爻值还原3枚铜钱的值（2=反, 3=正）
+// 6=2+2+2, 7=2+2+3, 8=2+3+3, 9=3+3+3
+func coinsFromLine(line int) []string {
+	// 按正=3, 反=2 还原（最小化正的数量）
+	count3 := (line - 6) // 0,1,2,3
+	coins := make([]string, 3)
+	for i := 0; i < 3; i++ {
+		if i < count3 {
+			coins[i] = "反"
+		} else {
+			coins[i] = "正"
+		}
+	}
+	// 反转使正排在前面更直观
+	for i, j := 0, 2; i < j; i, j = i+1, j-1 {
+		coins[i], coins[j] = coins[j], coins[i]
+	}
+	return coins
 }
