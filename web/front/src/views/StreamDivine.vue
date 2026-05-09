@@ -22,6 +22,19 @@
       </div>
     </div>
 
+    <!-- 等待 AI 响应的加载动画 -->
+    <div v-if="showLoading" class="text-center py-6">
+      <div class="inline-flex items-center gap-3 px-5 py-3 rounded-lg"
+        :class="isDark ? 'bg-slate-700 text-cyan-400' : 'bg-amber-50 text-amber-700'">
+        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span class="text-sm font-medium">AI 正在思考中{{ loadingDots }}</span>
+      </div>
+      <p v-if="statusMsg" class="text-xs mt-2 opacity-50">{{ statusMsg }}</p>
+    </div>
+
     <!-- AI 解卦流式渲染 -->
     <div v-if="showAI" class="border-t pt-6 mt-6" :class="isDark ? 'border-slate-600' : 'border-stone-200'">
       <h4 class="text-lg font-medium mb-3">🤖 AI 解卦</h4>
@@ -43,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
@@ -66,9 +79,25 @@ const hexagram = ref({ primary_gua: '', changing_gua: '' })
 const aiText = ref('')
 const error = ref('')
 const recordData = ref(null)
+const statusMsg = ref('')
+
+// 加载动画的点（... → .... → ..... → ...）
+const loadingDots = ref('...')
+let dotsTimer = null
+function startDots() {
+  dotsTimer = setInterval(() => {
+    const dots = ['.', '..', '...', '....']
+    const i = dots.indexOf(loadingDots.value)
+    loadingDots.value = dots[(i + 1) % dots.length]
+  }, 500)
+}
+function stopDots() {
+  if (dotsTimer) { clearInterval(dotsTimer); dotsTimer = null }
+}
 
 const showHexagram = computed(() => ['hexagram', 'ai', 'done'].includes(phase.value))
 const showAI = computed(() => ['ai', 'done'].includes(phase.value))
+const showLoading = computed(() => phase.value === 'hexagram')
 const statusText = computed(() => {
   const map = { coins: '起卦中...', hexagram: '卦象已现', ai: 'AI 解卦中...', done: '解卦完成', error: '出错了' }
   return map[phase.value] || ''
@@ -135,15 +164,21 @@ async function startStream() {
               } else if (data.phase === 'hexagram') {
                 phase.value = 'hexagram'
                 hexagram.value = { primary_gua: data.data.primary_gua, changing_gua: data.data.changing_gua }
+                startDots()
               }
             } else if (currentEvent === 'ai') {
+              stopDots()
               if (phase.value === 'hexagram') phase.value = 'ai'
               aiText.value += data.chunk
+            } else if (currentEvent === 'status') {
+              statusMsg.value = data.msg || ''
             } else if (currentEvent === 'done') {
+              stopDots()
               phase.value = 'done'
               recordData.value = data
               emit('complete', data)
             } else if (currentEvent === 'error') {
+              stopDots()
               error.value = data.error
               phase.value = 'done'
               emit('error', data.error)
@@ -155,6 +190,7 @@ async function startStream() {
       }
     }
   } catch (e) {
+    stopDots()
     error.value = '网络连接失败: ' + e.message
     phase.value = 'error'
     emit('error', e.message)
@@ -162,6 +198,7 @@ async function startStream() {
 }
 
 onMounted(startStream)
+onUnmounted(stopDots)
 </script>
 
 <style scoped>
@@ -194,5 +231,13 @@ onMounted(startStream)
 .markdown-body :deep(ul), .markdown-body :deep(ol) {
   padding-left: 1.25rem;
   margin-bottom: 0.6rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>
