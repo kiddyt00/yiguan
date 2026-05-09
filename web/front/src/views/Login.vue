@@ -47,7 +47,7 @@
       </template>
 
       <!-- 密码登录 / 注册 -->
-      <template v-else>
+      <template v-else-if="tab === 'login' || tab === 'register'">
         <input v-model="phone" :placeholder="t('login.phone.placeholder')"
           class="w-full border rounded-lg p-3 mb-3 bg-transparent text-stone-100 border-stone-600 focus:border-amber-500 outline-none" />
         <input v-model="password" type="password"
@@ -64,7 +64,7 @@
         <p v-if="tab === 'register'" class="text-center text-xs text-stone-400 mt-3">{{ t('login.gift') }}</p>
       </template>
 
-      <div v-if="error" class="text-red-500 text-sm mt-3 text-center">{{ error }}</div>
+      <div v-if="error && tab !== 'qrcode'" class="text-red-500 text-sm mt-3 text-center">{{ error }}</div>
     </div>
   </div>
 </template>
@@ -142,6 +142,7 @@ async function smsLogin() {
 }
 
 watch(tab, (val) => {
+  error.value = ''
   if (val === 'qrcode') genQRCode()
   else { if (qrTimer) { clearInterval(qrTimer); qrTimer = null } }
 })
