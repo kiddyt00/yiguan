@@ -162,7 +162,16 @@ func migrate(db *sql.DB) error {
 		}
 	}
 
-	// v2.2: 存量 display_name 填充
+	// v2.2: 存量 display_name 迁移
+	var colCount int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('llm_models') WHERE name = 'display_name'").Scan(&colCount)
+	if colCount == 0 {
+		// 旧表缺少 display_name 列，先加列
+		if _, err := db.Exec("ALTER TABLE llm_models ADD COLUMN display_name TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 display_name 列失败: %w", err)
+		}
+	}
+	// 填充存量数据
 	var emptyCount int
 	db.QueryRow("SELECT COUNT(*) FROM llm_models WHERE display_name = '' OR display_name IS NULL").Scan(&emptyCount)
 	if emptyCount > 0 {
