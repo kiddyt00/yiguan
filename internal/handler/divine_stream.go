@@ -59,7 +59,12 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		"phase": "hexagram",
 		"data": map[string]interface{}{
 			"primary_gua":   result.Primary.Name,
+			"primary_gua_ci": result.Primary.GuaCi,
+			"primary_symbol": result.Primary.Symbol,
+			"primary_yao_desc": result.Primary.YaoDesc,
 			"changing_gua":  result.Changing.Name,
+			"changing_gua_ci": result.Changing.GuaCi,
+			"changing_symbol": result.Changing.Symbol,
 			"yao_positions": result.YaoPositions,
 		},
 	})
