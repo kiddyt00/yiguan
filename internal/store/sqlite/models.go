@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Store) ListModels() ([]store.LLMModel, error) {
-	rows, err := s.db.Query("SELECT id, name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models ORDER BY sort_order, id")
+	rows, err := s.db.Query("SELECT id, name, display_name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models ORDER BY sort_order, id")
 	if err != nil {
 		return nil, err
 	}
@@ -16,7 +16,7 @@ func (s *Store) ListModels() ([]store.LLMModel, error) {
 	var list []store.LLMModel
 	for rows.Next() {
 		var m store.LLMModel
-		if err := rows.Scan(&m.ID, &m.Name, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt); err != nil {
+		if err := rows.Scan(&m.ID, &m.Name, &m.DisplayName, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, m)
@@ -27,9 +27,9 @@ func (s *Store) ListModels() ([]store.LLMModel, error) {
 func (s *Store) GetModelByID(id int64) (*store.LLMModel, error) {
 	m := &store.LLMModel{}
 	err := s.db.QueryRow(
-		"SELECT id, name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models WHERE id = ?",
+		"SELECT id, name, display_name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models WHERE id = ?",
 		id,
-	).Scan(&m.ID, &m.Name, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt)
+	).Scan(&m.ID, &m.Name, &m.DisplayName, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -39,8 +39,8 @@ func (s *Store) GetModelByID(id int64) (*store.LLMModel, error) {
 func (s *Store) GetDefaultModel() (*store.LLMModel, error) {
 	m := &store.LLMModel{}
 	err := s.db.QueryRow(
-		"SELECT id, name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models WHERE is_default = 1 AND is_enabled = 1 ORDER BY id LIMIT 1",
-	).Scan(&m.ID, &m.Name, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt)
+		"SELECT id, name, display_name, provider, endpoint, api_key, is_default, is_enabled, sort_order, created_at FROM llm_models WHERE is_default = 1 AND is_enabled = 1 ORDER BY id LIMIT 1",
+	).Scan(&m.ID, &m.Name, &m.DisplayName, &m.Provider, &m.Endpoint, &m.APIKey, &m.IsDefault, &m.IsEnabled, &m.SortOrder, &m.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -49,8 +49,8 @@ func (s *Store) GetDefaultModel() (*store.LLMModel, error) {
 
 func (s *Store) CreateModel(m *store.LLMModel) error {
 	result, err := s.db.Exec(
-		"INSERT INTO llm_models (name, provider, endpoint, api_key, is_default, is_enabled, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		m.Name, m.Provider, m.Endpoint, m.APIKey, m.IsDefault, m.IsEnabled, m.SortOrder,
+		"INSERT INTO llm_models (name, display_name, provider, endpoint, api_key, is_default, is_enabled, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		m.Name, m.DisplayName, m.Provider, m.Endpoint, m.APIKey, m.IsDefault, m.IsEnabled, m.SortOrder,
 	)
 	if err != nil {
 		return err
@@ -61,8 +61,8 @@ func (s *Store) CreateModel(m *store.LLMModel) error {
 
 func (s *Store) UpdateModel(m *store.LLMModel) error {
 	_, err := s.db.Exec(
-		"UPDATE llm_models SET name = ?, provider = ?, endpoint = ?, api_key = ?, is_enabled = ?, sort_order = ? WHERE id = ?",
-		m.Name, m.Provider, m.Endpoint, m.APIKey, m.IsEnabled, m.SortOrder, m.ID,
+		"UPDATE llm_models SET name = ?, display_name = ?, provider = ?, endpoint = ?, api_key = ?, is_enabled = ?, sort_order = ? WHERE id = ?",
+		m.Name, m.DisplayName, m.Provider, m.Endpoint, m.APIKey, m.IsEnabled, m.SortOrder, m.ID,
 	)
 	return err
 }

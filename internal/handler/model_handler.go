@@ -39,6 +39,9 @@ func (h *ModelHandler) CreateModel(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "名称、endpoint、api_key 不能为空"})
 		return
 	}
+	if m.DisplayName == "" {
+		m.DisplayName = m.Provider + " " + m.Name
+	}
 	m.IsEnabled = 1 // 默认启用
 	if err := h.store.CreateModel(&m); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建失败"})

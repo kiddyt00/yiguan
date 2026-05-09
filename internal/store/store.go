@@ -50,15 +50,16 @@ type History struct {
 
 // LLMModel LLM 模型配置
 type LLMModel struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Provider  string    `json:"provider"`
-	Endpoint  string    `json:"endpoint"`
-	APIKey    string    `json:"api_key"`
-	IsDefault int       `json:"is_default"`
-	IsEnabled int       `json:"is_enabled"`
-	SortOrder int       `json:"sort_order"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	DisplayName string    `json:"display_name"`
+	Provider    string    `json:"provider"`
+	Endpoint    string    `json:"endpoint"`
+	APIKey      string    `json:"api_key"`
+	IsDefault   int       `json:"is_default"`
+	IsEnabled   int       `json:"is_enabled"`
+	SortOrder   int       `json:"sort_order"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 // Ad 广告配置

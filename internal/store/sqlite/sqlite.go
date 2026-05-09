@@ -83,6 +83,7 @@ func migrate(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS llm_models (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
+			display_name TEXT DEFAULT '',
 			provider TEXT NOT NULL,
 			endpoint TEXT NOT NULL,
 			api_key TEXT NOT NULL,
@@ -159,6 +160,13 @@ func migrate(db *sql.DB) error {
 				return fmt.Errorf("执行迁移失败: %w\nSQL: %s", err, s)
 			}
 		}
+	}
+
+	// v2.2: 存量 display_name 填充
+	var emptyCount int
+	db.QueryRow("SELECT COUNT(*) FROM llm_models WHERE display_name = '' OR display_name IS NULL").Scan(&emptyCount)
+	if emptyCount > 0 {
+		db.Exec("UPDATE llm_models SET display_name = provider || ' ' || name WHERE display_name = '' OR display_name IS NULL")
 	}
 
 	return nil
