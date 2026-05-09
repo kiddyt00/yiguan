@@ -22,7 +22,7 @@ func newE2EServer(t *testing.T) (*httptest.Server, *sqlite.Store, string) {
 		t.Fatal(err)
 	}
 
-	llmClient := llm.New(llm.Config{APIKey: "", Endpoint: "https://example.com", Model: "test"})
+	llmRouter, _ := llm.NewRouterWithFallback(st, llm.Config{APIKey: "", Endpoint: "https://example.com", Model: "test"})
 	authMW := middleware.AuthRequired(secret)
 
 	mux := http.NewServeMux()
@@ -40,7 +40,7 @@ func newE2EServer(t *testing.T) (*httptest.Server, *sqlite.Store, string) {
 
 	uh := handler.NewUserHandler(st)
 	hh := handler.NewHistoryHandler(st)
-	dh := handler.NewDivineHandler(st, llmClient)
+	dh := handler.NewDivineHandler(st, llmRouter)
 	admin := handler.NewAdminHandler(st)
 
 	mux.Handle("GET /api/user", authMW(wcors(http.HandlerFunc(uh.GetUser))))
