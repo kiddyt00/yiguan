@@ -3,7 +3,7 @@
     <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
         <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto"
-          :class="isDark ? 'brightness-0 invert' : ''" />
+          :class="isDark ? 'brightness-0 invert' : 'brightness-0'" />
       </router-link>
       <div class="flex items-center gap-3 text-sm">
         <!-- 主题切换 -->
