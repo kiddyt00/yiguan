@@ -120,7 +120,7 @@
 
     <!-- 阶段 4: 感谢页 -->
     <div v-if="phase === 'done'" class="border-t border-stone-700 pt-8 mt-8 text-center">
-      <img src="../assets/laozi.svg" alt="Laozi" class="w-32 h-auto mx-auto mb-4 rounded-lg opacity-80" />
+      <img src="../assets/laozi.jpeg" alt="Laozi" class="w-32 h-auto mx-auto mb-4 rounded-lg" />
       <p class="text-lg font-medium mb-2 text-stone-200">{{ t('stream.thanks.title') }}</p>
       <p class="text-sm text-stone-500">{{ t('stream.thanks.blessing') }}</p>
 
