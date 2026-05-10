@@ -58,6 +58,11 @@
   "yao.6": "6th Yao",
   "yao.changing": "○ changing",
 
+  "gua.old_yang": "Old Yang",
+  "gua.young_yang": "Young Yang",
+  "gua.old_yin": "Old Yin",
+  "gua.young_yin": "Young Yin",
+
   "login.tab.login": "Login",
   "login.tab.sms": "SMS",
   "login.tab.qrcode": "WeChat QR",
