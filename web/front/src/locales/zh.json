@@ -58,6 +58,11 @@
   "yao.6": "上爻",
   "yao.changing": "○ 变",
 
+  "gua.old_yang": "老阳",
+  "gua.young_yang": "少阳",
+  "gua.old_yin": "老阴",
+  "gua.young_yin": "少阴",
+
   "login.tab.login": "登录",
   "login.tab.sms": "短信登录",
   "login.tab.qrcode": "微信扫码",
