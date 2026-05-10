@@ -10,7 +10,7 @@
           <span class="font-medium">{{ h.primary_gua }}</span>
           <span class="mx-2 opacity-30">→</span>
           <span class="opacity-70">{{ h.changing_gua }}</span>
-          <span v-if="h.nickname" class="ml-2 text-xs opacity-40">— {{ h.nickname }}</span>
+          <span v-if="h.nickname" class="ml-2 text-xs" :class="isDark ? 'opacity-40' : 'opacity-60'">— {{ h.nickname }}</span>
         </div>
         <span class="text-xs opacity-40">{{ formatDate(h.created_at) }}</span>
       </div>

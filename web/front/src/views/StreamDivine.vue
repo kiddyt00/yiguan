@@ -3,58 +3,70 @@
 
     <!-- 阶段 1: 摇卦中 -->
     <div v-if="phase === 'coins'">
-      <h3 class="text-xl font-bold mb-4 text-center text-white">{{ t('stream.divining') }}</h3>
+      <h3 class="text-xl font-bold mb-4 text-center" :class="isDark ? 'text-white' : 'text-stone-800'">{{ t('stream.divining') }}</h3>
       <CoinAnimation
         :current-throw="currentThrow"
         :is-animating="isAnimating"
         :coin-values="currentCoins"
-        :is-dark="true"
+        :is-dark="isDark"
       />
     </div>
 
     <!-- 阶段 2: 结果展示 + 阶段 3: 解读 + 阶段 4: 感谢页 -->
     <div v-if="phase === 'result' || phase === 'interpretation' || phase === 'done'">
-      <h3 class="text-sm font-medium text-center mb-1 text-green-400">{{ t('stream.result.label') }}</h3>
-      <h2 class="text-xl font-bold mb-6 text-center text-stone-100">{{ t('stream.result.title') }}</h2>
+      <h3 class="text-sm font-medium text-center mb-1" :class="isDark ? 'text-green-400' : 'text-green-600'">{{ t('stream.result.label') }}</h3>
+      <h2 class="text-xl font-bold mb-6 text-center" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ t('stream.result.title') }}</h2>
 
       <!-- 问题 -->
       <div class="mb-6">
-        <p class="text-sm text-stone-400 mb-1">{{ t('stream.question') }}</p>
-        <div class="rounded-lg p-3 text-sm bg-slate-800/60 text-stone-200">
+        <p class="text-sm mb-1" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('stream.question') }}</p>
+        <div class="rounded-lg p-3 text-sm" :class="isDark ? 'bg-slate-800/60 text-stone-200' : 'bg-stone-100 text-stone-700'">
           {{ question }}
         </div>
       </div>
 
       <!-- 6 次摇卦结果列表 -->
       <div class="mb-6">
-        <h4 class="text-sm text-stone-400 mb-3">{{ t('stream.toss.history') }}</h4>
+        <h4 class="text-sm mb-3" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('stream.toss.history') }}</h4>
         <div class="space-y-2">
           <div v-for="toss in tossResults" :key="toss.throw"
-            class="flex items-center gap-3 rounded-lg p-3 bg-slate-800/40">
+            class="flex items-center gap-3 rounded-lg p-3"
+            :class="isDark ? 'bg-slate-800/40' : 'bg-stone-100'">
             <!-- 爻位 -->
-            <span class="text-sm font-medium w-14 text-stone-300">{{ t(`yao.${toss.throw}`) }}</span>
+            <span class="text-sm font-medium w-14" :class="isDark ? 'text-stone-300' : 'text-stone-600'">{{ t(`yao.${toss.throw}`) }}</span>
             <!-- 3 枚铜钱 -->
             <div class="flex gap-1.5">
               <span v-for="(c, i) in toss.coins" :key="i"
                 class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                :class="c === 'front' ? 'bg-amber-500/80 text-amber-950' : 'bg-slate-600/60 text-stone-300'">
+                :class="c === 'front'
+                  ? 'bg-amber-500/80 text-amber-950'
+                  : (isDark ? 'bg-slate-600/60 text-stone-300' : 'bg-stone-200 text-stone-600')">
                 {{ t(c === 'front' ? 'coin.front' : 'coin.back') }}
               </span>
             </div>
             <!-- 总和与类型 -->
-            <span class="text-xs text-stone-400">= {{ toss.sum }}</span>
+            <span class="text-xs" :class="isDark ? 'text-stone-400' : 'text-stone-500'">= {{ toss.sum }}</span>
             <span class="text-xs font-medium px-2 py-0.5 rounded-full"
               :class="toss.result === 'old_yang' || toss.result === 'old_yin'
                 ? 'bg-red-500/20 text-red-300'
-                : 'bg-amber-500/10 text-amber-300'">
+                : (isDark ? 'bg-amber-500/10 text-amber-300' : 'bg-amber-100 text-amber-700')">
               {{ t(`gua.${toss.result}`) }}
             </span>
             <!-- 爻线 -->
             <span class="ml-auto">
-              <span v-if="toss.yang" class="block w-12 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yang' }"></span>
+              <span v-if="toss.yang" class="block w-12 h-1 rounded"
+                :class="toss.result === 'old_yang'
+                  ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                  : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
               <span v-else class="flex gap-1">
-                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yin' }"></span>
-                <span class="block w-5 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]': toss.result === 'old_yin' }"></span>
+                <span class="block w-5 h-1 rounded"
+                  :class="toss.result === 'old_yin'
+                    ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                    : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
+                <span class="block w-5 h-1 rounded"
+                  :class="toss.result === 'old_yin'
+                    ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                    : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
               </span>
             </span>
           </div>
@@ -63,33 +75,34 @@
 
       <!-- 本卦 + 变卦 -->
       <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="rounded-lg p-4 text-center bg-slate-800/50">
-          <span class="text-sm text-stone-400">{{ t('stream.hex.primary') }}</span>
+        <div class="rounded-lg p-4 text-center" :class="isDark ? 'bg-slate-800/50' : 'bg-stone-100'">
+          <span class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('stream.hex.primary') }}</span>
           <div class="text-2xl font-bold mt-1 text-amber-400">{{ t('gua.' + guaResult.primary?.name) }}</div>
           <div class="text-2xl my-1">{{ guaResult.primary?.symbol }}</div>
-          <p v-if="guaResult.primary?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.primary.gua_ci }}</p>
+          <p v-if="guaResult.primary?.gua_ci" class="text-xs mt-1" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ guaResult.primary.gua_ci }}</p>
         </div>
-        <div class="rounded-lg p-4 text-center bg-slate-700/40">
-          <span class="text-sm text-stone-400">{{ t('stream.hex.changing') }}</span>
+        <div class="rounded-lg p-4 text-center" :class="isDark ? 'bg-slate-700/40' : 'bg-stone-200/60'">
+          <span class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('stream.hex.changing') }}</span>
           <div class="text-2xl font-bold mt-1 text-amber-400">{{ t('gua.' + guaResult.changing?.name) }}</div>
           <div class="text-2xl my-1">{{ guaResult.changing?.symbol }}</div>
-          <p v-if="guaResult.changing?.gua_ci" class="text-xs text-stone-500 mt-1">{{ guaResult.changing.gua_ci }}</p>
+          <p v-if="guaResult.changing?.gua_ci" class="text-xs mt-1" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ guaResult.changing.gua_ci }}</p>
         </div>
       </div>
 
       <!-- 变爻提示 -->
-      <div v-if="guaResult.yaoPositions?.length" class="rounded-lg p-3 mb-6 text-center text-sm bg-red-900/40 text-amber-100">
+      <div v-if="guaResult.yaoPositions?.length" class="rounded-lg p-3 mb-6 text-center text-sm"
+        :class="isDark ? 'bg-red-900/40 text-amber-100' : 'bg-red-50 text-red-800'">
         {{ t('stream.yao.changing.label') }}{{ yaoLabels }}
         <template v-if="guaResult.masterYao !== null"> | {{ t('stream.yao.master', { n: guaResult.masterYao + 1 }) }}</template>
       </div>
 
       <!-- Hexagram 爻线展示 -->
-      <hexagram :lines="hexLines" :is-dark="true" />
+      <hexagram :lines="hexLines" :is-dark="isDark" />
     </div>
 
     <!-- 加载中 (等待 AI) -->
     <div v-if="showLoading" class="text-center py-6">
-      <div class="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-amber-500/10 text-amber-400">
+      <div class="inline-flex items-center gap-3 px-5 py-3 rounded-lg" :class="isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-700'">
         <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -99,17 +112,19 @@
     </div>
 
     <!-- 阶段 3: 解读 -->
-    <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t border-stone-700 pt-6 mt-6">
-      <h3 class="text-sm font-medium text-center mb-1 text-green-400">{{ t('stream.interpret.label') }}</h3>
-      <h2 class="text-xl font-bold mb-4 text-center text-stone-100">{{ t('stream.interpret.title') }}</h2>
+    <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t pt-6 mt-6" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
+      <h3 class="text-sm font-medium text-center mb-1" :class="isDark ? 'text-green-400' : 'text-green-600'">{{ t('stream.interpret.label') }}</h3>
+      <h2 class="text-xl font-bold mb-4 text-center" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ t('stream.interpret.title') }}</h2>
 
       <!-- 翻译提示条 -->
-      <div v-if="showTranslateBanner" class="mb-4 px-4 py-2.5 rounded-lg flex items-center justify-between gap-3 bg-amber-500/10 border border-amber-500/30">
-        <span class="text-xs text-amber-300">
+      <div v-if="showTranslateBanner" class="mb-4 px-4 py-2.5 rounded-lg flex items-center justify-between gap-3"
+        :class="isDark ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'">
+        <span class="text-xs" :class="isDark ? 'text-amber-300' : 'text-amber-700'">
           {{ historyLang === 'zh' ? '⚠ 此解读以中文生成' : '⚠ This reading was generated in English' }}
         </span>
         <button @click="doTranslate" :disabled="isTranslating"
-          class="text-xs px-3 py-1 rounded-full font-medium transition border border-amber-500/50 text-amber-400 hover:bg-amber-500/20 disabled:opacity-50">
+          class="text-xs px-3 py-1 rounded-full font-medium transition border disabled:opacity-50"
+          :class="isDark ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/20' : 'border-amber-400 text-amber-600 hover:bg-amber-50'">
           {{ isTranslating ? '...' : (historyLang === 'zh' ? '翻译为 English →' : '翻译为 中文 →') }}
         </button>
       </div>
@@ -119,12 +134,13 @@
     </div>
 
     <!-- 阶段 4: 感谢页 -->
-    <div v-if="phase === 'done'" class="border-t border-stone-700 pt-8 mt-8 text-center">
+    <div v-if="phase === 'done'" class="border-t pt-8 mt-8 text-center" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
       <img src="../assets/laozi.jpeg" alt="Laozi" class="w-64 h-auto mx-auto mb-4 rounded-lg" />
-      <p class="text-lg font-medium mb-2 text-stone-200">{{ t('stream.thanks.title') }}</p>
-      <p class="text-sm text-stone-500">{{ t('stream.thanks.blessing') }}</p>
+      <p class="text-lg font-medium mb-2" :class="isDark ? 'text-stone-200' : 'text-stone-700'">{{ t('stream.thanks.title') }}</p>
+      <p class="text-sm" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ t('stream.thanks.blessing') }}</p>
 
-      <button @click="goHome" class="mt-6 px-8 py-3 rounded-lg font-medium border-2 transition border-amber-600 text-amber-400 hover:bg-amber-600 hover:text-white">
+      <button @click="goHome" class="mt-6 px-8 py-3 rounded-lg font-medium border-2 transition"
+        :class="isDark ? 'border-amber-600 text-amber-400 hover:bg-amber-600 hover:text-white' : 'border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white'">
         {{ t('stream.retry') }}
       </button>
     </div>
@@ -133,15 +149,16 @@
     <div v-if="error" class="text-center text-red-400 py-4">{{ error }}</div>
 
     <!-- 大师入口 -->
-    <div class="mt-4 pt-4 border-t border-stone-700">
+    <div class="mt-4 pt-4 border-t" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
       <button @click="showMaster = !showMaster"
-        class="w-full py-3 rounded-lg text-center font-medium transition flex items-center justify-center gap-2 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20">
+        class="w-full py-3 rounded-lg text-center font-medium transition flex items-center justify-center gap-2"
+        :class="isDark ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'">
         <span class="text-xl">🎓</span>
         {{ t('stream.master.title') }}
       </button>
       <div v-if="showMaster" class="mt-3 text-center">
-        <img src="/qr-master.png" alt="QR" class="w-48 h-auto mx-auto rounded-lg border border-stone-600" />
-        <p class="text-xs text-stone-500 mt-2">{{ t('stream.master.qr') }}</p>
+        <img src="/qr-master.png" alt="QR" class="w-48 h-auto mx-auto rounded-lg border" :class="isDark ? 'border-stone-600' : 'border-stone-200'" />
+        <p class="text-xs mt-2" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ t('stream.master.qr') }}</p>
       </div>
     </div>
   </div>
@@ -156,6 +173,8 @@ import { useI18n } from 'vue-i18n'
 import { useTranslation } from '../composables/useTranslation'
 import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
+
+defineProps({ isDark: Boolean })
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -209,7 +228,6 @@ const renderedAI = computed(() => {
   return html
 })
 
-// 翻译相关
 const showTranslateBanner = computed(() => {
   return (phase.value === 'interpretation' || phase.value === 'done') &&
     historyLang.value && locale.value !== historyLang.value &&
@@ -310,7 +328,6 @@ async function startStream() {
                 await new Promise(r => setTimeout(r, 800))
                 currentCoins.value = [val, val, val]
                 isAnimating.value = false
-                // 收集结果：coins 存 'front'/'back'
                 const coins = (data.data.coin_values || ['?', '?', '?']).map(v => v === '正' ? 'front' : 'back')
                 tossResults.value.push({
                   throw: data.data.throw,
@@ -376,10 +393,9 @@ onUnmounted(stopDots)
 </script>
 
 <style scoped>
-.markdown-body :deep(h2) { font-size: 1.1rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); color: #e8e4d8; }
-.markdown-body :deep(h3) { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; color: #e8e4d8; }
-.markdown-body :deep(p) { margin-bottom: 0.6rem; color: #d0ccc4; }
-.markdown-body :deep(strong) { font-weight: 700; color: #e8c97a; }
-.markdown-body :deep(blockquote) { border-left: 3px solid rgba(212,168,83,0.3); padding-left: 0.75rem; color: #9ca3af; margin: 0.5rem 0; }
-.markdown-body :deep(ul), .markdown-body :deep(ol) { padding-left: 1.25rem; margin-bottom: 0.6rem; color: #d0ccc4; }
+.markdown-body :deep(h2) { font-size: 1.1rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.markdown-body :deep(h3) { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
+.markdown-body :deep(p) { margin-bottom: 0.6rem; }
+.markdown-body :deep(strong) { font-weight: 700; }
+.markdown-body :deep(blockquote) { border-left: 3px solid rgba(212,168,83,0.3); padding-left: 0.75rem; margin: 0.5rem 0; }
 </style>
