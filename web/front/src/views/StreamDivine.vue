@@ -56,16 +56,16 @@
               <span v-if="toss.yang" class="block w-12 h-1 rounded"
                 :class="toss.result === 'old_yang'
                   ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
-                  : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
+                  : (isDark ? 'bg-amber-300/60' : 'bg-amber-600')"></span>
               <span v-else class="flex gap-1">
                 <span class="block w-5 h-1 rounded"
                   :class="toss.result === 'old_yin'
                     ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
-                    : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
+                    : (isDark ? 'bg-stone-400' : 'bg-stone-600')"></span>
                 <span class="block w-5 h-1 rounded"
                   :class="toss.result === 'old_yin'
                     ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
-                    : (isDark ? 'bg-stone-200' : 'bg-stone-500')"></span>
+                    : (isDark ? 'bg-stone-400' : 'bg-stone-600')"></span>
               </span>
             </span>
           </div>
@@ -177,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
@@ -326,15 +326,28 @@ async function saveAsImage() {
 
 // 自动截图：完成后将解释区渲染为图片，防止爬虫直接抓取文字
 async function captureResult() {
-  if (!interpretArea.value) return
+  console.log('captureResult called, interpretArea:', interpretArea.value)
+  if (!interpretArea.value) {
+    // fallback: try to find by class
+    const el = document.querySelector('.border-t.pt-6')
+    console.log('fallback el:', el)
+    if (!el) return
+    await captureElement(el)
+    return
+  }
+  await captureElement(interpretArea.value)
+}
+
+async function captureElement(el) {
   const dark = !document.documentElement.classList.contains('light')
   try {
-    const canvas = await html2canvas(interpretArea.value, {
+    const canvas = await html2canvas(el, {
       backgroundColor: dark ? '#0f172a' : '#faf8f5',
       scale: 2,
       useCORS: true,
     })
     resultImage.value = canvas.toDataURL('image/png')
+    console.log('captureResult success, image size:', resultImage.value.length)
   } catch (e) {
     console.error('captureResult failed:', e)
   }
@@ -439,7 +452,8 @@ async function startStream() {
               phase.value = 'done'
               if (data.id) historyId.value = data.id
               if (data.lang) historyLang.value = data.lang
-              setTimeout(() => captureResult(), 300) // 等 DOM 渲染完再截图
+              await nextTick()
+              setTimeout(() => captureResult(), 200)
             } else if (currentEvent === 'error') {
               stopDots()
               error.value = data.error
