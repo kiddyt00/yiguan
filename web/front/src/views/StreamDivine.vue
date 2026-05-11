@@ -185,7 +185,7 @@ import { useI18n } from 'vue-i18n'
 import { useTranslation } from '../composables/useTranslation'
 import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
-import html2canvas from 'html2canvas'
+import { toPng } from 'html-to-image'
 
 defineProps({ isDark: Boolean })
 
@@ -304,20 +304,18 @@ function goHome() {
 
 async function saveAsImage() {
   if (!resultArea.value) return
-  const dark = !document.documentElement.classList.contains('light')
   const el = resultArea.value
   const btns = el.querySelectorAll('button, .border-t')
   const origDisplay = []
   btns.forEach(b => { origDisplay.push(b.style.display); b.style.display = 'none' })
   try {
-    const canvas = await html2canvas(el, {
-      backgroundColor: dark ? '#0f172a' : '#faf8f5',
-      scale: 2,
-      useCORS: true,
+    const dataUrl = await toPng(el, {
+      backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
+      pixelRatio: 2,
     })
     const link = document.createElement('a')
     link.download = '观己斋-结果.png'
-    link.href = canvas.toDataURL('image/png')
+    link.href = dataUrl
     link.click()
   } finally {
     btns.forEach((b, i) => { b.style.display = origDisplay[i] })
@@ -339,29 +337,13 @@ async function captureResult() {
 }
 
 async function captureElement(el) {
-  const dark = !document.documentElement.classList.contains('light')
   try {
-    const canvas = await html2canvas(el, {
-      backgroundColor: dark ? '#0f172a' : '#faf8f5',
-      scale: 2,
-      useCORS: true,
-      onclone: (clonedDoc) => {
-        // 删除所有样式表，html2canvas 无法解析 Tailwind v4 的 oklch()
-        clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove())
-        // 用浏览器已解析的 RGB 值设为 inline style
-        const origDoc = document
-        clonedDoc.querySelectorAll('*').forEach((node, i) => {
-          const orig = origDoc.querySelectorAll('*')[i]
-          if (!orig) return
-          const cs = getComputedStyle(orig)
-          node.style.backgroundColor = cs.backgroundColor
-          node.style.color = cs.color
-          node.style.borderColor = cs.borderColor
-        })
-      },
+    const dataUrl = await toPng(el, {
+      backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
+      pixelRatio: 2,
     })
-    resultImage.value = canvas.toDataURL('image/png')
-    console.log('captureResult success, image size:', resultImage.value.length)
+    resultImage.value = dataUrl
+    console.log('captureResult success, image size:', dataUrl.length)
   } catch (e) {
     console.error('captureResult failed:', e)
   }
