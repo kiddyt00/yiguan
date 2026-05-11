@@ -4,6 +4,8 @@
       <router-link to="/" class="flex items-center gap-2">
         <img src="/logo_icon.svg" alt="观己斋" class="h-16 w-auto"
           :class="isDark ? 'brightness-0 invert' : ''" />
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full opacity-50"
+          :class="isDark ? 'text-stone-400 bg-stone-800/60' : 'text-stone-500 bg-stone-100'">首页</span>
       </router-link>
       <div class="flex items-center gap-3 text-sm">
         <!-- 主题切换 -->
