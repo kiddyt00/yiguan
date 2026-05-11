@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -123,9 +124,9 @@ func BuildPrompt(question, primary, changing, yaoPositions, lang string) string 
 		)
 	}
 	return fmt.Sprintf(
-		"请以专业易经解卦角度，结合用户问题「%s」和卦象进行分析：\n"+
+		"你是一位专业的易经解卦师。请结合用户问题「%s」和卦象进行分析：\n"+
 			"本卦：%s，变卦：%s，变爻：%s\n\n"+
-			"请按以下结构用 Markdown 格式给出解读：\n"+
+			"请严格按以下结构输出，不要添加任何前言、后记或免责声明：\n"+
 			"## 本卦解义\n"+
 			"（对本卦的解读，可使用**加粗**突出关键概念）\n\n"+
 			"## 变爻启示\n"+
@@ -134,9 +135,11 @@ func BuildPrompt(question, primary, changing, yaoPositions, lang string) string 
 			"（变卦所示的发展趋势）\n\n"+
 			"## 综合建议\n"+
 			"（结合问题给出的实用性建议）\n\n"+
-			"> 请用流畅易懂的中文，避免过于玄奥的术语堆砌。"+
-			"请客观解卦，不需要给多余的情绪价值。最后的总结话术可以给适当的鼓励。"+
-			"不要提及你的模型名称或由谁生成。",
+			"> 请用流畅易懂的中文，避免过于玄奥的术语堆砌。\n"+
+			"> 请客观解卦，不需要给多余的情绪价值。最后的总结话术可以给适当的鼓励。\n"+
+			"【禁止事项】禁止在回复中提及你的模型名称、公司名称或生成者身份。\n"+
+			"禁止输出任何形式的免责声明（如「以上内容由XX生成，仅供参考」）。\n"+
+			"禁止以「好的」、「收到」等确认语开头。直接输出解卦内容，不要任何多余的客套话。",
 		question, primary, changing, yaoPositions,
 	)
 }
@@ -154,13 +157,35 @@ func BuildTranslatePrompt(content, targetLang string) string {
 		"仅输出翻译结果，不添加任何额外评论或解释。\n\n" + content
 }
 
+// StripDisclaimer 移除 LLM 输出中的免责声明和模型名称
+func StripDisclaimer(text string) string {
+	// 匹配 "以上内容由XX生成，仅供参考" 及其变体
+	patterns := []string{
+		`\n*>?\s*以上内容由.*?生成.*?\n*$`,
+		`\n*>?\s*\*以上内容由.*?生成.*?\*\n*$`,
+		`\n*>?\s*>?\s*以上内容由.*?生成.*?\n*$`,
+		`\n*>?\s*以上内容仅供参考.*?\n*$`,
+		`\n*>?\s*\*以上内容仅供参考.*?\*\n*$`,
+		`\n*>?\s*免责声明.*?\n*$`,
+		`\n*>?\s*温馨提示.*?\n*$`,
+		`\n*>?\s*请注意.*?仅供.*?\n*$`,
+		`\n*>?\s*AI.*?生成.*?\n*$`,
+		`\n*\*此内容由.*?生成.*?\*\n*`,
+	}
+	for _, p := range patterns {
+		re := regexp.MustCompile(p)
+		text = re.ReplaceAllString(text, "")
+	}
+	return strings.TrimSpace(text)
+}
+
 // DivineWithRetry 调用 LLM 解卦，失败自动重试
 func (c *Client) DivineWithRetry(prompt string, maxRetries int) (string, error) {
 	var lastErr error
 	for i := 0; i <= maxRetries; i++ {
 		result, err := c.Divine(prompt)
 		if err == nil {
-			return result, nil
+			return StripDisclaimer(result), nil
 		}
 		lastErr = err
 		if i < maxRetries {
