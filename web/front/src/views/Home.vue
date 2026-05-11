@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="text-center mb-4">
-      <router-link to="/" class="inline-block text-xs px-3 py-1 rounded-full transition"
-        :class="isDark ? 'text-stone-400 hover:text-amber-300 bg-stone-800/50' : 'text-stone-500 hover:text-amber-600 bg-stone-100'">首页</router-link>
-    </div>
     <div class="text-center mb-8">
       <h2 class="text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-stone-800'">{{ t('home.title') }}</h2>
       <p class="text-base" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ t('home.subtitle') }}</p>
