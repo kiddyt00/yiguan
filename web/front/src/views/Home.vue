@@ -21,10 +21,16 @@
       </div>
 
       <div v-else class="mt-6 text-center">
-        <button @click="startDivination" :disabled="!question.trim() || loading || remainingQuota <= 0"
-          class="px-10 py-3 rounded-lg font-medium text-lg transition disabled:opacity-40 bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/30">
-          {{ loading ? t('home.divine.loading') : btnLabel }}
-        </button>
+        <div class="flex items-center justify-center gap-3">
+          <button @click="startDivination" :disabled="!question.trim() || loading || remainingQuota <= 0"
+            class="px-10 py-3 rounded-lg font-medium text-lg transition disabled:opacity-40 bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/30">
+            {{ loading ? t('home.divine.loading') : t('home.divine.btn') }}
+          </button>
+          <span v-if="remainingQuota >= 0" class="text-xs"
+            :class="remainingQuota > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-red-400' : 'text-red-600')">
+            {{ remainingQuota > 0 ? t('quota.remaining', { n: remainingQuota }) : t('quota.depleted') }}
+          </span>
+        </div>
 
         <!-- 次数已用完提示 -->
         <div v-if="remainingQuota === 0" class="mt-4 p-4 rounded-lg text-sm space-y-2"
@@ -42,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -55,13 +61,6 @@ const router = useRouter()
 const question = ref('')
 const loading = ref(false)
 const remainingQuota = ref(-1)
-
-const btnLabel = computed(() => {
-  if (remainingQuota.value > 0) {
-    return `${t('home.divine.btn')}（${t('quota.remaining', { n: remainingQuota.value })}）`
-  }
-  return t('home.divine.btn')
-})
 
 onMounted(async () => {
   if (auth.isLoggedIn()) {
