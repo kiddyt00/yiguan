@@ -2,7 +2,7 @@
   <header class="shadow-lg bg-transparent">
     <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
-        <img src="/logo-icon.svg" alt="观己斋" class="h-10 w-auto"
+        <img src="/logo_icon.svg" alt="观己斋" class="h-10 w-auto"
           :class="isDark ? 'brightness-0 invert' : ''" />
       </router-link>
       <div class="flex items-center gap-3 text-sm">
