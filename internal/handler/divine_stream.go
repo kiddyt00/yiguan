@@ -104,7 +104,7 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		PrimaryGua:     result.Primary.Name,
 		ChangingGua:    result.Changing.Name,
 		YaoPositions:   result.YaoDesc,
-		Interpretation: interpretation.String(),
+		Interpretation: llm.StripDisclaimer(interpretation.String()),
 		Lang:           getLang(r),
 	}
 	if saveErr := h.store.SaveHistory(history); saveErr != nil {
