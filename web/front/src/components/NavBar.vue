@@ -4,6 +4,8 @@
       <router-link to="/" class="flex items-center gap-2">
         <span class="text-xl font-bold tracking-wider"
           :class="isDark ? 'text-amber-400' : 'text-amber-700'">观己斋</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full opacity-50"
+          :class="isDark ? 'text-stone-400 bg-stone-800/60' : 'text-stone-500 bg-stone-100'">首页</span>
       </router-link>
       <div class="flex items-center gap-3 text-sm">
         <!-- 主题切换 -->
