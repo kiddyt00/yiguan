@@ -302,6 +302,16 @@ function goHome() {
   router.push('/')
 }
 
+// oklch → rgb 转换（用浏览器自身解析）
+function rgbFromOklch(oklchStr) {
+  const div = document.createElement('div')
+  div.style.color = oklchStr
+  document.body.appendChild(div)
+  const rgb = getComputedStyle(div).color
+  document.body.removeChild(div)
+  return rgb
+}
+
 async function saveAsImage() {
   if (!resultArea.value) return
   const dark = !document.documentElement.classList.contains('light')
@@ -345,6 +355,20 @@ async function captureElement(el) {
       backgroundColor: dark ? '#0f172a' : '#faf8f5',
       scale: 2,
       useCORS: true,
+      onclone: (clonedDoc) => {
+        // Tailwind v4 用 oklch() 颜色，html2canvas 不支持，全部替换为 RGB
+        clonedDoc.querySelectorAll('*').forEach(node => {
+          const cs = clonedDoc.defaultView.getComputedStyle(node)
+          const bg = cs.backgroundColor
+          if (bg && bg.includes('oklch')) {
+            node.style.backgroundColor = rgbFromOklch(bg)
+          }
+          const color = cs.color
+          if (color && color.includes('oklch')) {
+            node.style.color = rgbFromOklch(color)
+          }
+        })
+      },
     })
     resultImage.value = canvas.toDataURL('image/png')
     console.log('captureResult success, image size:', resultImage.value.length)
