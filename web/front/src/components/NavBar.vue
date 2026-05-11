@@ -2,8 +2,8 @@
   <header class="shadow-lg bg-transparent">
     <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-2">
-        <img src="../assets/logo-guanjizhai.png" alt="观己斋" class="h-9 w-auto"
-          :class="isDark ? 'brightness-0 invert' : 'brightness-0'" />
+        <span class="text-xl font-bold tracking-wider"
+          :class="isDark ? 'text-amber-400' : 'text-amber-700'">观己斋</span>
       </router-link>
       <div class="flex items-center gap-3 text-sm">
         <!-- 主题切换 -->
@@ -31,7 +31,7 @@
         <template v-if="auth.isLoggedIn()">
           <span v-if="quota !== null" class="text-xs px-2 py-0.5 rounded-full"
             :class="isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'">
-            {{ quota }}
+            {{ quota > 0 ? t('quota.remaining', { n: quota }) : t('quota.depleted') }}
           </span>
           <router-link to="/history" class="transition"
             :class="isDark ? 'text-gray-300 hover:text-amber-300' : 'text-stone-600 hover:text-amber-600'">{{ t('nav.history') }}</router-link>

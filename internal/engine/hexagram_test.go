@@ -29,39 +29,41 @@ func TestBuildPrimary(t *testing.T) {
 }
 
 func TestBuildChangingAuto(t *testing.T) {
-	// 乾为天: 上爻为老阳(9) → 6/9自动变 + 55法合并
-	// sum=44, 55-44=11, 11%6=5, walkPath(5)=5(五爻, index 4)
-	// 6/9变[5](上爻) + 55法强制变[4](五爻)
-	// 本卦: 111111(乾) → 变卦: 111000(天地否)
+	// 乾为天: 上爻为老阳(9)
+	// sum=44, 55-44=11, walkPath(11)=2(三爻, index 1)
+	// 6/9变[5](上爻) + 55法强制变[1](三爻)
+	// 本卦: 111111(乾) → 变卦: 泽火革 "101110"
 	lines := [6]int{7, 7, 7, 7, 7, 9}
 	primary, changing, positions, _ := BuildHexagrams(lines)
 	if primary == nil || primary.Name != "乾为天" {
 		t.Fatalf("primary = %v, want 乾为天", primary)
 	}
-	if changing == nil || changing.Name != "雷天大壮" {
-		t.Errorf("changing = %v, want 雷天大壮", changing)
+	if changing == nil || changing.Name != "泽火革" {
+		t.Errorf("changing = %v, want 泽火革", changing)
 	}
 	if len(positions) != 2 {
-		t.Errorf("positions = %v, want [4, 5]", positions)
+		t.Errorf("positions = %v, want 2 positions", positions)
 	}
 
-	// 坤为地: 初爻为老阴(6) + 55法合并
-	// sum=46, 55-46=9, 9%6=3, walkPath(3)=3(三爻, index 2)
-	// 6/9变[0](初爻) + 55法强制变[2](三爻)
-	// 本卦: 000000(坤) → 变卦: 101000(火地晋)
+	// 坤为地: 初爻为老阴(6)
+	// sum=46, 55-46=9, walkPath(9)=4(四爻, index 3)
+	// 6/9变[0](初爻) + 55法强制变[3](四爻)
+	// 本卦: 000000(坤) → 变卦: 震为雷 "100100"
 	lines2 := [6]int{6, 8, 8, 8, 8, 8}
 	_, changing2, _, _ := BuildHexagrams(lines2)
-	if changing2 == nil || changing2.Name != "地火明夷" {
-		t.Errorf("changing = %v, want 地火明夷", changing2)
+	if changing2 == nil || changing2.Name != "震为雷" {
+		t.Errorf("changing = %v, want 震为雷", changing2)
 	}
 }
 
 func TestChangingLinesMultiple(t *testing.T) {
-	// 老阴老阳各一处
+	// 老阴老阳各一处: lines=[6,7,7,9,8,8], sum=45
+	// steps=10, walkPath(10)=3(三爻, index 2) → 55法强制变
+	// 6/9 auto: [0, 3] + 55: [2] → positions=[0,3,2]
 	lines := [6]int{6, 7, 7, 9, 8, 8}
 	_, _, positions, _ := BuildHexagrams(lines)
-	if len(positions) != 2 {
-		t.Errorf("expected 2 changing lines, got %d: %v", len(positions), positions)
+	if len(positions) != 3 {
+		t.Errorf("expected 3 changing lines, got %d: %v", len(positions), positions)
 	}
 	has0 := false
 	has3 := false
@@ -74,27 +76,24 @@ func TestChangingLinesMultiple(t *testing.T) {
 		}
 	}
 	if !has0 || !has3 {
-		t.Errorf("expected positions [0, 3] (初爻+四爻), got %v", positions)
+		t.Errorf("expected positions to contain 0(初爻) and 3(四爻), got %v", positions)
 	}
 }
 
 func TestFiftyFiveMethod(t *testing.T) {
-	// 无 6/9: lines = {7,8,7,8,7,8}, sum=45
-	// 余数 = (55-45)%6 = 10%6 = 4
-	// 路径: 第1步→1, 第2步→2, 第3步→3, 第4步→4
-	// 落第4爻 (0-indexed=3)
+	// sum=45: steps=55-45=10, walkPath(10)=3(三爻), 0-indexed=2
 	pos := calcMasterYao(45)
-	if pos != 3 {
-		t.Errorf("calcMasterYao(45) = %d, want 3 (第4爻)", pos)
+	if pos != 2 {
+		t.Errorf("calcMasterYao(45) = %d, want 2 (三爻)", pos)
 	}
 
-	// sum=42: 余数 = (55-42)%6 = 13%6 = 1 → 第1步→1, 落初爻
+	// sum=42: steps=55-42=13, walkPath(13)=1(初爻), 0-indexed=0
 	pos = calcMasterYao(42)
 	if pos != 0 {
 		t.Errorf("calcMasterYao(42) = %d, want 0 (初爻)", pos)
 	}
 
-	// sum=49: 余数 = (55-49)%6 = 6%6 = 0 → 取6 → 第6步→6, 落上爻
+	// sum=49: steps=55-49=6, walkPath(6)=6(上爻), 0-indexed=5
 	pos = calcMasterYao(49)
 	if pos != 5 {
 		t.Errorf("calcMasterYao(49) = %d, want 5 (上爻)", pos)
@@ -121,20 +120,20 @@ func TestWalkPath(t *testing.T) {
 func TestBuildHexagrams55ForceChange(t *testing.T) {
 	// 所有爻为少阴少阳(无6/9): {8,7,8,7,8,7}
 	// 本卦=阴阳交替 → 火水未济 "010101"
-	// 变卦: 55法强制变爻 (sum=45, 主变爻=第4爻, 0-indexed=3)
-	// 第4爻(7=少阳)变阴 → "010001" → 山水蒙
+	// sum=45, steps=55-45=10, walkPath(10)=3(三爻), 0-indexed=2
+	// 第3爻(7=少阳)变阴 → "010001" → 火风鼎
 	lines := [6]int{8, 7, 8, 7, 8, 7}
 	primary, changing, positions, master := BuildHexagrams(lines)
 	if primary == nil || primary.Name != "火水未济" {
 		t.Fatalf("primary = %v, want 火水未济", primary)
 	}
-	if changing == nil || changing.Name != "山水蒙" {
-		t.Errorf("changing = %v, want 山水蒙", changing)
+	if changing == nil || changing.Name != "火风鼎" {
+		t.Errorf("changing = %v, want 火风鼎", changing)
 	}
-	if master != 3 {
-		t.Errorf("master yao = %d, want 3 (第4爻)", master)
+	if master != 2 {
+		t.Errorf("master yao = %d, want 2 (三爻)", master)
 	}
-	if len(positions) != 1 || positions[0] != 3 {
-		t.Errorf("positions = %v, want [3]", positions)
+	if len(positions) != 1 || positions[0] != 2 {
+		t.Errorf("positions = %v, want [2]", positions)
 	}
 }

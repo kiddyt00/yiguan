@@ -134,7 +134,9 @@ func BuildPrompt(question, primary, changing, yaoPositions, lang string) string 
 			"（变卦所示的发展趋势）\n\n"+
 			"## 综合建议\n"+
 			"（结合问题给出的实用性建议）\n\n"+
-			"> 请用流畅易懂的中文，避免过于玄奥的术语堆砌。",
+			"> 请用流畅易懂的中文，避免过于玄奥的术语堆砌。"+
+			"请客观解卦，不需要给多余的情绪价值。最后的总结话术可以给适当的鼓励。"+
+			"不要提及你的模型名称或由谁生成。",
 		question, primary, changing, yaoPositions,
 	)
 }

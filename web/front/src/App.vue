@@ -4,7 +4,7 @@
     <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
       <router-view :is-dark="isDark" />
     </main>
-    <footer class="text-center text-xs py-6 px-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'">
+    <footer class="text-center py-6 px-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'" style="font-size: 0.7rem;">
       <p>{{ t('disclaimer.1') }}</p>
       <p class="mt-1">{{ t('disclaimer.2') }}</p>
       <p class="mt-1">{{ t('disclaimer.3') }}</p>

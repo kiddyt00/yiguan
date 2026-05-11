@@ -72,13 +72,11 @@ func BuildHexagrams(lines [6]int) (*GuaInfo, *GuaInfo, []int, int) {
 }
 
 // calcMasterYao 55减总数定主变爻，返回 0-based 索引
+// 六爻总和范围 36-54，55-total 范围 1-19
+// 走完整 12 步循环路径，不再取模
 func calcMasterYao(total int) int {
-	remainder := (55 - total) % 6
-	if remainder == 0 {
-		remainder = 6
-	}
-	// 路径: 1,2,3,4,5,6,6,5,4,3,2,1,...
-	pos := walkPath(remainder)
+	steps := 55 - total
+	pos := walkPath(steps)
 	return pos - 1 // 转 0-indexed
 }
 
