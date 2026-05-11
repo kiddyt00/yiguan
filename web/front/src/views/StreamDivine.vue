@@ -128,7 +128,16 @@
       </div>
       <div v-if="translateError" class="mb-4 text-xs text-red-400 text-center">{{ translateError }}</div>
 
-      <div class="markdown-body leading-relaxed" v-html="renderedTranslation"></div>
+      <!-- 结果图片（完成后） -->
+      <div v-if="resultImage" class="text-center">
+        <img :src="resultImage" alt="结果" class="max-w-full rounded-lg mx-auto shadow-lg" />
+        <button @click="showText = !showText" class="mt-3 text-xs underline opacity-50 hover:opacity-80">
+          {{ showText ? '隐藏原文' : '查看原文' }}
+        </button>
+      </div>
+
+      <!-- 原文（流式输出中 or 手动展开） -->
+      <div v-if="!resultImage || showText" class="markdown-body leading-relaxed" v-html="renderedTranslation"></div>
     </div>
 
     <!-- 阶段 4: 感谢页 -->
@@ -214,6 +223,8 @@ const translationText = ref('')
 const isTranslating = ref(false)
 const translateError = ref('')
 const resultArea = ref(null)
+const resultImage = ref(null)
+const showText = ref(false)
 
 const showLoading = computed(() => phase.value === 'result' && aiText.value === '')
 
@@ -309,6 +320,25 @@ async function saveAsImage() {
     link.click()
   } finally {
     btns.forEach((b, i) => { b.style.display = origDisplay[i] })
+  }
+}
+
+// 自动截图：完成后将解释区渲染为图片，防止爬虫直接抓取文字
+async function captureResult() {
+  if (!resultArea.value) return
+  const dark = !document.documentElement.classList.contains('light')
+  // 只截图解释区（最后一个 border-t 块）
+  const blocks = resultArea.value.querySelectorAll('.border-t')
+  const target = blocks[blocks.length - 1] || resultArea.value
+  try {
+    const canvas = await html2canvas(target, {
+      backgroundColor: dark ? '#0f172a' : '#faf8f5',
+      scale: 2,
+      useCORS: true,
+    })
+    resultImage.value = canvas.toDataURL('image/png')
+  } catch (e) {
+    console.error('captureResult failed:', e)
   }
 }
 
@@ -411,6 +441,7 @@ async function startStream() {
               phase.value = 'done'
               if (data.id) historyId.value = data.id
               if (data.lang) historyLang.value = data.lang
+              setTimeout(() => captureResult(), 300) // 等 DOM 渲染完再截图
             } else if (currentEvent === 'error') {
               stopDots()
               error.value = data.error
