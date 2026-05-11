@@ -111,7 +111,7 @@
     </div>
 
     <!-- 阶段 3: 解读 -->
-    <div v-if="phase === 'interpretation' || phase === 'done'" class="border-t pt-6 mt-6" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
+    <div v-if="phase === 'interpretation' || phase === 'done'" ref="interpretArea" class="border-t pt-6 mt-6" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
       <h2 class="text-xl font-bold mb-4 text-center" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ t('stream.interpret.label') }}</h2>
 
       <!-- 翻译提示条 -->
@@ -223,6 +223,7 @@ const translationText = ref('')
 const isTranslating = ref(false)
 const translateError = ref('')
 const resultArea = ref(null)
+const interpretArea = ref(null)
 const resultImage = ref(null)
 const showText = ref(false)
 
@@ -325,13 +326,10 @@ async function saveAsImage() {
 
 // 自动截图：完成后将解释区渲染为图片，防止爬虫直接抓取文字
 async function captureResult() {
-  if (!resultArea.value) return
+  if (!interpretArea.value) return
   const dark = !document.documentElement.classList.contains('light')
-  // 只截图解释区（最后一个 border-t 块）
-  const blocks = resultArea.value.querySelectorAll('.border-t')
-  const target = blocks[blocks.length - 1] || resultArea.value
   try {
-    const canvas = await html2canvas(target, {
+    const canvas = await html2canvas(interpretArea.value, {
       backgroundColor: dark ? '#0f172a' : '#faf8f5',
       scale: 2,
       useCORS: true,
