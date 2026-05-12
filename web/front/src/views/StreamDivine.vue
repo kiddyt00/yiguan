@@ -1,8 +1,6 @@
 <template>
-  <div class="flex gap-6 items-start">
-    <!-- 主内容区 -->
-    <div class="flex-1 min-w-0">
-      <div class="glass-card p-6">
+  <!-- 主内容区（全宽） -->
+  <div class="glass-card p-6">
 
         <!-- 加载中 (数据库加载) -->
         <div v-if="loadingFromDB" class="text-center py-12">
@@ -192,18 +190,18 @@
             <p class="text-xs mt-2" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ t('stream.master.qr') }}</p>
           </div>
         </div>
-      </div>
-    </div>
+  </div>
 
-    <!-- 右侧边栏: 最近记录 -->
-    <div class="w-72 flex-shrink-0 sticky top-4">
+  <!-- 右侧边栏: 最近记录（固定定位，不参与流式布局） -->
+  <aside class="hidden xl:block fixed right-4 top-20 w-72 z-10">
+    <div class="max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl">
       <HistorySidebar
         :is-dark="isDark"
         :selected-id="currentHistoryId"
         @select="loadHistoryFromSidebar"
       />
     </div>
-  </div>
+  </aside>
 </template>
 
 <script setup>
