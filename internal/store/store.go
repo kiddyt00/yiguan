@@ -144,6 +144,12 @@ type HistoryStore interface {
 	GetHistoryByID(id int64) (*History, error)
 	DeleteHistory(id int64) error
 	GetUserHistory(userID int64, limit, offset int) ([]History, error)
+
+	// SearchHistory 关键词搜索历史记录（支持 question/primary_gua/changing_gua）
+	SearchHistory(userID int64, keyword string, limit, offset int) ([]History, error)
+	SearchHistoryCount(userID int64, keyword string) (int64, error)
+	// GetLatestHistory 获取用户最新一条历史记录
+	GetLatestHistory(userID int64) (*History, error)
 }
 
 // TranslationStore 翻译缓存

@@ -129,5 +129,9 @@
   "gua.巽为风": "The Gentle (Wind)", "gua.兑为泽": "The Joyous (Lake)",
   "gua.风水涣": "Dispersion", "gua.风泽中孚": "Inner Truth",
   "gua.雷山小过": "Small Excess", "gua.水火既济": "After Completion",
-  "gua.火水未济": "Before Completion"
+  "gua.火水未济": "Before Completion",
+
+  "sidebar.recent": "Recent Records",
+  "sidebar.search": "Search question/hexagram...",
+  "history.search": "Search question/hexagram..."
 }

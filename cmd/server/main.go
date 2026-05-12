@@ -153,6 +153,9 @@ func main() {
 	// 用户端
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
+	mux.Handle("GET /api/history/search", authMW(corsWrap(http.HandlerFunc(hh.SearchHistory))))
+	mux.Handle("GET /api/history/latest", authMW(corsWrap(http.HandlerFunc(hh.GetLatestHistory))))
+	mux.Handle("GET /api/history/recent", authMW(corsWrap(http.HandlerFunc(hh.GetRecentHistory))))
 	mux.Handle("GET /api/history", authMW(corsWrap(http.HandlerFunc(hh.GetHistory))))
 	mux.Handle("POST /api/divine", authMW(corsWrap(dh)))
 

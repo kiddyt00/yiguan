@@ -55,6 +55,57 @@ func (s *Store) GetUserHistory(userID int64, limit, offset int) ([]store.History
 	return s.GetHistory(userID, limit, offset)
 }
 
+// SearchHistory 关键词搜索历史记录
+func (s *Store) SearchHistory(userID int64, keyword string, limit, offset int) ([]store.History, error) {
+	pattern := "%" + keyword + "%"
+	rows, err := s.db.Query(
+		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, interpretation, lang, created_at
+		 FROM history WHERE user_id = ? AND (question LIKE ? OR primary_gua LIKE ? OR changing_gua LIKE ?)
+		 ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		userID, pattern, pattern, pattern, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []store.History
+	for rows.Next() {
+		var h store.History
+		if err := rows.Scan(&h.ID, &h.UserID, &h.Question, &h.PrimaryGua,
+			&h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.Lang, &h.CreatedAt); err != nil {
+			return nil, err
+		}
+		list = append(list, h)
+	}
+	return list, rows.Err()
+}
+
+// SearchHistoryCount 搜索匹配的记录总数
+func (s *Store) SearchHistoryCount(userID int64, keyword string) (int64, error) {
+	pattern := "%" + keyword + "%"
+	var count int64
+	err := s.db.QueryRow(
+		`SELECT COUNT(*) FROM history WHERE user_id = ? AND (question LIKE ? OR primary_gua LIKE ? OR changing_gua LIKE ?)`,
+		userID, pattern, pattern, pattern,
+	).Scan(&count)
+	return count, err
+}
+
+// GetLatestHistory 获取用户最新一条历史记录
+func (s *Store) GetLatestHistory(userID int64) (*store.History, error) {
+	h := &store.History{}
+	err := s.db.QueryRow(
+		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, interpretation, lang, created_at
+		 FROM history WHERE user_id = ? ORDER BY id DESC LIMIT 1`,
+		userID,
+	).Scan(&h.ID, &h.UserID, &h.Question, &h.PrimaryGua, &h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.Lang, &h.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, store.ErrNotFound
+	}
+	return h, err
+}
+
 func (s *Store) GetActiveUserCount() (int64, error) {
 	var count int64
 	err := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE is_active = 1").Scan(&count)
