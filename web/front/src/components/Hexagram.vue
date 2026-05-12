@@ -11,8 +11,8 @@
           <span class="block w-9 h-1 rounded bg-stone-200" :class="{ 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]': line.changing }"></span>
         </template>
       </div>
-      <span v-if="line.changing" class="text-red-400 text-xs font-bold w-14">{{ t('yao.changing') }}</span>
-      <span v-else class="w-14"></span>
+      <span v-if="line.changing" class="text-red-400 text-xs font-bold whitespace-nowrap w-20">{{ t('yao.changing') }}</span>
+      <span v-else class="w-20"></span>
     </div>
   </div>
 </template>
