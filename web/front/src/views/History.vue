@@ -1,8 +1,5 @@
 <template>
-  <div class="flex gap-6 items-start">
-    <!-- 主内容区 -->
-    <div class="flex-1 min-w-0">
-      <div class="glass-card p-6">
+  <div class="glass-card p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-xl font-bold" :class="isDark ? 'text-white' : 'text-stone-800'">{{ t('nav.history') }}</h3>
           <div class="flex items-center gap-3">
@@ -93,17 +90,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 右侧边栏: 最近记录 -->
-    <div class="w-72 flex-shrink-0 sticky top-4">
-      <HistorySidebar
-        :is-dark="isDark"
-        :selected-id="selected?.id"
-        @select="loadFromSidebar"
-      />
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -113,7 +99,6 @@ import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTranslation } from '../composables/useTranslation'
-import HistorySidebar from '../components/HistorySidebar.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -156,31 +141,17 @@ function toggleSelect(h) {
   }
 }
 
+
 async function doTranslateHistory(h) {
   if (translatingMap[h.id]) return
   translatingMap[h.id] = true
   try {
-    const target = locale.value === 'zh' ? 'en' : 'zh'
     const text = await generateTranslation(h.id, locale.value)
     transCache[h.id] = text
   } catch (e) {
     console.error('翻译失败:', e)
   } finally {
     translatingMap[h.id] = false
-  }
-}
-
-async function loadFromSidebar(h) {
-  // 从侧边栏选择: 展开该记录
-  selected.value = h
-  if (!items.value.find(i => i.id === h.id)) {
-    // 如果不在当前列表中, 加到前面
-    items.value.unshift(h)
-  }
-  if (needsTranslation(h)) {
-    getTranslation(h.id, locale.value).then(text => {
-      if (text) transCache[h.id] = text
-    }).catch(() => {})
   }
 }
 
