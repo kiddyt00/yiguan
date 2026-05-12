@@ -53,9 +53,9 @@
                 class="flex items-center gap-3 rounded-lg p-3"
                 :class="isDark ? 'bg-slate-800/40' : 'bg-stone-100'">
                 <span class="text-sm font-medium w-14" :class="isDark ? 'text-stone-300' : 'text-stone-600'">{{ t(`yao.${toss.throw}`) }}</span>
-                <div class="flex gap-1.5">
+                <div class="flex gap-2.5">
                   <span v-for="(c, i) in toss.coins" :key="i"
-                    class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                    class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold tracking-wider"
                     :class="c === 'front'
                       ? 'bg-amber-500/80 text-amber-950'
                       : (isDark ? 'bg-slate-600/60 text-stone-300' : 'bg-stone-200 text-stone-600')">
