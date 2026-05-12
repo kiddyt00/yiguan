@@ -75,5 +75,5 @@ deploy:
 
 deploy-remote:
 	git push origin main
-	ssh ubuntu@49.235.108.61 'cd /root/yiguan && git pull && bash deploy.sh'
+	ssh ubuntu@49.235.108.61 'sudo bash -c "cd /root/yiguan && git pull && bash deploy.sh"'
 	@echo "✅ 已上线 http://49.235.108.61:8080"
