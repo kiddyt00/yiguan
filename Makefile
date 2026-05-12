@@ -70,3 +70,10 @@ docker-logs:
 deploy:
 	$(DOCKER) up -d --build
 	@echo "🚀 部署完成! http://localhost:$${HTTP_PORT:-80}"
+
+# ========== 远程部署 ==========
+
+deploy-remote:
+	git push origin main
+	ssh ubuntu@49.235.108.61 'cd /root/yiguan && git pull && bash deploy.sh'
+	@echo "✅ 已上线 http://49.235.108.61:8080"
