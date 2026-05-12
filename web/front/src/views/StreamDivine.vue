@@ -1,6 +1,6 @@
 <template>
-  <!-- 主内容区（全宽） -->
-  <div class="glass-card p-6">
+  <div class="relative">
+    <div class="glass-card p-6">
 
         <!-- 加载中 (数据库加载) -->
         <div v-if="loadingFromDB" class="text-center py-12">
@@ -188,13 +188,13 @@
           <div v-if="showMaster" class="mt-3 text-center">
             <img src="/qr-master.png" alt="QR" class="w-48 h-auto mx-auto rounded-lg border" :class="isDark ? 'border-stone-600' : 'border-stone-200'" />
             <p class="text-xs mt-2" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ t('stream.master.qr') }}</p>
-          </div>
         </div>
+    </div>
   </div>
 
-  <!-- 右侧边栏: 最近记录（固定定位，不参与流式布局） -->
-  <aside class="hidden xl:block fixed right-4 top-20 w-72 z-10">
-    <div class="max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl">
+  <!-- 右侧边栏: 最近记录（紧贴内容区右侧） -->
+  <aside class="hidden xl:block absolute left-full ml-4 top-0 w-72 z-10">
+    <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl">
       <HistorySidebar
         :is-dark="isDark"
         :selected-id="currentHistoryId"
@@ -202,6 +202,7 @@
       />
     </div>
   </aside>
+  </div>
 </template>
 
 <script setup>
@@ -346,7 +347,7 @@ function goHome() {
 async function saveAsImage() {
   if (!resultArea.value) return
   const el = resultArea.value
-  const btns = el.querySelectorAll('button, .border-t')
+  const btns = el.querySelectorAll('button, .border-t, h2')
   const origDisplay = []
   btns.forEach(b => { origDisplay.push(b.style.display); b.style.display = 'none' })
   try {
@@ -374,7 +375,11 @@ async function captureResult() {
 }
 
 async function captureElement(el) {
+  let origDisplay = []
   try {
+    // 隐藏截图中的标题
+    const headings = el.querySelectorAll('h2')
+    headings.forEach(h => { origDisplay.push(h.style.display); h.style.display = 'none' })
     const dataUrl = await toPng(el, {
       backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
       pixelRatio: 2,
@@ -382,6 +387,10 @@ async function captureElement(el) {
     resultImage.value = dataUrl
   } catch (e) {
     console.error('captureResult failed:', e)
+  } finally {
+    // 恢复
+    const headings = el.querySelectorAll('h2')
+    headings.forEach((h, i) => { if (i < origDisplay.length) h.style.display = origDisplay[i] })
   }
 }
 
