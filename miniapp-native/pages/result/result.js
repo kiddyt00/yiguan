@@ -31,6 +31,7 @@ Page({
     historyId:null,currentHistoryId:null,
     historyLang:'zh',translationText:'',isTranslating:false,translateError:'',
     showResultContent:false,showInterpret:false,needsTranslateBanner:false,needsTranslateLabel:'',renderedHTML:'',
+    animThrow:1,animCoins:[null,null,null],isAnimating:true,
     statusMap:{coins:'起卦中...',result:'卦象已现',interpretation:'AI 解读中...',done:'解读完成',error:'出错了'}
   },
 
@@ -102,9 +103,16 @@ Page({
       const d=JSON.parse(ds)
       if(e==='phase'){
         if(d.phase==='coins'){
-          const t=d.data;const r=[...(this.data.tossResults||[])]
-          r.push({throw:t.throw,label:t.label,result:lineTypeCN[t.result]||t.result,sum:t.sum,coin_values:t.coin_values||[],is_changing:isChanging(t.result),yaoValue:isYang(t.result)})
-          this.setData({tossResults:r});this.syncDerived()
+          const t=d.data
+          const pushResult=()=>{
+            const r=[...(this.data.tossResults||[])]
+            r.push({throw:t.throw,label:t.label,result:lineTypeCN[t.result]||t.result,sum:t.sum,coin_values:t.coin_values||[],is_changing:isChanging(t.result),yaoValue:isYang(t.result)})
+            this.setData({tossResults:r,animThrow:t.throw+1,animCoins:[null,null,null],isAnimating:true});this.syncDerived()
+          }
+          // 先显示动画，600ms后加入结果
+          const nums={2:'反',3:'正'}
+          this.setData({animThrow:t.throw,animCoins:(t.coin_values||[]).map(v=>typeof v==='number'?nums[v]||v:v),isAnimating:true});this.syncDerived()
+          setTimeout(pushResult,600)
         }else if(d.phase==='hexagram'){
           const pYao=d.data.primary_yao_desc||''
           this.setData({

@@ -1,28 +1,42 @@
 <view class="container">
   <view class="text-center mb-3" style="font-size:36rpx;font-weight:700;">{{statusMap[phase]}}</view>
 
-  <!-- 加载中 -->
   <view wx:if="{{loadingFromDB}}" class="text-center card">
     <text style="font-size:40rpx;">⏳</text>
     <view style="margin-top:16rpx;font-size:28rpx;">加载上次结果...</view>
   </view>
 
-  <!-- 无记录 -->
   <view wx:if="{{noHistory}}" class="text-center card" style="padding:60rpx 0;">
     <text class="text-muted" style="font-size:30rpx;">暂无算卦记录</text>
     <button class="btn-primary mt-3" bindtap="goHome">去起卦</button>
   </view>
 
-  <!-- 铜钱抛掷 -->
+  <!-- 铜钱抛掷动画 -->
   <view wx:if="{{phase==='coins'}}" class="text-center">
-    <view wx:for="{{tossResults}}" wx:key="throw" class="card toss-card">
+    <view style="font-size:28rpx;margin-bottom:20rpx;color:#8B4513;">
+      正在摇掷... 第{{animThrow}}爻（{{yaoNames[animThrow-1]}}）
+    </view>
+    <view class="flex justify-center gap-4 mb-6">
+      <view wx:for="{{animCoins}}" wx:for-index="i" wx:key="i"
+        class="coin-anim {{isAnimating ? 'coin-bounce' : ''}}"
+        style="animation-delay:{{i*0.15}}s;">
+        {{item === null ? '?' : (item === 2 ? '反' : '正')}}
+      </view>
+    </view>
+    <view class="flex justify-center gap-2 mb-4">
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this"
+        class="step-dot {{item <= animThrow ? 'step-active' : 'step-inactive'}}">
+        {{item}}
+      </view>
+    </view>
+    <text class="text-muted">{{isAnimating ? '摇掷中...' : '确定'}}</text>
+
+    <view wx:for="{{tossResults}}" wx:key="throw" class="card toss-card" style="margin-top:12rpx;">
       <view class="toss-row">
         <text class="toss-label">{{item.label}}</text>
         <view class="coin-group">
           <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
-            class="coin {{item === '正' ? 'coin-front' : 'coin-back'}}">
-            {{item}}
-          </view>
+            class="coin {{item === '正' ? 'coin-front' : 'coin-back'}}">{{item}}</view>
         </view>
         <text class="toss-sum">= {{item.sum}}</text>
         <text class="toss-type {{item.is_changing ? 'toss-changing' : 'toss-normal'}}">{{item.result}}</text>
@@ -35,10 +49,6 @@
         </view>
       </view>
     </view>
-    <view wx:if="{{tossResults.length>0 && tossResults.length<6}}" class="text-muted mt-3">
-      正在抛掷第{{tossResults.length+1}}爻...
-    </view>
-    <view wx:if="{{tossResults.length===0}}" class="shaking-coin">🪙</view>
   </view>
 
   <!-- 结果展示区 -->
@@ -48,7 +58,6 @@
       <view style="font-size:28rpx;margin-top:8rpx;color:#5D4037;">{{questionRef}}</view>
     </view>
 
-    <!-- 推演记录 -->
     <view wx:if="{{tossResults.length>0}}" class="mb-3">
       <text class="text-muted" style="display:block;margin-bottom:8rpx;">象</text>
       <view wx:for="{{tossResults}}" wx:key="throw" class="card toss-card-sm">
@@ -56,9 +65,7 @@
           <text class="toss-label">{{item.label}}</text>
           <view class="coin-group">
             <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
-              class="coin-sm {{item === '正' ? 'coin-front' : 'coin-back'}}">
-              {{item}}
-            </view>
+              class="coin-sm {{item === '正' ? 'coin-front' : 'coin-back'}}">{{item}}</view>
           </view>
           <text class="toss-sum">= {{item.sum}}</text>
           <text class="toss-type {{item.is_changing ? 'toss-changing' : 'toss-normal'}}">{{item.result}}</text>
@@ -73,7 +80,6 @@
       </view>
     </view>
 
-    <!-- 卦象 + 六爻竖排 -->
     <view wx:if="{{hexagram.primary}}" class="flex gap-2 mb-3">
       <view class="card hex-card">
         <text class="hex-label">本卦</text>
@@ -103,14 +109,12 @@
       </view>
     </view>
 
-    <!-- AI 思考中 -->
     <view wx:if="{{phase==='result'}}" class="text-center card">
       <text style="font-size:40rpx;">🤔</text>
       <view style="margin-top:16rpx;font-size:28rpx;color:#8B4513;">AI 正在思考中{{dots}}</view>
       <text wx:if="{{statusMsg}}" class="text-muted" style="display:block;margin-top:8rpx;">{{statusMsg}}</text>
     </view>
 
-    <!-- AI 解读 -->
     <view wx:if="{{showInterpret}}" class="card">
       <view style="font-size:30rpx;font-weight:600;margin-bottom:16rpx;">🤖 解</view>
       <view wx:if="{{needsTranslateBanner}}" class="trans-banner">
@@ -121,7 +125,6 @@
       <rich-text nodes="{{renderedHTML}}" style="font-size:28rpx;line-height:1.8;"></rich-text>
     </view>
 
-    <!-- 完成 -->
     <view wx:if="{{mode==='new' && phase==='done'}}" class="text-center mt-3">
       <view wx:if="{{remainingQuota>=0}}" class="text-muted mb-3">
         剩余 <text style="color:#8B4513;font-weight:600;">{{remainingQuota}}</text> 次提问
@@ -130,16 +133,13 @@
       <button class="btn-secondary mt-3" style="width:100%;" bindtap="goHistory">查看历史</button>
     </view>
 
-    <!-- 大师入口 -->
     <view class="card mt-3" bindtap="toggleMaster">
       <text style="font-size:28rpx;color:#8B4513;">🎓 周易大师一对一详解</text>
     </view>
   </view>
 
-  <!-- 错误 -->
   <view wx:if="{{error}}" class="card text-center" style="color:#C62828;">{{error}}</view>
 
-  <!-- 大师弹窗 -->
   <view wx:if="{{showMaster}}" class="card text-center mt-3">
     <text style="font-size:30rpx;font-weight:600;">周易大师 · 一对一深度交流</text>
     <image src="/images/master-qr.svg" mode="widthFix" style="width:400rpx;margin:24rpx auto;"></image>
