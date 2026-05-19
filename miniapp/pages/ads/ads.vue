@@ -3,6 +3,9 @@
     <view class="card">
       <text style="font-size: 30rpx; font-weight: 600;">📢 观看广告获取起卦次数</text>
       <text class="text-muted" style="display: block; margin-top: 8rpx;">每个账号每日最多 3 次</text>
+      <view v-if="quota >= 0" style="margin-top: 12rpx; font-size: 26rpx; color: #5D4037;">
+        当前剩余：<text style="color:#8B4513; font-weight:600;">{{ quota }}</text> 次
+      </view>
     </view>
 
     <view v-for="ad in ads" :key="ad.id" class="card">
@@ -29,11 +32,17 @@ import { api } from '../../utils/api.js'
 
 export default {
   data() {
-    return { ads: [], watchingId: null, countdown: 0, timer: null }
+    return { ads: [], watchingId: null, countdown: 0, timer: null, quota: -1 }
   },
-  onShow() { this.loadAds() },
+  onShow() { this.loadAds(); this.loadQuota() },
   onUnload() { if (this.timer) clearInterval(this.timer) },
   methods: {
+    async loadQuota() {
+      try {
+        const data = await api.profile()
+        this.quota = data.remaining_quota ?? -1
+      } catch {}
+    },
     async loadAds() {
       try {
         const data = await api.activeAds()
@@ -49,8 +58,11 @@ export default {
           this.countdown--
           if (this.countdown <= 0) {
             clearInterval(this.timer)
-            await api.completeAd(ad.id, ad.watch_duration)
-            uni.showToast({ title: `获得 ${ad.reward_quota} 次起卦！` })
+            try {
+              const data = await api.completeAd(ad.id, ad.watch_duration)
+              uni.showToast({ title: `获得 ${ad.reward_quota} 次起卦！` })
+              this.quota = data.remaining_quota ?? (this.quota + (data.rewarded || 1))
+            } catch (e) { uni.showToast({ title: e.message, icon: 'none' }) }
             this.watchingId = null
           }
         }, 1000)

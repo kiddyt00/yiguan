@@ -7,8 +7,22 @@
       <text class="text-muted" style="display: block; margin-top: 8rpx;">观易知变，见心明境</text>
     </view>
 
+    <!-- 登录/配额状态 -->
+    <view v-if="isLoggedIn" class="text-center mb-3">
+      <text v-if="quota >= 0" style="font-size: 26rpx;"
+        :class="quota > 0 ? 'text-muted' : ''"
+        :style="quota <= 0 ? 'color:#C62828;' : ''">
+        {{ quota > 0 ? '剩余 ' + quota + ' 次提问' : '次数已用完' }}
+      </text>
+      <text v-else class="text-muted">加载中...</text>
+    </view>
+    <view v-else class="card text-center">
+      <text class="text-muted">登录后即可免费使用（新用户赠送 3 次）</text>
+      <button class="btn-primary mt-3" style="width:100%;" @tap="goLogin">登录 / 注册</button>
+    </view>
+
     <!-- 输入区 -->
-    <view class="card">
+    <view v-if="isLoggedIn" class="card">
       <view style="font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx;">请默想你的问题：</view>
       <textarea
         v-model="question"
@@ -18,7 +32,7 @@
       />
       <view class="flex gap-2 mt-3">
         <button class="btn-secondary" style="flex:1;" @tap="goHistory">历史记录</button>
-        <button class="btn-primary" style="flex:2;" :disabled="!question" @tap="startDivine">
+        <button class="btn-primary" style="flex:2;" :disabled="!question || quota <= 0" @tap="startDivine">
           {{ loading ? '起卦中...' : '开始提问' }}
         </button>
       </view>
@@ -41,7 +55,7 @@
     <!-- 大师二维码弹窗 -->
     <view v-if="showMaster" class="card text-center mt-3">
       <text style="font-size: 30rpx; font-weight: 600;">周易大师 · 一对一深度交流</text>
-      <image src="/static/master-qr.png" mode="widthFix" style="width: 400rpx; margin: 24rpx auto;" />
+      <image src="/static/master-qr.svg" mode="widthFix" style="width: 400rpx; margin: 24rpx auto;" />
       <text class="text-muted">长按识别二维码添加大师微信</text>
       <button class="btn-secondary mt-3" @tap="showMaster = false">关闭</button>
     </view>
@@ -49,11 +63,28 @@
 </template>
 
 <script>
+import { api } from '../../utils/api.js'
 export default {
   data() {
-    return { question: '', loading: false, showMaster: false }
+    return { question: '', loading: false, showMaster: false, quota: -1, isLoggedIn: false }
+  },
+  onShow() {
+    this.isLoggedIn = !!uni.getStorageSync('token')
+    if (this.isLoggedIn) this.loadQuota()
+  },
+  onShareAppMessage() {
+    return { title: '观己斋 - 观易知变，见心明境', path: '/pages/index/index' }
+  },
+  onShareTimeline() {
+    return { title: '观己斋 - 观易知变，见心明境', query: '' }
   },
   methods: {
+    async loadQuota() {
+      try {
+        const data = await api.profile()
+        this.quota = data.remaining_quota ?? -1
+      } catch { this.quota = -1 }
+    },
     startDivine() {
       if (!this.question) return
       const token = uni.getStorageSync('token')
@@ -61,15 +92,18 @@ export default {
         uni.navigateTo({ url: '/pages/login/login' })
         return
       }
+      if (this.quota <= 0) {
+        uni.showToast({ title: '次数已用完，请先获取次数', icon: 'none' })
+        return
+      }
       this.loading = true
+      getApp().globalData = { question: this.question }
       uni.navigateTo({
         url: '/pages/result/result',
-        success: () => { this.loading = false },
-        fail: () => { this.loading = false }
+        complete: () => { this.loading = false }
       })
-      // 通过全局变量传递问题
-      getApp().globalData = { question: this.question }
     },
+    goLogin() { uni.navigateTo({ url: '/pages/login/login' }) },
     goHistory() { uni.navigateTo({ url: '/pages/history/history' }) },
     goUser() { uni.navigateTo({ url: '/pages/user/user' }) },
     goAds() { uni.navigateTo({ url: '/pages/ads/ads' }) },

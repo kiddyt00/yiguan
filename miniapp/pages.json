@@ -6,6 +6,7 @@
     { "path": "pages/user/user", "style": { "navigationBarTitleText": "个人中心" } },
     { "path": "pages/history/history", "style": { "navigationBarTitleText": "历史记录" } },
     { "path": "pages/ads/ads", "style": { "navigationBarTitleText": "获取次数" } },
+    { "path": "pages/login/pwd", "style": { "navigationBarTitleText": "密码登录" } },
     { "path": "pages/about/about", "style": { "navigationBarTitleText": "关于我们" } }
   ],
   "globalStyle": {

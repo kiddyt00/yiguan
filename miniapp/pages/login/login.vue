@@ -84,7 +84,7 @@ export default {
         success: async (loginRes) => {
           try {
             const res = await uni.request({
-              url: 'https://49.235.108.61/api/auth/wechat-login',
+              url: 'https://gjz.shadouyou.cloud/api/auth/wechat-login',
               method: 'POST',
               data: { code: loginRes.code },
               header: { 'Content-Type': 'application/json' }
@@ -112,7 +112,7 @@ export default {
       if (this.phone.length !== 11) return
       try {
         const res = await uni.request({
-          url: 'https://49.235.108.61/api/auth/sms-send',
+          url: 'https://gjz.shadouyou.cloud/api/auth/sms-send',
           method: 'POST',
           data: { phone: this.phone },
           header: { 'Content-Type': 'application/json' }
@@ -140,7 +140,7 @@ export default {
       this.loading = true
       try {
         const res = await uni.request({
-          url: 'https://49.235.108.61/api/auth/sms-login',
+          url: 'https://gjz.shadouyou.cloud/api/auth/sms-login',
           method: 'POST',
           data: { phone: this.phone, code: this.code },
           header: { 'Content-Type': 'application/json' }
@@ -158,8 +158,7 @@ export default {
     },
 
     goPwdLogin() {
-      // 复用现有的密码登录页
-      uni.navigateTo({ url: '/pages/login/login' })
+      uni.navigateTo({ url: '/pages/login/pwd' })
     }
   }
 }

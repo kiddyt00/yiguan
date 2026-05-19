@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <view class="card text-center" style="padding-top: 48rpx;">
-      <image src="/static/default-avatar.png" mode="aspectFill"
+      <image src="/static/default-avatar.svg" mode="aspectFill"
         style="width:120rpx; height:120rpx; border-radius:60rpx; margin:0 auto;" />
       <view style="font-size: 36rpx; font-weight: 700; margin-top: 16rpx;">{{ profile.nickname || '易友' }}</view>
       <text class="text-muted">{{ profile.phone || '' }}</text>
