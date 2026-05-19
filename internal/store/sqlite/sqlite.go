@@ -214,10 +214,27 @@ func migrate(db *sql.DB) error {
 			return fmt.Errorf("添加 primary_yao 列失败: %w", err)
 		}
 	}
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'changing_yao'").Scan(&yaoCol)
-	if yaoCol == 0 {
+	var cYaoCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'changing_yao'").Scan(&cYaoCol)
+	if cYaoCol == 0 {
 		if _, err := db.Exec("ALTER TABLE history ADD COLUMN changing_yao TEXT DEFAULT ''"); err != nil {
 			return fmt.Errorf("添加 changing_yao 列失败: %w", err)
+		}
+	}
+
+	// v2.6: toss_data / master_yao 列迁移
+	var tossCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'toss_data'").Scan(&tossCol)
+	if tossCol == 0 {
+		if _, err := db.Exec("ALTER TABLE history ADD COLUMN toss_data TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 toss_data 列失败: %w", err)
+		}
+	}
+	var masterCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'master_yao'").Scan(&masterCol)
+	if masterCol == 0 {
+		if _, err := db.Exec("ALTER TABLE history ADD COLUMN master_yao INTEGER DEFAULT 0"); err != nil {
+			return fmt.Errorf("添加 master_yao 列失败: %w", err)
 		}
 	}
 

@@ -47,15 +47,29 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// 阶段 1: 铜钱抛掷
 	names := []string{"初爻", "二爻", "三爻", "四爻", "五爻", "上爻"}
 	for i, line := range result.Lines {
-		// 从 line 值还原 3 枚铜钱 (6=2+2+2, 7=2+2+3, 8=2+3+3, 9=3+3+3)
-		coinValues := coinsFromLine(line)
+		cv := coinsFromLine(line)
+		coinStrs := []string{"反", "反", "反"}
+		if len(cv) == 3 {
+			coinStrs = []string{}
+			m := map[int]string{2: "反", 3: "正"}
+			for _, v := range cv {
+				coinStrs = append(coinStrs, m[v])
+			}
+		}
+		resultKey := "unknown"
+		switch line {
+		case 6: resultKey = "old_yin"
+		case 7: resultKey = "young_yang"
+		case 8: resultKey = "young_yin"
+		case 9: resultKey = "old_yang"
+		}
 		writeSSE("phase", map[string]interface{}{
 			"phase": "coins",
 			"data": map[string]interface{}{
 				"throw": i + 1, "label": names[i],
-				"result": lineType(line), "yang": line%2 != 0,
+				"result": resultKey, "yang": line%2 != 0,
 				"sum":     line,
-				"coin_values": coinValues, // ["反","反","正"] 等
+				"coin_values": coinStrs,
 			},
 		})
 		time.Sleep(200 * time.Millisecond)
@@ -106,6 +120,8 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		YaoPositions:   result.YaoDesc,
 		PrimaryYao:     result.Primary.YaoDesc,
 		ChangingYao:    result.Changing.YaoDesc,
+		TossData:       formatTossData(result.Lines),
+		MasterYao:      result.MasterYao,
 		Interpretation: llm.StripDisclaimer(interpretation.String()),
 		Lang:           getLang(r),
 	}
@@ -124,37 +140,4 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func lineType(line int) string {
-	switch line {
-	case 6:
-		return "old_yin"
-	case 7:
-		return "young_yang"
-	case 8:
-		return "young_yin"
-	case 9:
-		return "old_yang"
-	default:
-		return "unknown"
-	}
-}
 
-// coinsFromLine 从爻值还原3枚铜钱的值（2=反, 3=正）
-// 6=2+2+2, 7=2+2+3, 8=2+3+3, 9=3+3+3
-func coinsFromLine(line int) []string {
-	// 按正=3, 反=2 还原（最小化正的数量）
-	count3 := (line - 6) // 0,1,2,3
-	coins := make([]string, 3)
-	for i := 0; i < 3; i++ {
-		if i < count3 {
-			coins[i] = "反"
-		} else {
-			coins[i] = "正"
-		}
-	}
-	// 反转使正排在前面更直观
-	for i, j := 0, 2; i < j; i, j = i+1, j-1 {
-		coins[i], coins[j] = coins[j], coins[i]
-	}
-	return coins
-}
