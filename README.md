@@ -7,7 +7,7 @@
 ## 技术栈
 
 | 层 | 技术 | 说明 |
-|---|------|------|
+|---|---|---|
 | 后端 | Go 1.24 | 标准库 `net/http`，无第三方框架 |
 | 数据库 | SQLite (modernc.org/sqlite) | 纯 Go 实现，零 CGO 依赖 |
 | 前端 | Vue 3 + Vite + Pinia | SPA，Tailwind CSS v4 中国风主题 |
@@ -23,8 +23,9 @@
 - **用户体系** — 手机号 / 微信小程序 / 微信扫码三种登录方式，JWT 鉴权
 - **Quota 计费** — 注册赠送 3 次免费算卦，后续支持付费购买、转发裂变、广告解锁
 - **模型管理** — 后台可视化配置大模型，25 家内置供应商，一键测试连接，动态切换默认模型
-- **广告系统** — 首页 + 结果页广告位，观看广告解锁 quota，后台管理广告上下架与统计
+- **广告系统** — 首页 + 结果页广告位，观看广告解锁 quota（每日限 3 次），后台管理广告上下架与统计
 - **管理后台** — 用户管理、卦象记录、模型配置、广告运营，一站式 Dashboard
+- **翻译** — AI 解读中英文互译，三层缓存（内存 → localStorage → 后端 DB）
 - **优雅关闭** — 信号监听，HTTP Server 超时控制，健康检查端点
 
 ## 快速开始
@@ -68,6 +69,8 @@ make test-short    # 跳过慢速测试
 export ADMIN_PHONE=13800000000
 export JWT_SECRET=your-secret
 export LLM_API_KEY=sk-xxx
+export WX_APPID=wx9e87b7216be83619
+export WX_SECRET=your-wechat-secret
 
 # 一键构建并启动
 make deploy
@@ -79,7 +82,7 @@ make docker-logs
 make docker-down
 ```
 
-服务启动后访问 `http://localhost`（默认 80 端口，通过 `HTTP_PORT` 环境变量修改）。
+服务启动后访问 `http://localhost:80`（通过 `HTTP_PORT` 环境变量修改）。
 
 ## 项目结构
 
@@ -88,7 +91,7 @@ yiguan/
 ├── cmd/server/main.go          # 程序入口，路由注册，中间件
 ├── internal/
 │   ├── engine/                 # 算卦引擎（铜钱起卦、卦象数据）
-│   ├── handler/                # HTTP 处理器（鉴权、算卦、用户、管理、广告、模型）
+│   ├── handler/                # HTTP 处理器（鉴权、算卦、用户、管理、广告、模型、翻译）
 │   ├── llm/                    # LLM 客户端、路由器、容错链、流式输出
 │   ├── middleware/             # JWT 鉴权、管理员鉴权
 │   └── store/
@@ -97,7 +100,11 @@ yiguan/
 │   ├── front/                  # 用户端 Vue 3 SPA
 │   └── admin/                  # 管理后台 Vue 3 SPA
 ├── miniapp/                    # UniApp 微信小程序
+│   ├── pages/                  # 8 个页面（首页/起卦/登录/个人/历史/广告/关于/密码登录）
+│   ├── utils/                  # API 封装、配置、Markdown 渲染
+│   └── static/                 # 静态资源
 ├── test/                       # E2E 测试
+├── deploy/                     # 部署配置（nginx、二进制）
 ├── config.yaml                 # 本地开发配置
 ├── docker-compose.yml          # Docker 编排
 ├── Dockerfile.backend          # 后端镜像
@@ -110,19 +117,20 @@ yiguan/
 ### 用户端
 
 | 方法 | 路径 | 说明 | 鉴权 |
-|------|------|------|------|
+|---|---|---|---|
 | POST | `/api/auth/register` | 手机号注册 | 否 |
 | POST | `/api/auth/login` | 手机号登录 | 否 |
-| POST | `/api/auth/wechat/login` | 微信小程序登录 | 否 |
-| GET | `/api/auth/wechat/qrcode` | 微信扫码登录二维码 | 否 |
-| GET | `/api/auth/wechat/qrcode/check` | 扫码状态轮询 | 否 |
-| POST | `/api/auth/sms/send` | 发送短信验证码 | 否 |
-| POST | `/api/auth/sms/login` | 短信验证码登录 | 否 |
+| POST | `/api/auth/wechat-login` | 微信小程序登录 | 否 |
+| GET | `/api/auth/wechat-qrcode` | 微信扫码登录二维码 | 否 |
+| GET | `/api/auth/wechat-check` | 扫码状态轮询 | 否 |
+| POST | `/api/auth/sms-send` | 发送短信验证码 | 否 |
+| POST | `/api/auth/sms-login` | 短信验证码登录 | 否 |
 | GET | `/api/user` | 获取用户信息 | Bearer Token |
 | PUT | `/api/user` | 更新用户信息 | Bearer Token |
 | POST | `/api/divine` | 起卦并解卦 | Bearer Token |
 | POST | `/api/divine/stream` | 流式起卦解卦 (SSE) | Bearer Token |
 | GET | `/api/history` | 历史算卦记录 | Bearer Token |
+| GET/POST | `/api/history/{id}/translate` | 翻译 AI 解读 | Bearer Token |
 | GET | `/api/ads/active` | 获取启用广告 | 否 |
 | POST | `/api/ads/{id}/watch` | 开始观看广告 | Bearer Token |
 | POST | `/api/ads/{id}/complete` | 广告观看完成 | Bearer Token |
@@ -130,7 +138,7 @@ yiguan/
 ### 管理后台
 
 | 方法 | 路径 | 说明 |
-|------|------|------|
+|---|---|---|
 | GET | `/api/admin/dashboard` | 仪表盘数据 |
 | GET | `/api/admin/users` | 用户列表 |
 | POST | `/api/admin/users/{id}/toggle` | 启用/禁用用户 |
@@ -152,6 +160,22 @@ yiguan/
 | DELETE | `/api/admin/ads/{id}` | 删除广告 |
 | POST | `/api/admin/ads/{id}/toggle` | 启用/禁用广告 |
 | GET | `/api/admin/ads/stats` | 广告统计数据 |
+
+## 微信小程序
+
+小程序端使用 UniApp 开发，支持以下功能：
+
+- **微信一键登录** — 调用 wx.login + 后端 code2session
+- **短信验证码登录** — 手机号+验证码
+- **密码登录/注册** — 传统手机号+密码
+- **流式起卦** — SSE 推演动画，3 阶段展示（铜钱 → 卦象 → AI 解读）
+- **历史记录** — 分页列表 + Markdown 渲染解卦内容
+- **广告解锁** — 看 30s 广告获取 1 次起卦（每日限 3 次）
+- **分享** — 支持转发好友 / 朋友圈
+
+使用 HBuilder X 打开 `miniapp/` 目录，运行到微信开发者工具即可调试。
+
+**小程序 AppID:** `wx9e87b7216be83619`
 
 ## 配置
 
@@ -183,7 +207,7 @@ llm:
 生产环境通过环境变量覆盖敏感配置：
 
 | 变量 | 说明 |
-|------|------|
+|---|---|
 | `SERVER_PORT` | 服务端口 |
 | `JWT_SECRET` | JWT 签名密钥 |
 | `LLM_API_KEY` | 大模型 API Key |
@@ -198,32 +222,16 @@ llm:
 
 1. **起爻** — 模拟 3 枚铜钱抛掷 6 次，得 6 个爻值（6/7/8/9）
 2. **变卦** — 6（老阴）和 9（老阳）为变爻，自动生成变卦
-3. **定主变爻** — 用 55 减去变爻总数，余数去重合并后定位主变爻
-4. **解卦** — 将本卦、变卦、变爻位置、用户问题拼接为 Prompt，调用大模型流式输出
+3. **55 法定主变爻** — 6 次抛掷总值减 55 取模，指向最关键的变爻
+4. **AI 解读** — 将本卦、变卦、变爻信息构造成 prompt，调用大模型生成结构化解卦
+5. **容错链** — 默认模型失败时自动切换到下一个已启用的模型
 
-## 商业模式
+## 生产部署
 
-- **免费引流** — 新用户注册赠送 3 次免费 quota
-- **付费解卦** — 第 4 次起按次收费
-- **转发裂变** — 转发给 2 个不同用户获得 +1 quota
-- **广告变现** — 页面广告位 + 观看广告解锁 quota（每日限 3 次）
-- **大师导流** — 解卦结果页展示「一对一详解」入口，引导私域转化
+当前生产环境地址：**https://gjz.shadouyou.cloud**
 
-## 路线图
-
-- [x] 铜钱起卦引擎 + AI 解卦 (v1.0)
-- [x] 用户注册登录 + Quota 计费 (v2.0)
-- [x] 大模型管理后台 + 容错链 (v2.1)
-- [x] 流式 SSE 解卦 (v2.1)
-- [x] 广告系统 (v2.1)
-- [x] 微信小程序登录 + 短信验证码登录 (v2.2)
-- [x] 微信扫码登录 (v2.2)
-- [ ] UniApp 小程序端完整功能
-- [ ] 双版本站点（浅色中国风 / 深色科技风）
-- [ ] 国际化英文版
-- [ ] SQLite → PostgreSQL 迁移
-- [ ] 支付系统对接
-
-## 许可
-
-[MIT](LICENSE)
+部署流程：
+1. 配置环境变量（`.env` 或 export）
+2. `make deploy` — Docker Compose 一键构建启动
+3. Nginx 反向代理 80/443 → 前端容器（8080）
+4. SSL 证书通过 acme.sh 自动管理
