@@ -146,6 +146,9 @@ func main() {
 	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
 
 	uh := handler.NewUserHandler(st)
+	if appID := os.Getenv("WX_APPID"); appID != "" {
+		uh.SetWechatConfig(appID, os.Getenv("WX_SECRET"))
+	}
 	hh := handler.NewHistoryHandler(st)
 	dh := handler.NewDivineHandler(st, llmRouter)
 	ah := handler.NewAdminHandler(st)
@@ -153,6 +156,7 @@ func main() {
 	// 用户端
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
+	mux.Handle("POST /api/user/bind-wechat", authMW(corsWrap(http.HandlerFunc(uh.BindWechat))))
 	mux.Handle("GET /api/history/search", authMW(corsWrap(http.HandlerFunc(hh.SearchHistory))))
 	mux.Handle("GET /api/history/latest", authMW(corsWrap(http.HandlerFunc(hh.GetLatestHistory))))
 	mux.Handle("GET /api/history/recent", authMW(corsWrap(http.HandlerFunc(hh.GetRecentHistory))))

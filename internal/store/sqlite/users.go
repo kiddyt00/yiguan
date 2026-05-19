@@ -104,6 +104,12 @@ func (s *Store) GetUserByID(id int64) (*store.User, error) {
 	return u, nil
 }
 
+// UpdateUserOpenID 绑定微信 openid（在已存在用户上设置）
+func (s *Store) UpdateUserOpenID(id int64, openid string) error {
+	_, err := s.db.Exec("UPDATE users SET openid = ? WHERE id = ?", openid, id)
+	return err
+}
+
 // UpdateUser 更新昵称和地址
 func (s *Store) UpdateUser(id int64, nickname, address string) error {
 	_, err := s.db.Exec(
