@@ -121,6 +121,7 @@ type UserStore interface {
 	GetUserByOpenID(openid string) (*User, error)
 	GetUserByID(id int64) (*User, error)
 	UpdateUser(id int64, nickname, address string) error
+	UpdateUserOpenID(id int64, openid string) error
 
 	ToggleUser(id int64, active bool) error
 	UpdateUserRole(id int64, role string) error

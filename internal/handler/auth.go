@@ -166,7 +166,7 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	openid, err := h.exchangeWechatCode(req.Code)
+	openid, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
 	if err != nil {
 		log.Printf("微信 code 换 openid 失败: %v", err)
 		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败: " + err.Error()})
@@ -193,28 +193,7 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
-func (h *AuthHandler) exchangeWechatCode(code string) (string, error) {
-	if h.wxAppID == "" || h.wxSecret == "" {
-		return "", fmt.Errorf("微信小程序未配置")
-	}
-	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code",
-		h.wxAppID, h.wxSecret, code)
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("请求微信API失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	var wr wechatResp
-	if err := json.NewDecoder(resp.Body).Decode(&wr); err != nil {
-		return "", fmt.Errorf("解析微信响应失败: %w", err)
-	}
-	if wr.ErrCode != 0 {
-		return "", fmt.Errorf("微信错误 %d: %s", wr.ErrCode, wr.ErrMsg)
-	}
-	return wr.OpenID, nil
-}
 
 // smsSend 发送短信验证码
 func (h *AuthHandler) smsSend(w http.ResponseWriter, r *http.Request) {
