@@ -103,23 +103,18 @@ Page({
       const d=JSON.parse(ds)
       if(e==='phase'){
         if(d.phase==='coins'){
-          const t=d.data
-          const pushResult=()=>{
-            const r=[...(this.data.tossResults||[])]
-            r.push({throw:t.throw,label:t.label,result:lineTypeCN[t.result]||t.result,sum:t.sum,coin_values:t.coin_values||[],is_changing:isChanging(t.result),yaoValue:isYang(t.result)})
-            this.setData({tossResults:r,animThrow:t.throw+1,animCoins:[null,null,null],isAnimating:true});this.syncDerived()
-          }
-          // 先显示动画，600ms后加入结果
+          const t=d.data;const r=[...(this.data.tossResults||[])]
           const nums={2:'反',3:'正'}
-          this.setData({animThrow:t.throw,animCoins:(t.coin_values||[]).map(v=>typeof v==='number'?nums[v]||v:v),isAnimating:true});this.syncDerived()
-          setTimeout(pushResult,600)
+          r.push({throw:t.throw,label:t.label,result:lineTypeCN[t.result]||t.result,sum:t.sum,coin_values:t.coin_values||[],is_changing:isChanging(t.result),yaoValue:isYang(t.result)})
+          this.setData({tossResults:r,animThrow:t.throw,animCoins:(t.coin_values||[]).map(v=>typeof v==='number'?nums[v]||v:v),isAnimating:true});this.syncDerived()
         }else if(d.phase==='hexagram'){
           const pYao=d.data.primary_yao_desc||''
           this.setData({
             phase:'result',
             hexagram:{primary:d.data.primary_gua,changing:d.data.changing_gua},
             primaryYaoDesc:pYao,
-            hexLines:buildHexLines(pYao,d.data.yao_positions||[])
+            hexLines:buildHexLines(pYao,d.data.yao_positions||[]),
+            isAnimating:false
           });this.syncDerived()
         }
       }else if(e==='ai'){
