@@ -50,7 +50,7 @@ Page({
       const v=lines[i],cv=coinPats[v]||[2,2,2]
       const tr=[...this.data.tossResults,{throw:i+1,label:yaoNames[i],coin_values:cv.map(c=>c===3?'正':'反'),sum:v,result:lineTypes[v],is_changing:isChanging(v),yaoValue:isYang(v)}]
       this.setData({tossResults:tr,animThrow:i+1,animCoins:cv.map(c=>c===3?'正':'反')});this.syncDerived()
-      i++;setTimeout(playNext,200)
+      i++;setTimeout(playNext,2000)
     }
     playNext()
   },
