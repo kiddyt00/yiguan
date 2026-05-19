@@ -11,7 +11,7 @@
         <!-- 主题切换 -->
         <button @click="$emit('toggle-theme')" class="text-lg leading-none opacity-70 hover:opacity-100 transition"
           :title="isDark ? '切换浅色' : '切换深色'">
-          {{ isDark ? '☀️' : '🌙' }}
+          {{ isDark ? '🌙' : '☀️' }}
         </button>
         <!-- 语言切换 -->
         <div class="relative">
