@@ -1,17 +1,11 @@
 const marked = require('../../utils/marked.js')
 const API = 'https://gjz.shadouyou.cloud/api'
 
-function coinsFromLine(v) {
-  const map = { 6: [2,2,2], 7: [2,2,3], 8: [2,3,3], 9: [3,3,3] }
-  return map[v] || [0,0,0]
-}
-function lineType(v) {
-  return { 6:'老阴',7:'少阳',8:'少阴',9:'老阳' }[v] || ''
-}
-
 Page({
   data: {
-    phase: 'coins', coinLabel: '', hexagram: { primary: '', changing: '' },
+    phase: 'coins', tossResults: [],
+    yaoNames: ['初爻','二爻','三爻','四爻','五爻','上爻'],
+    hexagram: { primary: '', changing: '' },
     aiText: '', error: '', statusMsg: '', showMaster: false,
     dots: '', dotsTimer: null, sseBuffer: '',
     statusMap: { coins:'起卦中...', hexagram:'卦象已现', ai:'AI 解读中...', done:'解读完成', error:'出错了' }
@@ -26,8 +20,7 @@ Page({
   onLoad() { this.startDots(); this.startStream() },
   onUnload() { if (this.data.dotsTimer) clearInterval(this.data.dotsTimer) },
   startDots() {
-    const dots = ['','.','..','...']
-    let i = 0
+    const dots = ['','.','..','...']; let i = 0
     const timer = setInterval(() => { this.setData({ dots: dots[i%4] }); i++ }, 500)
     this.data.dotsTimer = timer
   },
@@ -36,20 +29,16 @@ Page({
     if (!question) { this.setData({ error:'问题为空', phase:'error' }); return }
     const token = wx.getStorageSync('token')
     const requestTask = wx.request({
-      url: API + '/divine/stream',
-      method: 'POST',
+      url: API + '/divine/stream', method: 'POST',
       header: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
-      data: { question },
-      enableChunked: true,
-      responseType: 'text',
+      data: { question }, enableChunked: true, responseType: 'text',
       success: () => {},
       fail: (err) => this.setData({ error:'网络连接失败: '+(err.errMsg||''), phase:'error' })
     })
     this.data.sseBuffer = ''
     requestTask.onChunkReceived((res) => {
       let chunk = typeof res.data === 'string' ? res.data : ''
-      this.data.sseBuffer += chunk
-      this.drainBuffer()
+      this.data.sseBuffer += chunk; this.drainBuffer()
     })
   },
   drainBuffer() {
@@ -71,14 +60,25 @@ Page({
     try {
       const d = JSON.parse(dataStr)
       if (event === 'phase') {
-        if (d.phase === 'coins') this.setData({ phase:'coins', coinLabel: d.data.label+' — '+d.data.result })
-        else if (d.phase === 'hexagram') this.setData({ phase:'hexagram', hexagram:{ primary:d.data.primary_gua, changing:d.data.changing_gua } })
+        if (d.phase === 'coins') {
+          const toss = d.data
+          const tossResults = [...(this.data.tossResults || [])]
+          tossResults.push({
+            throw: toss.throw, label: toss.label,
+            result: toss.result, sum: toss.sum,
+            coin_values: toss.coin_values,
+            is_changing: toss.result === '老阴' || toss.result === '老阳'
+          })
+          this.setData({ phase: 'coins', tossResults })
+        } else if (d.phase === 'hexagram') {
+          this.setData({ phase: 'hexagram', hexagram: { primary: d.data.primary_gua, changing: d.data.changing_gua } })
+        }
       } else if (event === 'ai') {
-        if (this.data.phase === 'hexagram') this.setData({ phase:'ai' })
+        if (this.data.phase === 'hexagram') this.setData({ phase: 'ai' })
         this.setData({ aiText: this.data.aiText + (d.chunk || '') })
       } else if (event === 'status') { this.setData({ statusMsg: d.msg || '' }) }
-      else if (event === 'done') { this.setData({ phase:'done' }) }
-      else if (event === 'error') { this.setData({ error:d.error, phase:'done' }) }
+      else if (event === 'done') { this.setData({ phase: 'done' }) }
+      else if (event === 'error') { this.setData({ error: d.error, phase: 'done' }) }
     } catch(e) {}
   },
   toggleMaster() { this.setData({ showMaster: !this.data.showMaster }) },
