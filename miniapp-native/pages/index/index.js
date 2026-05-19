@@ -43,7 +43,17 @@ Page({
     this.setData({wxLoading:true})
     wx.login({success:(lr)=>{
       wx.request({url:API+'/auth/wechat-login',method:'POST',data:{code:lr.code},header:{'Content-Type':'application/json'},
-        success:r=>{if(r.statusCode===200&&r.data.token){wx.setStorageSync('token',r.data.token);wx.showToast({title:'登录成功'});setTimeout(()=>this.onShow(),800)}else{wx.showToast({title:r.data?.error||'登录失败',icon:'none'})}},
+        success:r=>{
+          if(r.statusCode===200&&r.data.token){
+            wx.setStorageSync('token',r.data.token)
+            wx.getUserInfo({success:info=>{
+              if(info.userInfo&&info.userInfo.nickName){
+                api.updateProfile({nickname:info.userInfo.nickName}).catch(()=>{})
+              }
+            },fail:()=>{}})
+            wx.showToast({title:'登录成功'});setTimeout(()=>this.onShow(),800)
+          }else{wx.showToast({title:r.data?.error||'登录失败',icon:'none'})}
+        },
         fail:()=>wx.showToast({title:'网络错误',icon:'none'}),complete:()=>this.setData({wxLoading:false})})},
       fail:()=>{wx.showToast({title:'微信登录失败',icon:'none'});this.setData({wxLoading:false})}
     })
