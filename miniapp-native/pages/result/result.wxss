@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
+  flex-wrap: wrap;
 }
 .toss-label {
   font-size: 26rpx;
@@ -48,4 +49,37 @@
   background: rgba(198,40,40,0.15);
   color: #C62828;
   font-weight: 600;
+}
+/* 阴阳爻线 */
+.yao-line {
+  margin-left: auto;
+  min-width: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.yang-line {
+  width: 48rpx;
+  height: 8rpx;
+  background: #5D4037;
+  border-radius: 4rpx;
+}
+.yang-line.changing {
+  background: #C62828;
+  box-shadow: 0 0 8rpx rgba(198,40,40,0.5);
+}
+.yin-lines {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+}
+.yin-seg {
+  width: 20rpx;
+  height: 8rpx;
+  background: #5D4037;
+  border-radius: 4rpx;
+}
+.yin-seg.changing {
+  background: #C62828;
+  box-shadow: 0 0 8rpx rgba(198,40,40,0.5);
 }

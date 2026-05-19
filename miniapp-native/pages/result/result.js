@@ -1,13 +1,18 @@
+const api = require('../../utils/api.js')
 const marked = require('../../utils/marked.js')
 const API = 'https://gjz.shadouyou.cloud/api'
 
 Page({
   data: {
-    phase: 'coins', tossResults: [],
+    mode: 'new',
+    phase: 'coins',
+    tossResults: [],
     yaoNames: ['初爻','二爻','三爻','四爻','五爻','上爻'],
     hexagram: { primary: '', changing: '' },
     aiText: '', error: '', statusMsg: '', showMaster: false,
     dots: '', dotsTimer: null, sseBuffer: '',
+    loadingFromDB: false,
+    remainingQuota: -1,
     statusMap: { coins:'起卦中...', hexagram:'卦象已现', ai:'AI 解读中...', done:'解读完成', error:'出错了' }
   },
   get showHexagram() { return ['hexagram','ai','done'].includes(this.data.phase) },
@@ -17,12 +22,44 @@ Page({
     if (this.data.phase === 'ai') html += '<span style="animation:blink 1s infinite">▊</span>'
     return html
   },
-  onLoad() { this.startDots(); this.startStream() },
+  onLoad() {
+    // 检查是否有历史记录ID（从history页跳转回看）
+    const histId = this.data.historyId
+    if (histId) { this.loadHistory(histId); return }
+    this.startDots()
+    this.startStream()
+  },
   onUnload() { if (this.data.dotsTimer) clearInterval(this.data.dotsTimer) },
+  onShareAppMessage() {
+    return {
+      title: '我在观己斋占了一卦「' + this.data.hexagram.primary + '」→「' + this.data.hexagram.changing + '」',
+      path: '/pages/index/index'
+    }
+  },
   startDots() {
     const dots = ['','.','..','...']; let i = 0
     const timer = setInterval(() => { this.setData({ dots: dots[i%4] }); i++ }, 500)
     this.data.dotsTimer = timer
+  },
+  // 从历史记录加载已有结果
+  loadHistory(id) {
+    this.setData({ loadingFromDB: true, mode: 'db' })
+    wx.request({
+      url: API + '/admin/hexagrams/' + id,
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const d = res.data
+          this.setData({
+            phase: 'done', loadingFromDB: false,
+            hexagram: { primary: d.primary_gua, changing: d.changing_gua },
+            aiText: d.interpretation || ''
+          })
+          getApp().globalData.question = d.question
+        }
+      },
+      fail: () => this.setData({ error:'加载失败', phase:'error', loadingFromDB: false })
+    })
   },
   startStream() {
     const question = getApp().globalData?.question || ''
@@ -63,11 +100,17 @@ Page({
         if (d.phase === 'coins') {
           const toss = d.data
           const tossResults = [...(this.data.tossResults || [])]
+          // coin_values 从后端是 ['反','反','正'] 格式，转为数字表示
+          // 后端传来的是 ["反","反","正"]，用前端逻辑还原
+          const coinNums = Array.isArray(toss.coin_values)
+            ? toss.coin_values.map(c => c === '正' ? 3 : 2)
+            : [0,0,0]
           tossResults.push({
             throw: toss.throw, label: toss.label,
             result: toss.result, sum: toss.sum,
-            coin_values: toss.coin_values,
-            is_changing: toss.result === '老阴' || toss.result === '老阳'
+            coin_values: toss.coin_values || [],
+            is_changing: toss.result === '老阴' || toss.result === '老阳',
+            yaoValue: toss.result === '少阳' || toss.result === '老阳'
           })
           this.setData({ phase: 'coins', tossResults })
         } else if (d.phase === 'hexagram') {
@@ -77,11 +120,16 @@ Page({
         if (this.data.phase === 'hexagram') this.setData({ phase: 'ai' })
         this.setData({ aiText: this.data.aiText + (d.chunk || '') })
       } else if (event === 'status') { this.setData({ statusMsg: d.msg || '' }) }
-      else if (event === 'done') { this.setData({ phase: 'done' }) }
+      else if (event === 'done') {
+        // 完成后获取剩余配额
+        api.profile().then(p => this.setData({ remainingQuota: p.remaining_quota ?? -1 })).catch(() => {})
+        this.setData({ phase: 'done' })
+      }
       else if (event === 'error') { this.setData({ error: d.error, phase: 'done' }) }
     } catch(e) {}
   },
   toggleMaster() { this.setData({ showMaster: !this.data.showMaster }) },
+  shareResult() { this.onShareAppMessage(); /* 微信触发原生分享菜单 */ },
   goHome() { wx.reLaunch({ url: '/pages/index/index' }) },
   goHistory() { wx.navigateTo({ url: '/pages/history/history' }) },
 })
