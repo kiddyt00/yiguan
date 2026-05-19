@@ -64,12 +64,12 @@ Page({
           const d=r.data
           this.setData({phase:'result',hexagram:{primary:d.primary.name,changing:d.changing.name}});this.syncDerived()
           const text=filterText(d.interpretation||'')
-          let pos=0,chunkSize=3
+          let pos=0
           const si=setInterval(()=>{
             if(pos>=text.length){clearInterval(si);this.setData({phase:'done',rawAiText:text,aiText:text,remainingQuota:d.remaining_quota??-1});this.syncDerived();if(this.data.dotsTimer)clearInterval(this.data.dotsTimer);return}
-            pos=Math.min(pos+chunkSize,text.length)
+            pos++
             this.setData({phase:'interpretation',rawAiText:text.slice(0,pos),aiText:text.slice(0,pos)});this.syncDerived()
-          },30)
+          },20)
         }else{this.setData({error:r.data?.error||'解卦失败',phase:'error'});this.syncDerived()}
       },
       fail:()=>{this.setData({error:'网络连接失败',phase:'error'});this.syncDerived()}
