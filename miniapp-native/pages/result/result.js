@@ -53,11 +53,10 @@ Page({
   },
   onUnload(){if(this.data.dotsTimer)clearInterval(this.data.dotsTimer)},
   onShareAppMessage(){return{title:'我在观己斋占了一卦「'+this.data.hexagram.primary+'」→「'+this.data.hexagram.changing+'」',path:'/pages/index/index'}},
-  startDots(){const a=['.','..','...','....'];let i=0;this.data.dotsTimer=setInterval(()=>{this.setData({dots:a[i%4]});i++},500)},
   startStream(){
     const q=this.data.questionRef
     if(!q){this.setData({error:'问题为空',phase:'error'});this.syncDerived();return}
-    this.startDots()
+    const _dots=['.','..','...','....'];let _di=0;this.data.dotsTimer=setInterval(()=>{this.setData({dots:_dots[_di%4]});_di++},500)
     const token=wx.getStorageSync('token')
     const rt=wx.request({url:API+'/divine/stream',method:'POST',
       header:{'Content-Type':'application/json','Authorization':'Bearer '+token},
