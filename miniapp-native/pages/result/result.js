@@ -74,8 +74,16 @@ Page({
     })
     this.data.sseBuffer = ''
     requestTask.onChunkReceived((res) => {
-      let chunk = typeof res.data === 'string' ? res.data : ''
-      this.data.sseBuffer += chunk; this.drainBuffer()
+      let chunk = ''
+      if (typeof res.data === 'string') {
+        chunk = res.data
+      } else if (res.data instanceof ArrayBuffer) {
+        chunk = new TextDecoder('utf-8').decode(new Uint8Array(res.data))
+      } else if (res.data instanceof Uint8Array) {
+        chunk = new TextDecoder('utf-8').decode(res.data)
+      }
+      this.data.sseBuffer += chunk
+      this.drainBuffer()
     })
   },
   drainBuffer() {
