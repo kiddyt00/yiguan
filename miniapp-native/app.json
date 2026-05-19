@@ -15,6 +15,5 @@
     "navigationBarBackgroundColor": "#F8F5F0",
     "backgroundColor": "#F8F5F0"
   },
-  "requiredPrivateInfos": ["getPhoneNumber"],
   "sitemapLocation": "sitemap.json"
 }
