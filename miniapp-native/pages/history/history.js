@@ -54,5 +54,20 @@ Page({
     getApp().globalData.question = q || ''
     wx.navigateTo({ url: '/pages/result/result?historyId=' + id + '&lang=' + lang })
   },
+  // 从 yao_desc 构建卦象爻线数组
+  hexLines(yaoDesc, yaoPositions) {
+    if (!yaoDesc || yaoDesc.length < 6) return []
+    const changingSet = new Set()
+    if (yaoPositions) {
+      const m = yaoPositions.match(/([初二三五六四上])爻/g) || []
+      const names = ['初','二','三','四','五','上']
+      m.forEach(v => { const idx = names.indexOf(v[0]); if (idx >= 0) changingSet.add(idx) })
+    }
+    const lines = []
+    for (let i = 0; i < 6; i++) {
+      lines.push({ yang: yaoDesc[i] === '1', changing: changingSet.has(i), pos: i })
+    }
+    return lines
+  },
   renderMD(text) { return marked.parse(text || '') }
 })

@@ -104,6 +104,8 @@ func (h *DivineStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		PrimaryGua:     result.Primary.Name,
 		ChangingGua:    result.Changing.Name,
 		YaoPositions:   result.YaoDesc,
+		PrimaryYao:     result.Primary.YaoDesc,
+		ChangingYao:    result.Changing.YaoDesc,
 		Interpretation: llm.StripDisclaimer(interpretation.String()),
 		Lang:           getLang(r),
 	}
