@@ -1,85 +1,45 @@
-.toss-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  flex-wrap: wrap;
-}
-.toss-label {
-  font-size: 26rpx;
-  font-weight: 600;
-  width: 60rpx;
-  color: #5D4037;
-}
-.coin-group {
-  display: flex;
-  gap: 8rpx;
-}
-.coin {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-.coin-front {
-  background: rgba(139,69,19,0.8);
-  color: #FFF8DC;
-}
-.coin-back {
-  background: #D4C5A9;
-  color: #5D4037;
-}
-.toss-sum {
-  font-size: 24rpx;
-  color: #9E8C7A;
-}
-.toss-type {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 20rpx;
-}
-.toss-normal {
-  background: #E8DCC8;
-  color: #5D4037;
-}
-.toss-changing {
-  background: rgba(198,40,40,0.15);
-  color: #C62828;
-  font-weight: 600;
-}
+.toss-row{display:flex;align-items:center;gap:12rpx;flex-wrap:wrap}
+.toss-label{font-size:26rpx;font-weight:600;width:60rpx;color:#5D4037}
+.coin-group{display:flex;gap:8rpx}
+.coin{width:48rpx;height:48rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22rpx;font-weight:700}
+.coin-sm{width:40rpx;height:40rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20rpx;font-weight:700}
+.coin-2{background:#D4C5A9;color:#5D4037}
+.coin-3{background:rgba(139,69,19,0.8);color:#FFF8DC}
+.toss-sum{font-size:24rpx;color:#9E8C7A}
+.toss-type{font-size:22rpx;padding:4rpx 12rpx;border-radius:20rpx}
+.toss-normal{background:#E8DCC8;color:#5D4037}
+.toss-changing{background:rgba(198,40,40,0.15);color:#C62828;font-weight:600}
+.toss-card{margin-bottom:16rpx}
+.toss-card-sm{margin-bottom:8rpx;padding:16rpx 24rpx}
+
+/* 铜钱抖动动画 */
+@keyframes shake{0%{transform:rotate(0deg)}25%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}75%{transform:rotate(-10deg)}100%{transform:rotate(0deg)}}
+.shaking-coin{font-size:80rpx;padding:80rpx 0;animation:shake .3s ease-in-out infinite;display:inline-block}
+
 /* 阴阳爻线 */
-.yao-line {
-  margin-left: auto;
-  min-width: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.yang-line {
-  width: 48rpx;
-  height: 8rpx;
-  background: #5D4037;
-  border-radius: 4rpx;
-}
-.yang-line.changing {
-  background: #C62828;
-  box-shadow: 0 0 8rpx rgba(198,40,40,0.5);
-}
-.yin-lines {
-  display: flex;
-  gap: 8rpx;
-  align-items: center;
-}
-.yin-seg {
-  width: 20rpx;
-  height: 8rpx;
-  background: #5D4037;
-  border-radius: 4rpx;
-}
-.yin-seg.changing {
-  background: #C62828;
-  box-shadow: 0 0 8rpx rgba(198,40,40,0.5);
-}
+.yao-line{margin-left:auto;min-width:48rpx;display:flex;align-items:center;justify-content:center}
+.yang-line{width:48rpx;height:8rpx;background:#5D4037;border-radius:4rpx}
+.yang-line.changing{background:#C62828;box-shadow:0 0 8rpx rgba(198,40,40,0.5)}
+.yin-lines{display:flex;gap:8rpx;align-items:center}
+.yin-seg{width:20rpx;height:8rpx;background:#5D4037;border-radius:4rpx}
+.yin-seg.changing{background:#C62828;box-shadow:0 0 8rpx rgba(198,40,40,0.5)}
+
+/* 卦象卡片 */
+.hex-card{flex:1;text-align:center;padding:24rpx}
+.hex-label{font-size:24rpx;color:#9E8C7A;display:block;margin-bottom:8rpx}
+
+/* 六爻竖排 */
+.hex-stack{display:flex;flex-direction:column;align-items:center;gap:8rpx;margin-top:16rpx}
+.hex-line{display:flex;align-items:center;justify-content:center;height:16rpx}
+.hex-bar{display:flex;align-items:center;height:8rpx}
+.hex-yang{width:80rpx;height:8rpx;background:#5D4037;border-radius:4rpx}
+.hex-yin{gap:10rpx}
+.hex-bar-seg{width:34rpx;height:8rpx;background:#5D4037;border-radius:4rpx}
+.bar-changing{background:#C62828;box-shadow:0 0 8rpx rgba(198,40,40,0.5)}
+.seg-changing{background:#C62828;box-shadow:0 0 8rpx rgba(198,40,40,0.5)}
+.changing-mark{font-size:22rpx;color:#C62828;margin-top:8rpx}
+
+/* 翻译条 */
+.trans-banner{margin-bottom:12rpx;padding:12rpx;border-radius:8rpx;display:flex;align-items:center;justify-content:space-between;background:rgba(139,69,19,0.08);border:1rpx solid rgba(139,69,19,0.2)}
+.trans-btn{font-size:22rpx;padding:4rpx 12rpx;border-radius:20rpx;border:1rpx solid rgba(139,69,19,0.4);color:#8B4513;background:transparent}
+.trans-error{margin-bottom:12rpx;font-size:22rpx;color:#C62828;text-align:center}

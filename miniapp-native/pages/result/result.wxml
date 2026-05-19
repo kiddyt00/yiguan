@@ -15,12 +15,12 @@
 
   <!-- 铜钱抛掷 -->
   <view wx:if="{{phase==='coins'}}" class="text-center">
-    <view wx:for="{{tossResults}}" wx:key="throw" class="card" style="margin-bottom:16rpx;">
+    <view wx:for="{{tossResults}}" wx:key="throw" class="card toss-card">
       <view class="toss-row">
-        <text class="toss-label">{{yaoNames[item.throw-1]}}</text>
+        <text class="toss-label">{{item.label}}</text>
         <view class="coin-group">
-          <view wx:for="{{item.coin_values}}" wx:key="*this"
-            class="coin {{item === 3 ? 'coin-front' : 'coin-back'}}">
+          <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
+            class="coin coin-{{item}}">
             {{item === 3 ? '正' : '反'}}
           </view>
         </view>
@@ -38,12 +38,11 @@
     <view wx:if="{{tossResults.length>0 && tossResults.length<6}}" class="text-muted mt-3">
       正在抛掷第{{tossResults.length+1}}爻...
     </view>
-    <view wx:if="{{tossResults.length===0}}" style="font-size:60rpx;padding:60rpx 0;">🪙</view>
+    <view wx:if="{{tossResults.length===0}}" class="shaking-coin">🪙</view>
   </view>
 
   <!-- 结果展示区 -->
   <view wx:if="{{showResultContent}}">
-    <!-- 问题 -->
     <view wx:if="{{questionRef}}" class="card">
       <text class="text-muted">您的问题</text>
       <view style="font-size:28rpx;margin-top:8rpx;color:#5D4037;">{{questionRef}}</view>
@@ -52,12 +51,12 @@
     <!-- 推演记录 -->
     <view wx:if="{{tossResults.length>0}}" class="mb-3">
       <text class="text-muted" style="display:block;margin-bottom:8rpx;">象</text>
-      <view wx:for="{{tossResults}}" wx:key="throw" class="card" style="margin-bottom:8rpx;padding:16rpx 24rpx;">
+      <view wx:for="{{tossResults}}" wx:key="throw" class="card toss-card-sm">
         <view class="toss-row">
-          <text class="toss-label">{{yaoNames[item.throw-1]}}</text>
+          <text class="toss-label">{{item.label}}</text>
           <view class="coin-group">
-            <view wx:for="{{item.coin_values}}" wx:key="*this"
-              class="coin {{item === 3 ? 'coin-front' : 'coin-back'}}" style="width:40rpx;height:40rpx;font-size:20rpx;">
+            <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
+              class="coin-sm coin-{{item}}">
               {{item === 3 ? '正' : '反'}}
             </view>
           </view>
@@ -74,15 +73,33 @@
       </view>
     </view>
 
-    <!-- 卦象 -->
+    <!-- 卦象 + 六爻竖排 -->
     <view wx:if="{{hexagram.primary}}" class="flex gap-2 mb-3">
-      <view class="card text-center" style="flex:1;">
-        <text class="text-muted">本卦</text>
-        <view style="font-size:40rpx;font-weight:700;margin-top:8rpx;">{{hexagram.primary}}</view>
+      <view class="card hex-card">
+        <text class="hex-label">本卦</text>
+        <view style="font-size:36rpx;font-weight:700;color:#8B4513;">{{hexagram.primary}}</view>
+        <view class="hex-stack">
+          <view wx:for="{{hexLines}}" wx:key="pos" class="hex-line">
+            <view wx:if="{{item.yang}}" class="hex-bar hex-yang {{item.changing ? 'bar-changing' : ''}}"></view>
+            <view wx:else class="hex-bar hex-yin">
+              <view class="hex-bar-seg {{item.changing ? 'seg-changing' : ''}}"></view>
+              <view class="hex-bar-seg {{item.changing ? 'seg-changing' : ''}}"></view>
+            </view>
+          </view>
+        </view>
       </view>
-      <view class="card text-center" style="flex:1;">
-        <text class="text-muted">变卦</text>
-        <view style="font-size:40rpx;font-weight:700;margin-top:8rpx;">{{hexagram.changing}}</view>
+      <view class="card hex-card" style="background:rgba(139,69,19,0.05);border-color:#A0522D;">
+        <text class="hex-label">变卦</text>
+        <view style="font-size:36rpx;font-weight:700;color:#A0522D;">{{hexagram.changing}}</view>
+        <view class="hex-stack">
+          <view wx:for="{{hexLines}}" wx:key="pos" class="hex-line">
+            <view wx:if="{{item.yang}}" class="hex-bar hex-yang"></view>
+            <view wx:else class="hex-bar hex-yin">
+              <view class="hex-bar-seg"></view>
+              <view class="hex-bar-seg"></view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -93,17 +110,14 @@
       <text wx:if="{{statusMsg}}" class="text-muted" style="display:block;margin-top:8rpx;">{{statusMsg}}</text>
     </view>
 
-    <!-- AI 解读区 -->
+    <!-- AI 解读 -->
     <view wx:if="{{showInterpret}}" class="card">
       <view style="font-size:30rpx;font-weight:600;margin-bottom:16rpx;">🤖 解</view>
-      <!-- 翻译按钮 -->
-      <view wx:if="{{needsTranslateBanner}}" class="mb-3" style="padding:12rpx;border-radius:8rpx;display:flex;align-items:center;justify-content:space-between;background:rgba(139,69,19,0.08);border:1rpx solid rgba(139,69,19,0.2);">
+      <view wx:if="{{needsTranslateBanner}}" class="trans-banner">
         <text style="font-size:22rpx;color:#8B4513;">{{needsTranslateLabel}}</text>
-        <button bindtap="doTranslate" style="font-size:22rpx;padding:4rpx 12rpx;border-radius:20rpx;border:1rpx solid rgba(139,69,19,0.4);color:#8B4513;background:transparent;">
-          {{isTranslating ? '...' : '翻译为 English →'}}
-        </button>
+        <button bindtap="doTranslate" class="trans-btn">{{isTranslating ? '...' : '翻译为 English →'}}</button>
       </view>
-      <view wx:if="{{translateError}}" class="mb-3" style="font-size:22rpx;color:#C62828;text-align:center;">{{translateError}}</view>
+      <view wx:if="{{translateError}}" class="trans-error">{{translateError}}</view>
       <rich-text nodes="{{renderedHTML}}" style="font-size:28rpx;line-height:1.8;"></rich-text>
     </view>
 
