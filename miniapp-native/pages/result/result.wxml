@@ -20,8 +20,8 @@
         <text class="toss-label">{{item.label}}</text>
         <view class="coin-group">
           <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
-            class="coin coin-{{item}}">
-            {{item === 3 ? '正' : '反'}}
+            class="coin {{item === '正' ? 'coin-front' : 'coin-back'}}">
+            {{item}}
           </view>
         </view>
         <text class="toss-sum">= {{item.sum}}</text>
@@ -56,8 +56,8 @@
           <text class="toss-label">{{item.label}}</text>
           <view class="coin-group">
             <view wx:for="{{item.coin_values}}" wx:for-index="i" wx:key="i"
-              class="coin-sm coin-{{item}}">
-              {{item === 3 ? '正' : '反'}}
+              class="coin-sm {{item === '正' ? 'coin-front' : 'coin-back'}}">
+              {{item}}
             </view>
           </view>
           <text class="toss-sum">= {{item.sum}}</text>
