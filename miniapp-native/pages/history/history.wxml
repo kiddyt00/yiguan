@@ -5,6 +5,7 @@
       <view>
         <text style="font-weight:600;">{{item.primary_gua}}</text>
         <text class="text-muted"> → {{item.changing_gua}}</text>
+        <text wx:if="{{item.nickname}}" class="text-muted" style="font-size:24rpx;margin-left:8rpx;">— {{item.nickname}}</text>
       </view>
       <text class="text-muted" style="font-size:22rpx;">{{item.created_at.slice(0,10)}}</text>
     </view>
