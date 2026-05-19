@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/login/pwd",
+    "pages/result/result",
+    "pages/user/user",
+    "pages/history/history",
+    "pages/ads/ads",
+    "pages/about/about"
+  ],
+  "window": {
+    "navigationBarTitleText": "观己斋",
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#F8F5F0",
+    "backgroundColor": "#F8F5F0"
+  },
+  "requiredPrivateInfos": ["getPhoneNumber"],
+  "sitemapLocation": "sitemap.json"
+}

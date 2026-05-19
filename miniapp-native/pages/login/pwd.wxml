@@ -1,0 +1,21 @@
+<view class="container" style="padding-top:120rpx;">
+  <view class="text-center mb-3">
+    <text style="font-size:80rpx;">☯</text>
+    <view style="font-size:36rpx;font-weight:700;margin-top:16rpx;">观己斋</view>
+  </view>
+  <view class="card">
+    <input type="number" value="{{phone}}" bindinput="onPhone" placeholder="手机号" maxlength="11" class="input-field" style="margin-bottom:24rpx;" />
+    <input type="text" password="{{true}}" value="{{password}}" bindinput="onPwd" placeholder="密码" class="input-field" style="margin-bottom:32rpx;" />
+    <view wx:if="{{isRegister}}" class="mb-3">
+      <input value="{{nickname}}" bindinput="onNick" placeholder="昵称（选填）" class="input-field" style="margin-bottom:32rpx;" />
+    </view>
+    <view wx:if="{{error}}" class="text-muted mb-3" style="color:#C62828;text-align:center;">{{error}}</view>
+    <button class="btn-primary" style="width:100%;" loading="{{loading}}" bindtap="submit">{{isRegister ? '注册' : '登录'}}</button>
+    <view class="text-center mt-3">
+      <text class="text-muted" bindtap="toggleMode">{{isRegister ? '已有账号？去登录' : '没有账号？去注册'}}</text>
+    </view>
+  </view>
+  <view class="text-center mt-3">
+    <text class="text-muted" bindtap="goBack">返回其他登录方式</text>
+  </view>
+</view>

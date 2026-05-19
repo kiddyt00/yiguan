@@ -1,0 +1,14 @@
+{
+  "description": "观易知变，见心明境",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.7.3",
+  "appid": "wx9e87b7216be83619",
+  "projectname": "观己斋"
+}

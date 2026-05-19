@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="white" rx="16"/>
+  <rect x="40" y="40" width="60" height="60" fill="#1a1a1a" rx="4"/>
+  <rect x="200" y="40" width="60" height="60" fill="#1a1a1a" rx="4"/>
+  <rect x="40" y="200" width="60" height="60" fill="#1a1a1a" rx="4"/>
+  <circle cx="150" cy="150" r="20" fill="#1a1a1a"/>
+  <line x1="80" y1="120" x2="220" y2="120" stroke="#1a1a1a" stroke-width="6"/>
+  <line x1="120" y1="100" x2="120" y2="200" stroke="#1a1a1a" stroke-width="6"/>
+  <line x1="180" y1="100" x2="180" y2="200" stroke="#1a1a1a" stroke-width="6"/>
+  <line x1="80" y1="180" x2="220" y2="180" stroke="#1a1a1a" stroke-width="6"/>
+  <line x1="100" y1="140" x2="200" y2="140" stroke="#1a1a1a" stroke-width="6"/>
+  <line x1="140" y1="80" x2="140" y2="220" stroke="#1a1a1a" stroke-width="6"/>
+  <rect x="100" y="160" width="40" height="40" fill="#1a1a1a" rx="2"/>
+  <text x="150" y="270" text-anchor="middle" font-size="16" fill="#9E8C7A">扫码添加大师微信</text>
+</svg>

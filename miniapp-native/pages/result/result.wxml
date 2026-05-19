@@ -1,0 +1,49 @@
+<view class="container">
+  <view class="text-center mb-3" style="font-size:36rpx;font-weight:700;">{{statusMap[phase]}}</view>
+
+  <view wx:if="{{phase==='coins'}}" class="text-center card">
+    <text style="font-size:60rpx;">🪙</text>
+    <view style="font-size:28rpx;margin-top:16rpx;">{{coinLabel}}</view>
+  </view>
+
+  <view wx:if="{{showHexagram}}" class="flex gap-2">
+    <view class="card text-center" style="flex:1;">
+      <text class="text-muted">本卦</text>
+      <view style="font-size:40rpx;font-weight:700;margin-top:8rpx;">{{hexagram.primary}}</view>
+    </view>
+    <view class="card text-center" style="flex:1;">
+      <text class="text-muted">变卦</text>
+      <view style="font-size:40rpx;font-weight:700;margin-top:8rpx;">{{hexagram.changing}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{phase==='hexagram'}}" class="text-center card">
+    <text style="font-size:40rpx;">🤔</text>
+    <view style="margin-top:16rpx;font-size:28rpx;color:#8B4513;">AI 正在思考中{{dots}}</view>
+    <text wx:if="{{statusMsg}}" class="text-muted" style="display:block;margin-top:8rpx;">{{statusMsg}}</text>
+  </view>
+
+  <view wx:if="{{showAI}}" class="card">
+    <view style="font-size:30rpx;font-weight:600;margin-bottom:16rpx;">🤖 AI 解读</view>
+    <rich-text nodes="{{aiHtml}}" style="font-size:28rpx;line-height:1.8;"></rich-text>
+  </view>
+
+  <view wx:if="{{error}}" class="card text-center" style="color:#C62828;">{{error}}</view>
+
+  <view wx:if="{{phase==='done'}}" class="text-center mt-3">
+    <view style="display:flex;gap:16rpx;">
+      <button class="btn-secondary" style="flex:1;" bindtap="goHistory">查看历史</button>
+      <button class="btn-primary" style="flex:1;" bindtap="goHome">再测一次</button>
+    </view>
+    <view class="card mt-3" bindtap="toggleMaster">
+      <text style="font-size:28rpx;color:#8B4513;">🎓 周易大师一对一详解</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showMaster}}" class="card text-center mt-3">
+    <text style="font-size:30rpx;font-weight:600;">周易大师 · 一对一深度交流</text>
+    <image src="/images/master-qr.svg" mode="widthFix" style="width:400rpx;margin:24rpx auto;"></image>
+    <text class="text-muted">长按识别二维码添加大师微信</text>
+    <button class="btn-secondary mt-3" bindtap="toggleMaster">关闭</button>
+  </view>
+</view>

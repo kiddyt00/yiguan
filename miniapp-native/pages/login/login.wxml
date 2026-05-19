@@ -1,0 +1,34 @@
+<view class="container" style="padding-top:120rpx;">
+  <view class="text-center mb-3">
+    <text style="font-size:80rpx;">☯</text>
+    <view style="font-size:36rpx;font-weight:700;margin-top:16rpx;">观己斋</view>
+    <text class="text-muted" style="display:block;margin-top:8rpx;">观易知变，见心明境</text>
+  </view>
+
+  <view wx:if="{{tab==='qrcode'}}" class="card text-center">
+    <button class="btn-primary" style="width:100%;background:#07C160;" loading="{{wxLoading}}" bindtap="wechatLogin">
+      📱 微信授权登录
+    </button>
+    <text class="text-muted" style="display:block;margin-top:8rpx;">一键授权，无需注册</text>
+  </view>
+
+  <view style="display:flex;align-items:center;margin:32rpx 0;">
+    <view style="flex:1;height:1rpx;background:#E0D6C8;"></view>
+    <text class="text-muted" style="margin:0 24rpx;">或</text>
+    <view style="flex:1;height:1rpx;background:#E0D6C8;"></view>
+  </view>
+
+  <view class="card">
+    <view style="display:flex;gap:16rpx;margin-bottom:24rpx;">
+      <input type="number" value="{{phone}}" bindinput="onPhone" placeholder="手机号" maxlength="11" class="input-field" style="flex:1;" />
+      <button class="btn-secondary" style="padding:12rpx 24rpx;font-size:24rpx;white-space:nowrap;"
+        disabled="{{sendDisabled}}" bindtap="sendSMS">{{sendText}}</button>
+    </view>
+    <input type="number" value="{{code}}" bindinput="onCode" placeholder="验证码" maxlength="6" class="input-field" style="margin-bottom:32rpx;" />
+    <button class="btn-primary" style="width:100%;" loading="{{loading}}" bindtap="smsLogin">登录 / 注册</button>
+  </view>
+
+  <view class="text-center mt-3">
+    <text class="text-muted" bindtap="goPwd">密码登录</text>
+  </view>
+</view>

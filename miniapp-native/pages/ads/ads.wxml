@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="card">
+    <text style="font-size:30rpx;font-weight:600;">📢 观看广告获取起卦次数</text>
+    <text class="text-muted" style="display:block;margin-top:8rpx;">每个账号每日最多 3 次</text>
+    <view wx:if="{{quota>=0}}" style="margin-top:12rpx;font-size:26rpx;color:#5D4037;">
+      当前剩余：<text style="color:#8B4513;font-weight:600;">{{quota}}</text> 次
+    </view>
+  </view>
+  <view wx:for="{{ads}}" wx:key="id" class="card">
+    <view style="font-size:30rpx;font-weight:600;">{{item.name}}</view>
+    <text class="text-muted" style="display:block;margin-top:4rpx;">{{item.description}}</text>
+    <view style="display:flex;justify-content:space-between;align-items:center;margin-top:16rpx;">
+      <text style="font-size:26rpx;">观看 {{item.watch_duration}}s 奖励 {{item.reward_quota}} 次</text>
+      <button class="btn-primary" style="padding:12rpx 32rpx;font-size:26rpx;" bindtap="watchAd" data-id="{{item.id}}">观看</button>
+    </view>
+    <view wx:if="{{watchingId===item.id}}" style="margin-top:16rpx;padding:16rpx;background:#F0EBE0;border-radius:8rpx;text-align:center;">
+      <text>广告播放中... {{countdown}}s</text>
+    </view>
+  </view>
+  <view wx:if="{{ads.length===0}}" class="text-center text-muted" style="padding:120rpx 0;">暂无可用广告</view>
+</view>
