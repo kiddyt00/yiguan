@@ -12,6 +12,7 @@
 
   <view wx:if="{{hasToken}}">
     <view class="text-center mb-3">
+      <text wx:if="{{nickname}}" style="font-size:30rpx;font-weight:600;color:#5D4037;display:block;margin-bottom:8rpx;">{{nickname}}</text>
       <text wx:if="{{quota>=0}}" style="font-size:26rpx;color:{{quota>0?'#9E8C7A':'#C62828'}};">
         {{quota>0 ? '剩余 '+quota+' 次提问' : '次数已用完'}}
       </text>

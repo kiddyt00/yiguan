@@ -1,6 +1,6 @@
 const api = require('../../utils/api.js')
 Page({
-  data: { question: '', loading: false, showMaster: false, quota: -1, hasToken: false },
+  data: { question: '', loading: false, showMaster: false, quota: -1, hasToken: false, nickname: '' },
   onShow() {
     const token = wx.getStorageSync('token')
     this.setData({ hasToken: !!token })
@@ -9,7 +9,7 @@ Page({
   onShareAppMessage() { return { title: '观己斋 - 观易知变，见心明境', path: '/pages/index/index' } },
   onInput(e) { this.setData({ question: e.detail.value }) },
   loadQuota() {
-    api.profile().then(d => this.setData({ quota: d.remaining_quota ?? -1 })).catch(() => {})
+    api.profile().then(d => this.setData({ quota: d.remaining_quota ?? -1, nickname: d.nickname || '' })).catch(() => {})
   },
   startDivine() {
     if (!this.data.question || !this.data.hasToken) return
