@@ -8,14 +8,20 @@
           <el-tag :type="row.openid ? 'success' : 'info'" size="small">{{ row.openid ? '微信' : '手机' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="phone" label="手机号" width="130" />
-      <el-table-column label="微信昵称" width="120">
+      <el-table-column label="手机号" width="130">
         <template #default="{ row }">
-          <span v-if="row.openid && row.nickname !== '微信用户'">{{ row.nickname }}</span>
+          <span v-if="row.openid" class="opacity-40">微信账号</span>
+          <span v-else>{{ row.phone }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="微信昵称" width="130">
+        <template #default="{ row }">
+          <span v-if="row.openid && row.nickname && row.nickname !== '微信用户'">{{ row.nickname }}</span>
+          <span v-else-if="row.openid" class="opacity-40">未获取</span>
           <span v-else class="opacity-40">—</span>
         </template>
       </el-table-column>
-      <el-table-column label="显示昵称" width="120">
+      <el-table-column label="昵称" width="120">
         <template #default="{ row }">
           {{ row.nickname || '—' }}
         </template>
