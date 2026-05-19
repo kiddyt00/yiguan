@@ -61,6 +61,36 @@
               </button>
             </div>
 
+            <!-- 卦象爻线 -->
+            <div v-if="h.primary_yao" class="flex gap-6 my-4 justify-center">
+              <div class="text-center">
+                <p class="text-xs font-medium mb-2" :class="isDark ? 'text-stone-400' : 'text-stone-500'">本卦</p>
+                <p class="text-sm font-bold mb-1" :class="isDark ? 'text-amber-400' : 'text-amber-700'">{{ h.primary_gua }}</p>
+                <div class="flex flex-col items-center gap-1">
+                  <div v-for="(b, i) in yaoDescLines(h.primary_yao, h.yao_positions)" :key="i" class="flex items-center justify-center" style="height:12rpx;">
+                    <div v-if="b.yang" class="h-1.5 rounded-sm" :class="b.changing ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)] w-16' : (isDark ? 'bg-amber-300/60 w-16' : 'bg-stone-700 w-16')"></div>
+                    <div v-else class="flex gap-1.5">
+                      <div class="h-1.5 w-3 rounded-sm" :class="b.changing ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]' : (isDark ? 'bg-stone-400 w-3' : 'bg-stone-500 w-3')"></div>
+                      <div class="h-1.5 w-3 rounded-sm" :class="b.changing ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]' : (isDark ? 'bg-stone-400 w-3' : 'bg-stone-500 w-3')"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center">
+                <p class="text-xs font-medium mb-2" :class="isDark ? 'text-stone-400' : 'text-stone-500'">变卦</p>
+                <p class="text-sm font-bold mb-1" :class="isDark ? 'text-amber-300' : 'text-amber-600'">{{ h.changing_gua }}</p>
+                <div v-if="h.changing_yao" class="flex flex-col items-center gap-1">
+                  <div v-for="(b, i) in yaoDescLines(h.changing_yao, [])" :key="i" class="flex items-center justify-center" style="height:12rpx;">
+                    <div v-if="b.yang" class="h-1.5 w-16 rounded-sm" :class="isDark ? 'bg-amber-300/60' : 'bg-stone-700'"></div>
+                    <div v-else class="flex gap-1.5">
+                      <div class="h-1.5 w-3 rounded-sm" :class="isDark ? 'bg-stone-400' : 'bg-stone-500'"></div>
+                      <div class="h-1.5 w-3 rounded-sm" :class="isDark ? 'bg-stone-400' : 'bg-stone-500'"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="markdown-body text-sm opacity-70" v-html="renderMD(getDisplayText(h))"></div>
           </div>
         </div>
@@ -119,6 +149,24 @@ const searchTimer = ref(null)
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
 
 marked.setOptions({ breaks: true, gfm: true })
+
+function yaoDescLines(yaoDesc, yaoPositions) {
+  if (!yaoDesc) return []
+  // yaoPositions 可能为 "初爻变 三爻变" 格式，提取位置
+  const changingSet = new Set()
+  if (yaoPositions) {
+    const matches = yaoPositions.match(/(\S)爻/g) || []
+    const names = ['初','二','三','四','五','上']
+    matches.forEach(m => { const idx = names.indexOf(m[0]); if (idx >= 0) changingSet.add(idx) })
+  }
+  const lines = []
+  for (let i = 0; i < 6; i++) {
+    const yang = yaoDesc[i] === '1'
+    const changing = changingSet.has(i)
+    lines.push({ yang, changing, pos: i })
+  }
+  return lines
+}
 
 function renderMD(text) {
   return marked.parse(text || '')

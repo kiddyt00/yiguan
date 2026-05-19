@@ -5,9 +5,9 @@ import "github.com/kiddyt00/yiguan/internal/store"
 // SaveHistory 保存算卦历史记录
 func (s *Store) SaveHistory(h *store.History) error {
 	result, err := s.db.Exec(
-		`INSERT INTO history (user_id, question, primary_gua, changing_gua, yao_positions, interpretation, lang)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		h.UserID, h.Question, h.PrimaryGua, h.ChangingGua, h.YaoPositions, h.Interpretation, h.Lang,
+		`INSERT INTO history (user_id, question, primary_gua, changing_gua, yao_positions, primary_yao, changing_yao, interpretation, lang)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		h.UserID, h.Question, h.PrimaryGua, h.ChangingGua, h.YaoPositions, h.PrimaryYao, h.ChangingYao, h.Interpretation, h.Lang,
 	)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (s *Store) SaveHistory(h *store.History) error {
 // GetHistory 分页获取算卦历史
 func (s *Store) GetHistory(userID int64, limit, offset int) ([]store.History, error) {
 	rows, err := s.db.Query(
-		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, interpretation, lang, created_at
+		`SELECT id, user_id, question, primary_gua, changing_gua, yao_positions, primary_yao, changing_yao, interpretation, lang, created_at
 		 FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
 		userID, limit, offset,
 	)
@@ -32,7 +32,7 @@ func (s *Store) GetHistory(userID int64, limit, offset int) ([]store.History, er
 	for rows.Next() {
 		var h store.History
 		if err := rows.Scan(&h.ID, &h.UserID, &h.Question, &h.PrimaryGua,
-			&h.ChangingGua, &h.YaoPositions, &h.Interpretation, &h.Lang, &h.CreatedAt); err != nil {
+			&h.ChangingGua, &h.YaoPositions, &h.PrimaryYao, &h.ChangingYao, &h.Interpretation, &h.Lang, &h.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, h)

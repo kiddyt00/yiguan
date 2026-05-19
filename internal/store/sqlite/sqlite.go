@@ -206,5 +206,20 @@ func migrate(db *sql.DB) error {
 		}
 	}
 
+	// v2.5: history.primary_yao / changing_yao 列迁移
+	var yaoCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'primary_yao'").Scan(&yaoCol)
+	if yaoCol == 0 {
+		if _, err := db.Exec("ALTER TABLE history ADD COLUMN primary_yao TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 primary_yao 列失败: %w", err)
+		}
+	}
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'changing_yao'").Scan(&yaoCol)
+	if yaoCol == 0 {
+		if _, err := db.Exec("ALTER TABLE history ADD COLUMN changing_yao TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 changing_yao 列失败: %w", err)
+		}
+	}
+
 	return nil
 }
