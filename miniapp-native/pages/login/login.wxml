@@ -1,6 +1,6 @@
 <view class="container" style="padding-top:60rpx;">
   <view class="text-center mb-3">
-    <image src="/images/logo.svg" mode="widthFix" style="width:72rpx;height:72rpx;"></image>
+    <text style="font-size:80rpx;">☯</text>
     <view style="font-size:36rpx;font-weight:700;margin-top:16rpx;">观己斋</view>
     <text class="text-muted" style="display:block;margin-top:8rpx;">观易知变，见心明境</text>
   </view>
