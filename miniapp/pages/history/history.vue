@@ -22,7 +22,7 @@
 
 <script>
 import { api } from '../../utils/api.js'
-import { marked } from '../../utils/marked.min.js'
+import marked from '../../utils/marked.js'
 
 export default {
   data() {

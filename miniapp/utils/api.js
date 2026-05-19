@@ -1,4 +1,6 @@
-const BASE = 'https://49.235.108.61/api'
+import config from './config.js'
+
+const BASE = config.API_BASE
 
 function request(path, options = {}) {
   const token = uni.getStorageSync('token')
@@ -11,20 +13,23 @@ function request(path, options = {}) {
       method: options.method || 'GET',
       data: options.data,
       header: headers,
+      timeout: options.timeout || 30000,
       success(res) {
         if (res.statusCode === 401) {
           uni.removeStorageSync('token')
+          uni.removeStorageSync('user')
+          uni.showToast({ title: '登录已过期', icon: 'none' })
           uni.reLaunch({ url: '/pages/login/login' })
           return
         }
         if (res.statusCode >= 400) {
-          reject(new Error(res.data?.error || '请求失败'))
+          reject(new Error(res.data?.error || `请求失败(${res.statusCode})`))
           return
         }
         resolve(res.data)
       },
       fail(err) {
-        reject(new Error('网络错误: ' + err.errMsg))
+        reject(new Error('网络错误: ' + (err.errMsg || '连接失败')))
       }
     })
   })
@@ -41,7 +46,6 @@ export const api = {
 
   // 起卦
   divine: (question) => request('/divine', { method: 'POST', data: { question } }),
-  divineStream: (question) => request('/divine/stream', { method: 'POST', data: { question } }),
 
   // 历史
   history: (limit = 20, offset = 0) => request(`/history?limit=${limit}&offset=${offset}`),
@@ -50,4 +54,8 @@ export const api = {
   activeAds: () => request('/ads/active'),
   watchAd: (id) => request(`/ads/${id}/watch`, { method: 'POST' }),
   completeAd: (id, duration) => request(`/ads/${id}/complete`, { method: 'POST', data: { duration } }),
+
+  // 翻译
+  getTranslation: (historyId, target) => request(`/history/${historyId}/translate?target=${target}`),
+  generateTranslation: (historyId, target) => request(`/history/${historyId}/translate?target=${target}`, { method: 'POST', timeout: 60000 }),
 }

@@ -184,6 +184,7 @@ type AdStore interface {
 	GetAdRecord(userID, adID int64) (*AdRecord, error)
 	GetAdStats() ([]AdStat, error)
 	GetTodayAdWatchCount() (int64, error)
+	GetTodayAdWatchCountByUser(userID int64) (int64, error)
 	GetTotalAdWatchCount() (int64, error)
 }
 

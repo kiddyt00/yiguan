@@ -43,7 +43,13 @@
 
     <!-- 完成 -->
     <view v-if="phase === 'done'" class="text-center mt-3">
-      <button class="btn-primary" @tap="goHome">返回首页</button>
+      <view style="display:flex; gap:16rpx;">
+        <button class="btn-secondary" style="flex:1;" @tap="goHistory">查看历史</button>
+        <button class="btn-primary" style="flex:1;" @tap="goHome">再测一次</button>
+      </view>
+      <view class="card mt-3" @tap="shareResult">
+        <text style="font-size: 28rpx; color: #8B4513;">📤 分享给朋友</text>
+      </view>
       <view class="card mt-3" @tap="showMaster = true">
         <text style="font-size: 28rpx; color: #8B4513;">🎓 周易大师一对一详解</text>
       </view>
@@ -52,7 +58,7 @@
     <!-- 大师二维码 -->
     <view v-if="showMaster" class="card text-center mt-3">
       <text style="font-size: 30rpx; font-weight: 600;">周易大师 · 一对一深度交流</text>
-      <image src="/static/master-qr.png" mode="widthFix" style="width: 400rpx; margin: 24rpx auto;" />
+      <image src="/static/master-qr.svg" mode="widthFix" style="width: 400rpx; margin: 24rpx auto;" />
       <text class="text-muted">长按识别二维码添加大师微信</text>
       <button class="btn-secondary mt-3" @tap="showMaster = false">关闭</button>
     </view>
@@ -60,7 +66,10 @@
 </template>
 
 <script>
-import { marked } from '../../utils/marked.min.js'
+import config from '../../utils/config.js'
+import marked from '../../utils/marked.js'
+
+const SSE_API = config.API_BASE + '/divine/stream'
 
 export default {
   data() {
@@ -74,6 +83,7 @@ export default {
       showMaster: false,
       dots: '',
       dotsTimer: null,
+      sseBuffer: '',
       statusMap: { coins: '起卦中...', hexagram: '卦象已现', ai: 'AI 解读中...', done: '解读完成', error: '出错了' }
     }
   },
@@ -93,6 +103,19 @@ export default {
   onUnload() {
     if (this.dotsTimer) clearInterval(this.dotsTimer)
   },
+  onShareAppMessage() {
+    const q = getApp().globalData?.question || '占卜'
+    return {
+      title: `我在观己斋占了一卦「${this.hexagram.primary || ''}」→「${this.hexagram.changing || ''}」`,
+      path: '/pages/index/index',
+    }
+  },
+  onShareTimeline() {
+    return {
+      title: '观己斋 - 观易知变，见心明境',
+      query: ''
+    }
+  },
   methods: {
     startDots() {
       const dots = ['', '.', '..', '...']
@@ -107,61 +130,92 @@ export default {
       if (!question) { this.error = '问题为空'; return }
 
       const token = uni.getStorageSync('token')
-      try {
-        const task = uni.request({
-          url: 'https://49.235.108.61/api/divine/stream',
-          method: 'POST',
-          header: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          data: { question },
-          enableChunked: true,
-          responseType: 'text'
-        })
+      const requestTask = uni.request({
+        url: SSE_API,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        data: { question },
+        enableChunked: true,
+        responseType: 'text',
+        success: () => {},  // SSE 不在这里处理，依赖 onChunkReceived
+        fail: (err) => {
+          this.error = '网络连接失败: ' + (err.errMsg || '')
+          this.phase = 'error'
+        }
+      })
 
-        task.onChunkReceived(res => {
-          const text = typeof res.data === 'string' ? res.data :
-            new TextDecoder().decode(new Uint8Array(res.data))
-          this.parseSSE(text)
-        })
-      } catch (e) {
-        this.error = '网络连接失败'
-        this.phase = 'error'
+      this.sseBuffer = ''
+
+      // 微信小程序：用 onHeadersReceived 提前拿到响应头，onChunkReceived 收数据块
+      requestTask.onChunkReceived(res => {
+        let chunk
+        if (typeof res.data === 'string') {
+          chunk = res.data
+        } else if (res.data instanceof ArrayBuffer) {
+          chunk = new TextDecoder().decode(new Uint8Array(res.data))
+        } else {
+          return
+        }
+        this.sseBuffer += chunk
+        this.drainSSEBuffer()
+      })
+    },
+
+    // 从缓冲区中提取完整的 SSE 消息逐条处理
+    drainSSEBuffer() {
+      // SSE 消息以 \n\n 分隔
+      let idx
+      while ((idx = this.sseBuffer.indexOf('\n\n')) !== -1) {
+        const block = this.sseBuffer.slice(0, idx)
+        this.sseBuffer = this.sseBuffer.slice(idx + 2)
+        this.parseSSEBlock(block)
       }
     },
-    parseSSE(text) {
-      const lines = text.split('\n')
+
+    parseSSEBlock(block) {
+      const lines = block.split('\n')
       let event = ''
+      let dataStr = ''
       for (const line of lines) {
         if (line.startsWith('event:')) event = line.slice(6).trim()
-        else if (line.startsWith('data:')) {
-          try {
-            const data = JSON.parse(line.slice(5).trim())
-            if (event === 'phase') {
-              if (data.phase === 'coins') {
-                this.phase = 'coins'
-                this.coinLabel = `${data.data.label} — ${data.data.result}`
-              } else if (data.phase === 'hexagram') {
-                this.phase = 'hexagram'
-                this.hexagram = { primary: data.data.primary_gua, changing: data.data.changing_gua }
-              }
-            } else if (event === 'ai') {
-              if (this.phase === 'hexagram') this.phase = 'ai'
-              this.aiText += data.chunk
-            } else if (event === 'status') {
-              this.statusMsg = data.msg || ''
-            } else if (event === 'done') {
-              this.phase = 'done'
-            } else if (event === 'error') {
-              this.error = data.error
-              this.phase = 'done'
-            }
-          } catch(e) {}
+        else if (line.startsWith('data:')) dataStr = line.slice(5).trim()
+      }
+      if (!dataStr) return
+
+      try {
+        const data = JSON.parse(dataStr)
+        if (event === 'phase') {
+          if (data.phase === 'coins') {
+            this.phase = 'coins'
+            this.coinLabel = `${data.data.label} — ${data.data.result}`
+          } else if (data.phase === 'hexagram') {
+            this.phase = 'hexagram'
+            this.hexagram = { primary: data.data.primary_gua, changing: data.data.changing_gua }
+          }
+        } else if (event === 'ai') {
+          if (this.phase === 'hexagram') this.phase = 'ai'
+          this.aiText += data.chunk
+        } else if (event === 'status') {
+          this.statusMsg = data.msg || ''
+        } else if (event === 'done') {
+          this.phase = 'done'
+        } else if (event === 'error') {
+          this.error = data.error
+          this.phase = 'done'
         }
+      } catch(e) {
+        // JSON 解析失败，忽略并继续缓冲区积累
       }
     },
-    goHome() { uni.reLaunch({ url: '/pages/index/index' }) }
+
+    goHome() { uni.reLaunch({ url: '/pages/index/index' }) },
+    goHistory() { uni.navigateTo({ url: '/pages/history/history' }) },
+    shareResult() {
+      uni.share({ provider: 'weixin', type: 0, title: '我在观己斋占了一卦', href: 'https://gjz.shadouyou.cloud' })
+    },
   }
 }
 </script>

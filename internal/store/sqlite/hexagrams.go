@@ -124,6 +124,15 @@ func (s *Store) GetTodayAdWatchCount() (int64, error) {
 	return count, err
 }
 
+func (s *Store) GetTodayAdWatchCountByUser(userID int64) (int64, error) {
+	var count int64
+	err := s.db.QueryRow(
+		"SELECT COUNT(*) FROM ad_records WHERE user_id = ? AND date(created_at) = date('now') AND rewarded = 1",
+		userID,
+	).Scan(&count)
+	return count, err
+}
+
 func (s *Store) GetTotalAdWatchCount() (int64, error) {
 	var count int64
 	err := s.db.QueryRow("SELECT COUNT(*) FROM ad_records").Scan(&count)

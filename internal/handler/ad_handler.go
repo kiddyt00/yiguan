@@ -158,6 +158,13 @@ func (h *AdHandler) CompleteWatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 每日广告上限检查（默认 3 次）
+	todayCount, _ := h.store.GetTodayAdWatchCountByUser(userID)
+	if todayCount >= 3 {
+		writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "今日广告已达上限"})
+		return
+	}
+
 	if req.Duration < ad.WatchDuration {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": fmt.Sprintf("观看时长不足，还需 %d 秒", ad.WatchDuration-req.Duration),
