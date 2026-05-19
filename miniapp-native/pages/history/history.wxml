@@ -23,6 +23,10 @@
       </view>
       <rich-text nodes="{{renderMD(getDisplayText(item))}}"
         style="font-size:26rpx;line-height:1.8;color:#5D4037;"></rich-text>
+      <view style="margin-top:12rpx;padding-top:12rpx;border-top:1rpx solid #E0D6C8;text-align:center;">
+        <text bindtap="viewDetail" data-id="{{item.id}}" data-lang="{{item.lang}}" data-q="{{item.question}}"
+          style="font-size:24rpx;color:#8B4513;">查看完整卦象 →</text>
+      </view>
     </view>
   </view>
 

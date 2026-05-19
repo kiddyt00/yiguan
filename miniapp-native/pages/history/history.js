@@ -47,5 +47,12 @@ Page({
       fail: () => { wx.showToast({ title: '网络错误', icon: 'none' }); this.setData({ ['translatingMap.' + id]: false }) }
     })
   },
+  viewDetail(e) {
+    const id = e.currentTarget.dataset.id
+    const lang = e.currentTarget.dataset.lang
+    const q = e.currentTarget.dataset.q
+    getApp().globalData.question = q || ''
+    wx.navigateTo({ url: '/pages/result/result?historyId=' + id + '&lang=' + lang })
+  },
   renderMD(text) { return marked.parse(text || '') }
 })
