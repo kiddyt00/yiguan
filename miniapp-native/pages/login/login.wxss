@@ -1,0 +1,2 @@
+.tab-btn{flex:1;text-align:center;padding:12rpx 0;font-size:28rpx;color:#9E8C7A;border-bottom:3rpx solid transparent}
+.tab-active{color:#8B4513;border-bottom-color:#8B4513;font-weight:600}

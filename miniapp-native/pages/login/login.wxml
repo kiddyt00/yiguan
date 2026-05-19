@@ -1,4 +1,4 @@
-<view class="container" style="padding-top:120rpx;">
+<view class="container" style="padding-top:60rpx;">
   <view class="text-center mb-3">
     <text style="font-size:80rpx;">☯</text>
     <view style="font-size:36rpx;font-weight:700;margin-top:16rpx;">观己斋</view>
@@ -9,17 +9,20 @@
     <button class="btn-primary" style="width:100%;background:#07C160;" loading="{{wxLoading}}" bindtap="wechatLogin">
       📱 微信一键登录
     </button>
-    <text class="text-muted" style="display:block;margin-top:8rpx;">点击即表示同意使用你的微信身份</text>
+    <text class="text-muted" style="display:block;margin-top:8rpx;">授权后自动创建账号，无需注册</text>
   </view>
 
-  <view style="display:flex;align-items:center;margin:32rpx 0;">
+  <view style="display:flex;align-items:center;margin:24rpx 0;">
     <view style="flex:1;height:1rpx;background:#E0D6C8;"></view>
     <text class="text-muted" style="margin:0 24rpx;">或</text>
     <view style="flex:1;height:1rpx;background:#E0D6C8;"></view>
   </view>
 
-  <view class="card">
-    <view style="font-size:28rpx;font-weight:600;margin-bottom:16rpx;">手机号登录</view>
+  <view style="display:flex;border-bottom:1rpx solid #E0D6C8;margin-bottom:24rpx;">
+    <view wx:for="{{loginTabs}}" wx:key="*this" class="tab-btn {{activeTab===item?'tab-active':''}}" bindtap="switchTab" data-tab="{{item}}">{{item}}</view>
+  </view>
+
+  <view wx:if="{{activeTab==='短信登录'}}" class="card" style="margin-bottom:0;">
     <view style="display:flex;gap:16rpx;margin-bottom:24rpx;">
       <input type="number" value="{{phone}}" bindinput="onPhone" placeholder="手机号" maxlength="11" class="input-field" style="flex:1;" />
       <button class="btn-secondary" style="padding:12rpx 24rpx;font-size:24rpx;white-space:nowrap;" disabled="{{sendDisabled}}" bindtap="sendSMS">{{sendText}}</button>
@@ -28,7 +31,18 @@
     <button class="btn-primary" style="width:100%;" loading="{{loading}}" bindtap="smsLogin">登录 / 注册</button>
   </view>
 
-  <view class="text-center mt-3">
-    <text class="text-muted" bindtap="goPwd">使用密码登录</text>
+  <view wx:if="{{activeTab==='密码登录'}}">
+    <view class="card" style="margin-bottom:0;">
+      <input type="number" value="{{pwdPhone}}" bindinput="onPwdPhone" placeholder="手机号" maxlength="11" class="input-field" style="margin-bottom:24rpx;" />
+      <input type="text" password="{{true}}" value="{{password}}" bindinput="onPassword" placeholder="密码" class="input-field" style="margin-bottom:32rpx;" />
+      <view wx:if="{{isRegister}}">
+        <input value="{{nickname}}" bindinput="onNick" placeholder="昵称（选填）" class="input-field" style="margin-bottom:24rpx;" />
+      </view>
+      <view wx:if="{{pwdError}}" style="font-size:24rpx;color:#C62828;text-align:center;margin-bottom:12rpx;">{{pwdError}}</view>
+      <button class="btn-primary" style="width:100%;" loading="{{pwdLoading}}" bindtap="pwdSubmit">{{isRegister ? '注册' : '登录'}}</button>
+      <view class="text-center mt-3">
+        <text class="text-muted" bindtap="toggleMode">{{isRegister ? '已有账号？去登录' : '没有账号？去注册'}}</text>
+      </view>
+    </view>
   </view>
 </view>
