@@ -49,9 +49,9 @@
 .gap-2{gap:8rpx}
 .mb-6{margin-bottom:24rpx}
 .mb-4{margin-bottom:16rpx}
-.coin-anim{width:72rpx;height:72rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28rpx;font-weight:700;background:linear-gradient(135deg,#D4C5A9,#B8A88A);color:#5D4037;box-shadow:0 4rpx 12rpx rgba(0,0,0,0.1)}
-.coin-bounce{animation:coinShake .6s ease-in-out infinite}
-@keyframes coinShake{0%{transform:rotate(0deg) scale(1)}15%{transform:rotate(-20deg) scale(1.1)}30%{transform:rotate(15deg) scale(1.05)}45%{transform:rotate(-10deg) scale(1.1)}60%{transform:rotate(5deg) scale(1)}100%{transform:rotate(0deg) scale(1)}}
+.coin-anim{width:72rpx;height:72rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28rpx;font-weight:700;background:linear-gradient(135deg,#D4C5A9,#B8A88A);color:#5D4037;box-shadow:0 4rpx 16rpx rgba(139,69,19,0.2)}
+.coin-bounce{animation:coinBounce .6s cubic-bezier(.8,0,.2,1) infinite}
+@keyframes coinBounce{0%,100%{transform:translateY(-20%)}50%{transform:translateY(0)}}
 .step-dot{width:36rpx;height:36rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22rpx;font-weight:600;transition:all .3s}
 .step-active{background:#8B4513;color:#FFF8DC}
 .step-inactive{background:#E8DCC8;color:#9E8C7A}
