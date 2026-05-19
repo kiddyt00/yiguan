@@ -47,6 +47,8 @@ type History struct {
 	YaoPositions   string    `json:"yao_positions"`
 	PrimaryYao     string    `json:"primary_yao,omitempty"`
 	ChangingYao    string    `json:"changing_yao,omitempty"`
+	TossData       string    `json:"toss_data,omitempty"`
+	MasterYao      int       `json:"master_yao,omitempty"`
 	Interpretation string    `json:"interpretation"`
 	Lang           string    `json:"lang"`
 	CreatedAt      time.Time `json:"created_at"`

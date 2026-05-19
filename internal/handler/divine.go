@@ -72,6 +72,8 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		YaoPositions:   result.YaoDesc,
 		PrimaryYao:     result.Primary.YaoDesc,
 		ChangingYao:    result.Changing.YaoDesc,
+		TossData:       formatTossData(result.Lines),
+		MasterYao:      result.MasterYao,
 		Interpretation: interpretation,
 		Lang:           getLang(r),
 	})
