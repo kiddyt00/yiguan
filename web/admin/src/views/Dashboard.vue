@@ -1,41 +1,40 @@
 <template>
   <div>
-    <h2 class="text-2xl font-bold mb-4">仪表盘</h2>
+    <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <el-card>
-        <div class="text-sm text-gray-500">注册用户</div>
-        <div class="text-3xl font-bold mt-2">{{ stats.total_users }}</div>
-      </el-card>
-      <el-card>
-        <div class="text-sm text-gray-500">活跃用户</div>
-        <div class="text-3xl font-bold mt-2 text-green-600">{{ stats.active_users }}</div>
-      </el-card>
-      <el-card>
-        <div class="text-sm text-gray-500">今日起卦</div>
-        <div class="text-3xl font-bold mt-2">{{ stats.today_divines }}</div>
-      </el-card>
-      <el-card>
-        <div class="text-sm text-gray-500">总起卦数</div>
-        <div class="text-3xl font-bold mt-2">{{ stats.total_divines }}</div>
-      </el-card>
-      <el-card>
-        <div class="text-sm text-gray-500">今日广告播放</div>
-        <div class="text-3xl font-bold mt-2 text-blue-600">{{ stats.ad_watches_today }}</div>
-      </el-card>
-      <el-card>
-        <div class="text-sm text-gray-500">总广告播放</div>
-        <div class="text-3xl font-bold mt-2">{{ stats.total_ads_watched }}</div>
-      </el-card>
+      <div v-for="card in cards" :key="card.label"
+        class="stat-card"
+        :style="{ '--card-accent': card.color }"
+        @click="goTo(card.route)">
+        <div class="stat-top">
+          <span class="stat-icon">{{ card.icon }}</span>
+          <span class="stat-arrow">→</span>
+        </div>
+        <div class="stat-label">{{ card.label }}</div>
+        <div class="stat-value">{{ card.value }}</div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { adminApi } from '../api'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const stats = ref({})
+
+const cards = computed(() => [
+  { label: '注册用户', value: stats.value.total_users ?? '-', icon: '👥', color: '#d4a853', route: '/users' },
+  { label: '活跃用户', value: stats.value.active_users ?? '-', icon: '🔥', color: '#4ade80', route: '/users' },
+  { label: '今日起卦', value: stats.value.today_divines ?? '-', icon: '🔮', color: '#60a5fa', route: '/hexagrams' },
+  { label: '总起卦数', value: stats.value.total_divines ?? '-', icon: '📊', color: '#a78bfa', route: '/hexagrams' },
+  { label: '今日广告', value: stats.value.ad_watches_today ?? '-', icon: '📺', color: '#f59e0b', route: '/ads' },
+  { label: '总广告播放', value: stats.value.total_ads_watched ?? '-', icon: '📈', color: '#f472b6', route: '/ads' },
+])
+
 onMounted(async () => {
   try {
     stats.value = await adminApi.dashboard()
@@ -43,4 +42,8 @@ onMounted(async () => {
     ElMessage.error('加载仪表盘失败: ' + e.message)
   }
 })
+
+function goTo(route) {
+  router.push(route)
+}
 </script>
