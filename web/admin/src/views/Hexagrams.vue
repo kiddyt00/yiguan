@@ -28,42 +28,42 @@
     <!-- 记录列表 -->
     <el-card shadow="never" class="mb-4">
       <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据">
-        <el-table-column label="ID" width="55" prop="id" />
-        <el-table-column label="用户" width="120">
+        <el-table-column label="ID" width="70" prop="id" align="center" />
+        <el-table-column label="用户" width="140">
           <template #default="{ row }">
-            <div class="user-info">
-              <span class="user-name">{{ row.nickname || '用户' + row.user_id }}</span>
-              <span class="user-id">#{{ row.user_id }}</span>
-            </div>
+            <span class="user-name">{{ row.nickname || '微信用户' }}</span>
+            <span class="user-id" style="margin-left:4px">#{{ row.user_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="问题" min-width="200" show-overflow-tooltip>
+        <el-table-column label="问题" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ row.question }}</template>
         </el-table-column>
-        <el-table-column label="本卦" width="80" align="center">
+        <el-table-column label="本卦" width="78" align="center">
           <template #default="{ row }">
             <el-tag effect="plain" class="gua-tag">{{ row.primary_gua }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="变卦" width="80" align="center">
+        <el-table-column label="变卦" width="78" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.changing_gua" effect="plain" type="warning" class="gua-tag">{{ row.changing_gua }}</el-tag>
             <span v-else class="text-muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column label="变爻" width="100">
+        <el-table-column label="变爻" width="140" show-overflow-tooltip>
           <template #default="{ row }">
-            <span v-if="row.yao_positions" class="yao-text">{{ row.yao_positions }}</span>
+            <span v-if="row.yao_positions" class="yao-text nowrap">{{ row.yao_positions }}</span>
             <span v-else class="text-muted">无</span>
           </template>
         </el-table-column>
-        <el-table-column label="时间" width="150">
+        <el-table-column label="时间" width="130">
           <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="110" fixed="right">
+        <el-table-column label="操作" width="130" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="showDetail(row)">详情</el-button>
-            <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
+            <span class="action-cell">
+              <el-button size="small" @click="showDetail(row)">详情</el-button>
+              <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
+            </span>
           </template>
         </el-table-column>
       </el-table>
@@ -239,13 +239,16 @@ function formatDate(ts) {
 .text-muted { color: #909399; font-size: 12px; }
 
 /* 用户 */
-.user-info { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; font-size: 14px; color: #1c1917; }
-.user-id { font-size: 11px; color: #909399; }
+.user-id { font-size: 11px; color: #909399; white-space: nowrap; }
 
 /* 卦象标签 */
 .gua-tag { font-family: 'Noto Sans SC', sans-serif; font-weight: 600; }
 .yao-text { font-size: 13px; color: #b8860b; }
+.nowrap { white-space: nowrap; }
+
+/* 操作按钮行 */
+.action-cell { display: inline-flex; gap: 6px; white-space: nowrap; }
 
 /* 分页 */
 .pagination-wrap { display: flex; justify-content: center; margin-top: 16px; }
