@@ -1,11 +1,9 @@
 <template>
   <div>
-    <!-- 页面标题 -->
     <div class="page-header">
       <h2>卦象任务管理</h2>
     </div>
 
-    <!-- 搜索筛选 -->
     <el-card shadow="never" class="mb-4">
       <el-row :gutter="16">
         <el-col :span="6">
@@ -25,31 +23,30 @@
       </el-row>
     </el-card>
 
-    <!-- 记录列表 -->
     <el-card shadow="never" class="mb-4">
       <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据">
-        <el-table-column label="ID" width="70" prop="id" align="center" />
-        <el-table-column label="用户" width="140">
+        <el-table-column label="ID" width="55" prop="id" align="center" />
+        <el-table-column label="用户" width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="user-name">{{ row.nickname || '微信用户' }}</span>
-            <span class="user-id" style="margin-left:4px">#{{ row.user_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="问题" min-width="180" show-overflow-tooltip>
+        <el-table-column label="用户ID" width="70" prop="user_id" align="center" />
+        <el-table-column label="问题" width="200" show-overflow-tooltip>
           <template #default="{ row }">{{ row.question }}</template>
         </el-table-column>
-        <el-table-column label="本卦" width="78" align="center">
+        <el-table-column label="本卦" width="72" align="center">
           <template #default="{ row }">
             <el-tag effect="plain" class="gua-tag">{{ row.primary_gua }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="变卦" width="78" align="center">
+        <el-table-column label="变卦" width="72" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.changing_gua" effect="plain" type="warning" class="gua-tag">{{ row.changing_gua }}</el-tag>
             <span v-else class="text-muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column label="变爻" width="140" show-overflow-tooltip>
+        <el-table-column label="变爻" width="160" show-overflow-tooltip>
           <template #default="{ row }">
             <span v-if="row.yao_positions" class="yao-text nowrap">{{ row.yao_positions }}</span>
             <span v-else class="text-muted">无</span>
@@ -73,15 +70,14 @@
       </div>
     </el-card>
 
-    <!-- 详情弹窗 -->
     <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh"
       destroy-on-close>
       <div v-if="detail" class="detail-wrap">
-        <!-- 基本信息 -->
         <div class="detail-section detail-meta">
           <div class="meta-item">
             <span class="meta-label">用户</span>
-            <span class="meta-value">{{ detail.nickname || '用户' + detail.user_id }} <span class="text-muted">#{{ detail.user_id }}</span></span>
+            <span class="meta-value">{{ detail.nickname || '微信用户' }}</span>
+            <span class="user-id" style="margin-left:2px">#{{ detail.user_id }}</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">时间</span>
@@ -89,13 +85,11 @@
           </div>
         </div>
 
-        <!-- 问题 -->
         <div class="detail-section">
           <div class="section-title">📝 问题</div>
           <div class="question-text">{{ detail.question }}</div>
         </div>
 
-        <!-- 铜钱信息 -->
         <div v-if="parsedToss.length" class="detail-section">
           <div class="section-title">🪙 铜钱信息</div>
           <div class="toss-grid">
@@ -122,7 +116,6 @@
           </div>
         </div>
 
-        <!-- 卦象 -->
         <div class="detail-section">
           <div class="section-title">🏷 卦象</div>
           <div class="hex-info">
@@ -148,7 +141,6 @@
           </div>
         </div>
 
-        <!-- AI 解卦 -->
         <div class="detail-section">
           <div class="section-title">📖 AI 解卦</div>
           <div class="interpretation-wrap">
@@ -181,7 +173,6 @@ const dateRange = ref(null)
 const detailVisible = ref(false)
 const detail = ref(null)
 
-// 解析 toss_data JSON
 const parsedToss = computed(() => {
   if (!detail.value?.toss_data) return []
   try {
@@ -238,22 +229,16 @@ function formatDate(ts) {
 .text-right { text-align: right; }
 .text-muted { color: #909399; font-size: 12px; }
 
-/* 用户 */
 .user-name { font-weight: 600; font-size: 14px; color: #1c1917; }
 .user-id { font-size: 11px; color: #909399; white-space: nowrap; }
 
-/* 卦象标签 */
 .gua-tag { font-family: 'Noto Sans SC', sans-serif; font-weight: 600; }
 .yao-text { font-size: 13px; color: #b8860b; }
 .nowrap { white-space: nowrap; }
-
-/* 操作按钮行 */
 .action-cell { display: inline-flex; gap: 6px; white-space: nowrap; }
 
-/* 分页 */
 .pagination-wrap { display: flex; justify-content: center; margin-top: 16px; }
 
-/* ===== 详情弹窗 ===== */
 .detail-wrap { max-height: 65vh; overflow-y: auto; padding-right: 4px; }
 
 .detail-section {
@@ -274,17 +259,11 @@ function formatDate(ts) {
   margin-bottom: 10px;
 }
 
-/* 基本信息 */
-.detail-meta {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-}
+.detail-meta { display: flex; gap: 32px; flex-wrap: wrap; }
 .meta-item { display: flex; gap: 8px; align-items: center; }
 .meta-label { font-size: 13px; color: #78716c; min-width: 40px; }
 .meta-value { font-size: 14px; font-weight: 500; color: #1c1917; }
 
-/* 问题 */
 .question-text {
   background: #faf8f5;
   padding: 12px 16px;
@@ -294,12 +273,7 @@ function formatDate(ts) {
   line-height: 1.6;
 }
 
-/* 铜钱表格 */
-.toss-grid {
-  border: 1px solid #f0ebe0;
-  border-radius: 8px;
-  overflow: hidden;
-}
+.toss-grid { border: 1px solid #f0ebe0; border-radius: 8px; overflow: hidden; }
 .toss-header {
   display: flex;
   background: #faf8f5;
@@ -322,56 +296,33 @@ function formatDate(ts) {
 .toss-label { font-weight: 600; color: #292524; }
 .text-yang { color: #d4a853; font-weight: 600; }
 .text-yin { color: #667eea; font-weight: 600; }
-
-/* 铜钱点 */
 .toss-coins { gap: 6px; }
 .coin-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  font-size: 11px; font-weight: 600;
 }
 .coin-front { background: #d4a853; color: #fff; }
 .coin-back { background: #e8e4d8; color: #78716c; }
 
-/* 卦象信息 */
 .hex-info { padding: 4px 0; }
-.hex-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 10px;
-}
+.hex-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
 .hex-labels { display: flex; align-items: center; gap: 8px; }
 .hex-arrow { font-size: 20px; color: #b8860b; font-weight: 700; }
 .hex-name { font-size: 16px; font-weight: 700; color: #292524; }
 .hex-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 12px; font-weight: 600;
 }
 .hex-badge.primary { background: #fefaf0; color: #b8860b; border: 1px solid #d4a853; }
 .hex-badge.changing { background: #fff0f0; color: #dc2626; border: 1px solid #fca5a5; }
-
 .hex-yao, .hex-master { margin-top: 6px; font-size: 14px; }
 .yao-label { color: #78716c; }
 .yao-value { color: #292524; }
 .yao-value.master { color: #dc2626; font-weight: 600; }
 
-/* 解卦 */
-.interpretation-wrap {
-  background: #faf8f5;
-  padding: 16px 20px;
-  border-radius: 8px;
-}
+.interpretation-wrap { background: #faf8f5; padding: 16px 20px; border-radius: 8px; }
 
-/* 滚动条 */
 .detail-wrap::-webkit-scrollbar { width: 4px; }
 .detail-wrap::-webkit-scrollbar-thumb { background: #d4a85340; border-radius: 2px; }
 </style>
