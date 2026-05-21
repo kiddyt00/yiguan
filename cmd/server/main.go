@@ -208,6 +208,11 @@ func main() {
 	mux.Handle("POST /api/ads/{id}/watch", authMW(corsWrap(http.HandlerFunc(adH.StartWatch))))
 	mux.Handle("POST /api/ads/{id}/complete", authMW(corsWrap(http.HandlerFunc(adH.CompleteWatch))))
 
+	// 用户分析
+	analyticsH := handler.NewAnalyticsHandler(st)
+	mux.Handle("GET /api/admin/analytics", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetAnalytics))))
+	mux.Handle("GET /api/admin/analytics/logins", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetRecentLogins))))
+
 	// 日志中间件
 	logMux := loggingMiddleware(mux)
 

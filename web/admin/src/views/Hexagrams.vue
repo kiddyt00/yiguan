@@ -24,38 +24,39 @@
     </el-card>
 
     <el-card shadow="never" class="mb-4">
-      <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据">
-        <el-table-column label="ID" width="55" prop="id" align="center" />
-        <el-table-column label="用户" width="100" show-overflow-tooltip>
+      <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据"
+        style="width:auto">
+        <el-table-column label="ID" width="50" prop="id" align="center" />
+        <el-table-column label="用户" width="80" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="user-name">{{ row.nickname || '微信用户' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="用户ID" width="70" prop="user_id" align="center" />
-        <el-table-column label="问题" width="200" show-overflow-tooltip>
+        <el-table-column label="用户ID" width="60" prop="user_id" align="center" />
+        <el-table-column label="问题" width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ row.question }}</template>
         </el-table-column>
-        <el-table-column label="本卦" width="72" align="center">
+        <el-table-column label="本卦" width="66" align="center">
           <template #default="{ row }">
             <el-tag effect="plain" class="gua-tag">{{ row.primary_gua }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="变卦" width="72" align="center">
+        <el-table-column label="变卦" width="66" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.changing_gua" effect="plain" type="warning" class="gua-tag">{{ row.changing_gua }}</el-tag>
             <span v-else class="text-muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column label="变爻" width="160" show-overflow-tooltip>
+        <el-table-column label="变爻" width="150" show-overflow-tooltip>
           <template #default="{ row }">
             <span v-if="row.yao_positions" class="yao-text nowrap">{{ row.yao_positions }}</span>
             <span v-else class="text-muted">无</span>
           </template>
         </el-table-column>
-        <el-table-column label="时间" width="130">
+        <el-table-column label="时间" width="120">
           <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="130" fixed="right">
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <span class="action-cell">
               <el-button size="small" @click="showDetail(row)">详情</el-button>
@@ -70,8 +71,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh"
-      destroy-on-close>
+    <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh" destroy-on-close>
       <div v-if="detail" class="detail-wrap">
         <div class="detail-section detail-meta">
           <div class="meta-item">
@@ -84,12 +84,10 @@
             <span class="meta-value">{{ formatDate(detail.created_at) }}</span>
           </div>
         </div>
-
         <div class="detail-section">
           <div class="section-title">📝 问题</div>
           <div class="question-text">{{ detail.question }}</div>
         </div>
-
         <div v-if="parsedToss.length" class="detail-section">
           <div class="section-title">🪙 铜钱信息</div>
           <div class="toss-grid">
@@ -105,42 +103,26 @@
               <span class="toss-cell toss-label">{{ t.label }}</span>
               <span class="toss-cell" :class="t.yang ? 'text-yang' : 'text-yin'">{{ t.result }}</span>
               <span class="toss-cell toss-coins">
-                <span v-for="(cv, ci) in t.coin_values" :key="ci"
-                  class="coin-dot" :class="cv === 3 ? 'coin-front' : 'coin-back'">
-                  {{ cv === 3 ? '正' : '反' }}
-                </span>
+                <span v-for="(cv, ci) in t.coin_values" :key="ci" class="coin-dot"
+                  :class="cv === 3 ? 'coin-front' : 'coin-back'">{{ cv === 3 ? '正' : '反' }}</span>
               </span>
               <span class="toss-cell">{{ t.yang ? '⚊ 阳' : '⚋ 阴' }}</span>
               <span class="toss-cell">{{ (t.result === '老阴' || t.result === '老阳') ? '● 变' : '—' }}</span>
             </div>
           </div>
         </div>
-
         <div class="detail-section">
           <div class="section-title">🏷 卦象</div>
           <div class="hex-info">
             <div class="hex-row">
-              <span class="hex-labels">
-                <span class="hex-badge primary">本卦</span>
-                <span class="hex-name">{{ detail.primary_gua }}</span>
-              </span>
+              <span class="hex-labels"><span class="hex-badge primary">本卦</span><span class="hex-name">{{ detail.primary_gua }}</span></span>
               <span v-if="detail.changing_gua" class="hex-arrow">→</span>
-              <span v-if="detail.changing_gua" class="hex-labels">
-                <span class="hex-badge changing">变卦</span>
-                <span class="hex-name">{{ detail.changing_gua }}</span>
-              </span>
+              <span v-if="detail.changing_gua" class="hex-labels"><span class="hex-badge changing">变卦</span><span class="hex-name">{{ detail.changing_gua }}</span></span>
             </div>
-            <div v-if="detail.yao_positions" class="hex-yao">
-              <span class="yao-label">变爻：</span>
-              <span class="yao-value">{{ detail.yao_positions }}</span>
-            </div>
-            <div v-if="detail.master_yao > 0" class="hex-master">
-              <span class="yao-label">主变爻：</span>
-              <span class="yao-value master">第 {{ detail.master_yao }} 爻（最重要）</span>
-            </div>
+            <div v-if="detail.yao_positions" class="hex-yao"><span class="yao-label">变爻：</span><span class="yao-value">{{ detail.yao_positions }}</span></div>
+            <div v-if="detail.master_yao > 0" class="hex-master"><span class="yao-label">主变爻：</span><span class="yao-value master">第 {{ detail.master_yao }} 爻（最重要）</span></div>
           </div>
         </div>
-
         <div class="detail-section">
           <div class="section-title">📖 AI 解卦</div>
           <div class="interpretation-wrap">
@@ -148,7 +130,6 @@
           </div>
         </div>
       </div>
-
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
       </template>
@@ -162,24 +143,13 @@ import { adminApi } from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import MarkdownRenderer from '../components/MarkdownRenderer.vue'
 
-const items = ref([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const loading = ref(false)
-const userIdFilter = ref('')
-const searchText = ref('')
-const dateRange = ref(null)
-const detailVisible = ref(false)
-const detail = ref(null)
+const items = ref([]), total = ref(0), page = ref(1), pageSize = ref(20), loading = ref(false)
+const userIdFilter = ref(''), searchText = ref(''), dateRange = ref(null)
+const detailVisible = ref(false), detail = ref(null)
 
 const parsedToss = computed(() => {
   if (!detail.value?.toss_data) return []
-  try {
-    return JSON.parse(detail.value.toss_data)
-  } catch {
-    return []
-  }
+  try { return JSON.parse(detail.value.toss_data) } catch { return [] }
 })
 
 onMounted(() => load())
@@ -192,35 +162,23 @@ async function load() {
     const data = await adminApi.hexagrams(params)
     items.value = data.items || []
     total.value = data.total || 0
-  } catch (e) {
-    ElMessage.error('加载失败: ' + e.message)
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { ElMessage.error('加载失败: ' + e.message) }
+  finally { loading.value = false }
 }
 
-function showDetail(row) {
-  detail.value = row
-  detailVisible.value = true
-}
+function showDetail(row) { detail.value = row; detailVisible.value = true }
 
 async function remove(row) {
   try {
     await ElMessageBox.confirm('确定删除此记录？', '确认')
     await adminApi.deleteHexagram(row.id)
-    ElMessage.success('已删除')
-    load()
-  } catch (e) {
-    if (e !== 'cancel') ElMessage.error(e.message)
-  }
+    ElMessage.success('已删除'); load()
+  } catch (e) { if (e !== 'cancel') ElMessage.error(e.message) }
 }
 
 function formatDate(ts) {
   if (!ts) return ''
-  return new Date(ts).toLocaleString('zh-CN', {
-    month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
+  return new Date(ts).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -228,68 +186,25 @@ function formatDate(ts) {
 .mb-4 { margin-bottom: 16px; }
 .text-right { text-align: right; }
 .text-muted { color: #909399; font-size: 12px; }
-
 .user-name { font-weight: 600; font-size: 14px; color: #1c1917; }
 .user-id { font-size: 11px; color: #909399; white-space: nowrap; }
-
 .gua-tag { font-family: 'Noto Sans SC', sans-serif; font-weight: 600; }
 .yao-text { font-size: 13px; color: #b8860b; }
 .nowrap { white-space: nowrap; }
 .action-cell { display: inline-flex; gap: 6px; white-space: nowrap; }
-
 .pagination-wrap { display: flex; justify-content: center; margin-top: 16px; }
-
 .detail-wrap { max-height: 65vh; overflow-y: auto; padding-right: 4px; }
-
-.detail-section {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0ebe0;
-}
-.detail-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.section-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1c1917;
-  margin-bottom: 10px;
-}
-
+.detail-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0ebe0; }
+.detail-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.section-title { font-size: 15px; font-weight: 700; color: #1c1917; margin-bottom: 10px; }
 .detail-meta { display: flex; gap: 32px; flex-wrap: wrap; }
 .meta-item { display: flex; gap: 8px; align-items: center; }
 .meta-label { font-size: 13px; color: #78716c; min-width: 40px; }
 .meta-value { font-size: 14px; font-weight: 500; color: #1c1917; }
-
-.question-text {
-  background: #faf8f5;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #292524;
-  line-height: 1.6;
-}
-
+.question-text { background: #faf8f5; padding: 12px 16px; border-radius: 8px; font-size: 14px; color: #292524; line-height: 1.6; }
 .toss-grid { border: 1px solid #f0ebe0; border-radius: 8px; overflow: hidden; }
-.toss-header {
-  display: flex;
-  background: #faf8f5;
-  font-size: 12px;
-  font-weight: 600;
-  color: #78716c;
-  padding: 8px 12px;
-  border-bottom: 1px solid #f0ebe0;
-}
-.toss-row {
-  display: flex;
-  padding: 8px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #f5f2ed;
-  transition: background 0.15s;
-}
+.toss-header { display: flex; background: #faf8f5; font-size: 12px; font-weight: 600; color: #78716c; padding: 8px 12px; border-bottom: 1px solid #f0ebe0; }
+.toss-row { display: flex; padding: 8px 12px; font-size: 13px; border-bottom: 1px solid #f5f2ed; }
 .toss-row:last-child { border-bottom: none; }
 .toss-row.is-changing { background: #fff8f0; }
 .toss-cell { flex: 1; display: flex; align-items: center; gap: 4px; }
@@ -297,32 +212,22 @@ function formatDate(ts) {
 .text-yang { color: #d4a853; font-weight: 600; }
 .text-yin { color: #667eea; font-weight: 600; }
 .toss-coins { gap: 6px; }
-.coin-dot {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 50%;
-  font-size: 11px; font-weight: 600;
-}
+.coin-dot { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 11px; font-weight: 600; }
 .coin-front { background: #d4a853; color: #fff; }
 .coin-back { background: #e8e4d8; color: #78716c; }
-
 .hex-info { padding: 4px 0; }
 .hex-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
 .hex-labels { display: flex; align-items: center; gap: 8px; }
 .hex-arrow { font-size: 20px; color: #b8860b; font-weight: 700; }
 .hex-name { font-size: 16px; font-weight: 700; color: #292524; }
-.hex-badge {
-  display: inline-block; padding: 2px 8px; border-radius: 4px;
-  font-size: 12px; font-weight: 600;
-}
+.hex-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
 .hex-badge.primary { background: #fefaf0; color: #b8860b; border: 1px solid #d4a853; }
 .hex-badge.changing { background: #fff0f0; color: #dc2626; border: 1px solid #fca5a5; }
 .hex-yao, .hex-master { margin-top: 6px; font-size: 14px; }
 .yao-label { color: #78716c; }
 .yao-value { color: #292524; }
 .yao-value.master { color: #dc2626; font-weight: 600; }
-
 .interpretation-wrap { background: #faf8f5; padding: 16px 20px; border-radius: 8px; }
-
 .detail-wrap::-webkit-scrollbar { width: 4px; }
 .detail-wrap::-webkit-scrollbar-thumb { background: #d4a85340; border-radius: 2px; }
 </style>
