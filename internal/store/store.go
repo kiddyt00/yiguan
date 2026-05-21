@@ -119,6 +119,7 @@ type UserStore interface {
 	CreateUser(phone, password, nickname string) (*User, error)
 	CreateUserByOpenID(openid, nickname, wxAvatar string) (*User, error)
 	UpdateUserWechatInfo(id int64, nickname, wxAvatar string) error
+	UpdateUserGender(id int64, sex int) error
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByOpenID(openid string) (*User, error)
 	GetUserByID(id int64) (*User, error)
@@ -202,5 +203,6 @@ type Store interface {
 	TranslationStore
 	ModelStore
 	AdStore
+	AnalyticsStore
 	Close() error
 }

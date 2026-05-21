@@ -7,47 +7,36 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// Store SQLite 实现的存储
 type Store struct {
 	db *sql.DB
 }
 
-// New 创建 SQLite 存储并执行建表
 func New(dbPath string) (*Store, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_journal=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, fmt.Errorf("打开数据库失败: %w", err)
 	}
-
-	db.SetMaxOpenConns(1) // SQLite 单写
-
+	db.SetMaxOpenConns(1)
 	if err := migrate(db); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("数据库迁移失败: %w", err)
 	}
-
 	return &Store{db: db}, nil
 }
 
-// Close 关闭数据库连接
-func (s *Store) Close() error {
-	return s.db.Close()
-}
-
-// DB 返回底层 *sql.DB（测试用）
-func (s *Store) DB() *sql.DB {
-	return s.db
-}
+func (s *Store) Close() error { return s.db.Close() }
+func (s *Store) DB() *sql.DB  { return s.db }
 
 func migrate(db *sql.DB) error {
 	schemas := []string{
-		// users 表（完整定义，含新字段）
 		`CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			phone TEXT UNIQUE NOT NULL,
 			openid TEXT DEFAULT '',
 			nickname TEXT NOT NULL,
 			avatar TEXT DEFAULT '',
+			wx_avatar TEXT DEFAULT '',
+			wx_sex INTEGER DEFAULT 0,
 			address TEXT DEFAULT '',
 			password TEXT NOT NULL,
 			role TEXT DEFAULT 'user',
@@ -76,11 +65,7 @@ func migrate(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_quotas_user_id ON quotas(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_quotas_used_at ON quotas(used_at)`,
 		`CREATE INDEX IF NOT EXISTS idx_history_user_id ON history(user_id)`,
-
-		// 旧库升级：users 表加字段（SQLite 不支持直接加列到 UNIQUE 约束表，用重建方式）
 		`CREATE TABLE IF NOT EXISTS __users_migrated (done INTEGER DEFAULT 1)`,
-
-		// LLM 模型表
 		`CREATE TABLE IF NOT EXISTS llm_models (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
@@ -93,8 +78,6 @@ func migrate(db *sql.DB) error {
 			sort_order INTEGER DEFAULT 0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
-
-		// 广告表
 		`CREATE TABLE IF NOT EXISTS ads (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
@@ -107,8 +90,6 @@ func migrate(db *sql.DB) error {
 			sort_order INTEGER DEFAULT 0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
-
-		// 广告观看记录表
 		`CREATE TABLE IF NOT EXISTS ad_records (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -121,8 +102,6 @@ func migrate(db *sql.DB) error {
 			FOREIGN KEY (ad_id) REFERENCES ads(id)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_ad_records_user_ad ON ad_records(user_id, ad_id)`,
-
-		// 翻译缓存表
 		`CREATE TABLE IF NOT EXISTS translations (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			history_id INTEGER NOT NULL,
@@ -133,119 +112,55 @@ func migrate(db *sql.DB) error {
 			UNIQUE(history_id, lang)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_translations_history_id ON translations(history_id)`,
+		// v2.8: login_logs
+		`CREATE TABLE IF NOT EXISTS login_logs (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			ip TEXT DEFAULT '',
+			city TEXT DEFAULT '',
+			device TEXT DEFAULT '',
+			os TEXT DEFAULT '',
+			browser TEXT DEFAULT '',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_login_logs_user_id ON login_logs(user_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_login_logs_created ON login_logs(created_at)`,
 	}
-
 	for _, s := range schemas {
 		if _, err := db.Exec(s); err != nil {
 			return fmt.Errorf("执行建表失败: %w\nSQL: %s", err, s)
 		}
 	}
-
-	// 运行时检查旧 users 表是否需要迁移
-	var colExists int
-	err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('users') WHERE name IN ('role', 'is_active')`).Scan(&colExists)
-	if err != nil {
-		return err
+	// 旧表迁移：运行时加列
+	migrations := []struct {
+		table string
+		col   string
+		typ   string
+		def   string
+	}{
+		{"users", "role", "TEXT", "'user'"},
+		{"users", "is_active", "INTEGER", "1"},
+		{"users", "openid", "TEXT", "''"},
+		{"users", "avatar", "TEXT", "''"},
+		{"users", "wx_avatar", "TEXT", "''"},
+		{"users", "wx_sex", "INTEGER", "0"},
+		{"llm_models", "display_name", "TEXT", "''"},
+		{"history", "lang", "TEXT", "'zh'"},
+		{"history", "primary_yao", "TEXT", "''"},
+		{"history", "changing_yao", "TEXT", "''"},
+		{"history", "toss_data", "TEXT", "''"},
+		{"history", "master_yao", "INTEGER", "0"},
 	}
-	if colExists < 2 {
-		// 旧表缺少字段，执行迁移
-		migrationSQLs := []string{
-			`ALTER TABLE users RENAME TO users_old`,
-			`CREATE TABLE users (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				phone TEXT UNIQUE NOT NULL,
-				nickname TEXT NOT NULL,
-				avatar TEXT DEFAULT '',
-				address TEXT DEFAULT '',
-				password TEXT NOT NULL,
-				role TEXT DEFAULT 'user',
-				is_active INTEGER DEFAULT 1,
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-			)`,
-			`INSERT INTO users (id, phone, nickname, avatar, address, password, created_at)
-			 SELECT id, phone, nickname, avatar, address, password, created_at FROM users_old`,
-			`DROP TABLE users_old`,
-		}
-		for _, s := range migrationSQLs {
-			if _, err := db.Exec(s); err != nil {
-				return fmt.Errorf("执行迁移失败: %w\nSQL: %s", err, s)
+	for _, m := range migrations {
+		var n int
+		db.QueryRow("SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?", m.table, m.col).Scan(&n)
+		if n == 0 {
+			sql := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s DEFAULT %s", m.table, m.col, m.typ, m.def)
+			if _, err := db.Exec(sql); err != nil {
+				return fmt.Errorf("添加 %s.%s 列失败: %w", m.table, m.col, err)
 			}
 		}
 	}
-
-	// v2.2: 存量 display_name 迁移
-	var colCount int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('llm_models') WHERE name = 'display_name'").Scan(&colCount)
-	if colCount == 0 {
-		if _, err := db.Exec("ALTER TABLE llm_models ADD COLUMN display_name TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 display_name 列失败: %w", err)
-		}
-	}
-	// 填充存量数据
-	var emptyCount int
-	db.QueryRow("SELECT COUNT(*) FROM llm_models WHERE display_name = '' OR display_name IS NULL").Scan(&emptyCount)
-	if emptyCount > 0 {
-		db.Exec("UPDATE llm_models SET display_name = provider || ' ' || name WHERE display_name = '' OR display_name IS NULL")
-	}
-
-	// v2.3: openid 列迁移
-	var openidCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = 'openid'").Scan(&openidCol)
-	if openidCol == 0 {
-		if _, err := db.Exec("ALTER TABLE users ADD COLUMN openid TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 openid 列失败: %w", err)
-		}
-	}
-
-	// v2.4: history.lang 列迁移
-	var langCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'lang'").Scan(&langCol)
-	if langCol == 0 {
-		if _, err := db.Exec("ALTER TABLE history ADD COLUMN lang TEXT NOT NULL DEFAULT 'zh'"); err != nil {
-			return fmt.Errorf("添加 lang 列失败: %w", err)
-		}
-	}
-
-	// v2.5: history.primary_yao / changing_yao 列迁移
-	var yaoCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'primary_yao'").Scan(&yaoCol)
-	if yaoCol == 0 {
-		if _, err := db.Exec("ALTER TABLE history ADD COLUMN primary_yao TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 primary_yao 列失败: %w", err)
-		}
-	}
-	var cYaoCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'changing_yao'").Scan(&cYaoCol)
-	if cYaoCol == 0 {
-		if _, err := db.Exec("ALTER TABLE history ADD COLUMN changing_yao TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 changing_yao 列失败: %w", err)
-		}
-	}
-
-	// v2.6: toss_data / master_yao 列迁移
-	var tossCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'toss_data'").Scan(&tossCol)
-	if tossCol == 0 {
-		if _, err := db.Exec("ALTER TABLE history ADD COLUMN toss_data TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 toss_data 列失败: %w", err)
-		}
-	}
-	var masterCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('history') WHERE name = 'master_yao'").Scan(&masterCol)
-	if masterCol == 0 {
-		if _, err := db.Exec("ALTER TABLE history ADD COLUMN master_yao INTEGER DEFAULT 0"); err != nil {
-			return fmt.Errorf("添加 master_yao 列失败: %w", err)
-		}
-	}
-
-	// v2.7: wx_avatar 列迁移
-	var wxAvatarCol int
-	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = 'wx_avatar'").Scan(&wxAvatarCol)
-	if wxAvatarCol == 0 {
-		if _, err := db.Exec("ALTER TABLE users ADD COLUMN wx_avatar TEXT DEFAULT ''"); err != nil {
-			return fmt.Errorf("添加 wx_avatar 列失败: %w", err)
-		}
-	}
-
 	return nil
 }

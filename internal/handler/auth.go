@@ -119,6 +119,7 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 
 	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, "user")
+	logLogin(h.store, user.ID, r)
 	writeJSON(w, http.StatusCreated, authResp{User: user, Token: token})
 }
 
@@ -146,6 +147,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
+	logLogin(h.store, user.ID, r)
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
@@ -186,6 +188,7 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
+	logLogin(h.store, user.ID, r)
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
@@ -277,6 +280,7 @@ func (h *AuthHandler) smsLogin(w http.ResponseWriter, r *http.Request) {
 	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
+	logLogin(h.store, user.ID, r)
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
@@ -295,6 +299,7 @@ type wechatUserInfo struct {
 	OpenID   string `json:"openid"`
 	Nickname string `json:"nickname"`
 	Avatar   string `json:"headimgurl"`
+	Sex      int    `json:"sex"`
 	ErrCode  int    `json:"errcode"`
 	ErrMsg   string `json:"errmsg"`
 }
@@ -356,11 +361,13 @@ func (h *AuthHandler) wechatCallback(w http.ResponseWriter, r *http.Request) {
 	openid := token.OpenID
 	nickname := "微信用户"
 	wxAvatar := ""
+	wxSex := 0
 	if userInfo != nil {
 		if userInfo.Nickname != "" {
 			nickname = userInfo.Nickname
 		}
 		wxAvatar = userInfo.Avatar
+		wxSex = userInfo.Sex
 	}
 
 	// 查找或创建用户
@@ -374,6 +381,11 @@ func (h *AuthHandler) wechatCallback(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 已存在用户，更新微信昵称和头像
 		_ = h.store.UpdateUserWechatInfo(user.ID, nickname, wxAvatar)
+	}
+
+	// 保存性别
+	if wxSex > 0 {
+		_ = h.store.UpdateUserGender(user.ID, wxSex)
 	}
 
 	jwtToken, _ := h.generateToken(user.ID, user.Role)

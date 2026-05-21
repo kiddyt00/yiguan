@@ -119,12 +119,18 @@ func (s *Store) UpdateUser(id int64, nickname, address string) error {
 	return err
 }
 
-// UpdateUserWechatInfo 更新微信用户的昵称和头像
+// UpdateUserWechatInfo 更新微信用户的昵称、头像和性别
 func (s *Store) UpdateUserWechatInfo(id int64, nickname, wxAvatar string) error {
 	_, err := s.db.Exec(
 		"UPDATE users SET nickname = ?, wx_avatar = ? WHERE id = ?",
 		nickname, wxAvatar, id,
 	)
+	return err
+}
+
+// UpdateUserGender 更新微信用户性别（1=男, 2=女）
+func (s *Store) UpdateUserGender(id int64, sex int) error {
+	_, err := s.db.Exec("UPDATE users SET wx_sex = ? WHERE id = ?", sex, id)
 	return err
 }
 
