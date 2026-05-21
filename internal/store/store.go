@@ -20,6 +20,7 @@ type User struct {
 	OpenID    string    `json:"openid,omitempty"`
 	Nickname  string    `json:"nickname"`
 	Avatar    string    `json:"avatar"`
+	WxAvatar  string    `json:"-"`       // 微信头像 URL，不直接暴露，后端计算回退
 	Address   string    `json:"address,omitempty"`
 	Password  string    `json:"-"`
 	Role      string    `json:"role"`
@@ -116,7 +117,8 @@ type AdStat struct {
 // UserStore 用户与配额操作
 type UserStore interface {
 	CreateUser(phone, password, nickname string) (*User, error)
-	CreateUserByOpenID(openid, nickname string) (*User, error)
+	CreateUserByOpenID(openid, nickname, wxAvatar string) (*User, error)
+	UpdateUserWechatInfo(id int64, nickname, wxAvatar string) error
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByOpenID(openid string) (*User, error)
 	GetUserByID(id int64) (*User, error)
