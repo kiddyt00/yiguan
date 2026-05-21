@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kiddyt00/yiguan/internal/store"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -27,4 +28,11 @@ func getLang(r *http.Request) string {
 		return "en"
 	}
 	return "zh"
+}
+
+// fillUserAvatar 计算有效头像：用户未上传自定义头像时回退到微信头像
+func fillUserAvatar(u *store.User) {
+	if u.Avatar == "" && u.WxAvatar != "" {
+		u.Avatar = u.WxAvatar
+	}
 }

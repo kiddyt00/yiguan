@@ -238,5 +238,14 @@ func migrate(db *sql.DB) error {
 		}
 	}
 
+	// v2.7: wx_avatar 列迁移
+	var wxAvatarCol int
+	db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = 'wx_avatar'").Scan(&wxAvatarCol)
+	if wxAvatarCol == 0 {
+		if _, err := db.Exec("ALTER TABLE users ADD COLUMN wx_avatar TEXT DEFAULT ''"); err != nil {
+			return fmt.Errorf("添加 wx_avatar 列失败: %w", err)
+		}
+	}
+
 	return nil
 }

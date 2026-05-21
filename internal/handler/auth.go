@@ -17,18 +17,18 @@ import (
 
 // AuthHandler 认证相关处理器
 type AuthHandler struct {
-	mux         *http.ServeMux
-	store       store.Store
-	secret      string
-	wxAppID     string
-	wxSecret    string
-	wxOpenAppID string
+	mux          *http.ServeMux
+	store        store.Store
+	secret       string
+	wxAppID      string
+	wxSecret     string
+	wxOpenAppID  string
 	wxOpenSecret string
 }
 
 // 微信扫码登录 ticket → token 内存存储
 var (
-	wxTickets   = sync.Map{} // ticket -> "pending" | "token:xxx"
+	wxTickets = sync.Map{} // ticket -> "pending" | "token:xxx"
 )
 
 // smsCode 内存存储短信验证码
@@ -117,6 +117,7 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 		h.store.AddQuota(user.ID, "free")
 	}
 
+	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, "user")
 	writeJSON(w, http.StatusCreated, authResp{User: user, Token: token})
 }
@@ -142,6 +143,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
@@ -150,13 +152,6 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 // wechatLogin 微信小程序登录
 type wechatLoginReq struct {
 	Code string `json:"code"`
-}
-
-type wechatResp struct {
-	OpenID     string `json:"openid"`
-	SessionKey string `json:"session_key"`
-	ErrCode    int    `json:"errcode"`
-	ErrMsg     string `json:"errmsg"`
 }
 
 func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
@@ -175,8 +170,8 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.store.GetUserByOpenID(openid)
 	if err != nil {
-		// 新用户，自动注册
-		user, err = h.store.CreateUserByOpenID(openid, "微信用户")
+		// 新用户，自动注册（小程序无法直接拿到昵称头像，前端登录后会补充）
+		user, err = h.store.CreateUserByOpenID(openid, "微信用户", "")
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建用户失败"})
 			return
@@ -188,12 +183,11 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
-
-
 
 // smsSend 发送短信验证码
 func (h *AuthHandler) smsSend(w http.ResponseWriter, r *http.Request) {
@@ -280,12 +274,30 @@ func (h *AuthHandler) smsLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fillUserAvatar(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: token})
 }
 
 // ========== 微信扫码登录（网站用） ==========
+
+// wechatOpenToken 微信开放平台 access_token 响应
+type wechatOpenToken struct {
+	OpenID      string `json:"openid"`
+	AccessToken string `json:"access_token"`
+	ErrCode     int    `json:"errcode"`
+	ErrMsg      string `json:"errmsg"`
+}
+
+// wechatUserInfo 微信用户信息
+type wechatUserInfo struct {
+	OpenID   string `json:"openid"`
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"headimgurl"`
+	ErrCode  int    `json:"errcode"`
+	ErrMsg   string `json:"errmsg"`
+}
 
 // wechatQRCode 生成扫码登录 URL
 func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
@@ -326,26 +338,46 @@ func (h *AuthHandler) wechatCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 用 code 换 openid
-	openid, err := h.exchangeOpenCode(code)
+	// 用 code 换 access_token + openid
+	token, err := h.exchangeOpenCode(code)
 	if err != nil {
-		log.Printf("微信开放平台 code 换 openid 失败: %v", err)
+		log.Printf("微信开放平台 code 换 token 失败: %v", err)
 		http.Error(w, "微信登录失败", http.StatusBadGateway)
 		return
+	}
+
+	// 获取微信用户信息（昵称、头像）
+	userInfo, err := h.fetchWechatUserInfo(token)
+	if err != nil {
+		log.Printf("获取微信用户信息失败: %v", err)
+		// 不中断流程，继续使用默认信息
+	}
+
+	openid := token.OpenID
+	nickname := "微信用户"
+	wxAvatar := ""
+	if userInfo != nil {
+		if userInfo.Nickname != "" {
+			nickname = userInfo.Nickname
+		}
+		wxAvatar = userInfo.Avatar
 	}
 
 	// 查找或创建用户
 	user, err := h.store.GetUserByOpenID(openid)
 	if err != nil {
-		user, err = h.store.CreateUserByOpenID(openid, "微信用户")
+		user, err = h.store.CreateUserByOpenID(openid, nickname, wxAvatar)
 		if err != nil {
 			http.Error(w, "创建用户失败", http.StatusInternalServerError)
 			return
 		}
+	} else {
+		// 已存在用户，更新微信昵称和头像
+		_ = h.store.UpdateUserWechatInfo(user.ID, nickname, wxAvatar)
 	}
 
-	token, _ := h.generateToken(user.ID, user.Role)
-	wxTickets.Store(state, "token:"+token)
+	jwtToken, _ := h.generateToken(user.ID, user.Role)
+	wxTickets.Store(state, "token:"+jwtToken)
 
 	// 返回一个简单页面告知扫码成功
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -376,33 +408,53 @@ func (h *AuthHandler) wechatCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// "token:xxx"
-	token := strings.TrimPrefix(val, "token:")
+	jwtToken := strings.TrimPrefix(val, "token:")
 	wxTickets.Delete(ticket)
-	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "token": token})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "token": jwtToken})
 }
 
-// exchangeOpenCode 微信开放平台 code 换 openid
-func (h *AuthHandler) exchangeOpenCode(code string) (string, error) {
+// exchangeOpenCode 微信开放平台 code 换 access_token + openid
+func (h *AuthHandler) exchangeOpenCode(code string) (*wechatOpenToken, error) {
 	url := fmt.Sprintf(
 		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code",
 		h.wxOpenAppID, h.wxOpenSecret, code,
 	)
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var result struct {
-		OpenID  string `json:"openid"`
-		ErrCode int    `json:"errcode"`
-		ErrMsg  string `json:"errmsg"`
+	var result wechatOpenToken
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析微信响应失败: %w", err)
 	}
-	json.NewDecoder(resp.Body).Decode(&result)
 	if result.ErrCode != 0 {
-		return "", fmt.Errorf("微信错误 %d: %s", result.ErrCode, result.ErrMsg)
+		return nil, fmt.Errorf("微信错误 %d: %s", result.ErrCode, result.ErrMsg)
 	}
-	return result.OpenID, nil
+	return &result, nil
+}
+
+// fetchWechatUserInfo 用 access_token 获取微信用户信息（昵称、头像）
+func (h *AuthHandler) fetchWechatUserInfo(token *wechatOpenToken) (*wechatUserInfo, error) {
+	url := fmt.Sprintf(
+		"https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s",
+		token.AccessToken, token.OpenID,
+	)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var info wechatUserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		return nil, fmt.Errorf("解析微信用户信息失败: %w", err)
+	}
+	if info.ErrCode != 0 {
+		return nil, fmt.Errorf("微信用户信息错误 %d: %s", info.ErrCode, info.ErrMsg)
+	}
+	return &info, nil
 }
 
 func (h *AuthHandler) generateToken(userID int64, role string) (string, error) {

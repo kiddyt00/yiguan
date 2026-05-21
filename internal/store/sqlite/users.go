@@ -32,11 +32,11 @@ func (s *Store) CreateUser(phone, password, nickname string) (*store.User, error
 }
 
 // CreateUserByOpenID 微信用户创建（无密码，phone 用 wx: 前缀占位）
-func (s *Store) CreateUserByOpenID(openid, nickname string) (*store.User, error) {
+func (s *Store) CreateUserByOpenID(openid, nickname, wxAvatar string) (*store.User, error) {
 	phone := "wx:" + openid[:min(10, len(openid))]
 	result, err := s.db.Exec(
-		"INSERT INTO users (phone, openid, nickname, password) VALUES (?, ?, ?, ?)",
-		phone, openid, nickname, "",
+		"INSERT INTO users (phone, openid, nickname, wx_avatar, password) VALUES (?, ?, ?, ?, ?)",
+		phone, openid, nickname, wxAvatar, "",
 	)
 	if err != nil {
 		return nil, err
@@ -60,9 +60,9 @@ func (s *Store) CreateUserByOpenID(openid, nickname string) (*store.User, error)
 func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, address, password, role, is_active, created_at FROM users WHERE phone = ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE phone = ?",
 		phone,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -76,9 +76,9 @@ func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, address, password, role, is_active, created_at FROM users WHERE openid = ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ?",
 		openid,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -92,9 +92,9 @@ func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 func (s *Store) GetUserByID(id int64) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, address, password, role, is_active, created_at FROM users WHERE id = ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -115,6 +115,15 @@ func (s *Store) UpdateUser(id int64, nickname, address string) error {
 	_, err := s.db.Exec(
 		"UPDATE users SET nickname = ?, address = ? WHERE id = ?",
 		nickname, address, id,
+	)
+	return err
+}
+
+// UpdateUserWechatInfo 更新微信用户的昵称和头像
+func (s *Store) UpdateUserWechatInfo(id int64, nickname, wxAvatar string) error {
+	_, err := s.db.Exec(
+		"UPDATE users SET nickname = ?, wx_avatar = ? WHERE id = ?",
+		nickname, wxAvatar, id,
 	)
 	return err
 }

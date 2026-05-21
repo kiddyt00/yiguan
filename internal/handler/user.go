@@ -41,6 +41,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "用户不存在"})
 		return
 	}
+	fillUserAvatar(user)
 	user.Password = ""
 	remaining, _ := h.store.GetRemainingQuota(userID)
 	writeJSON(w, http.StatusOK, map[string]interface{}{
@@ -61,6 +62,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user, _ := h.store.GetUserByID(userID)
+	fillUserAvatar(user)
 	user.Password = ""
 	remaining, _ := h.store.GetRemainingQuota(userID)
 	writeJSON(w, http.StatusOK, map[string]interface{}{

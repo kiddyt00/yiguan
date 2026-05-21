@@ -31,4 +31,7 @@ web/admin/dist/
 /server
 # Database
 *.db
+*.db-wal
+*.db-shm
 .worktrees/
+logs/
