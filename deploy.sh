@@ -23,4 +23,4 @@ echo "🔨 构建并启动容器..."
 docker compose up -d --build
 
 echo ""
-echo "✅ 部署完成! http://49.235.108.61:8080"
+echo "✅ 部署完成! http://124.223.16.159:80"
