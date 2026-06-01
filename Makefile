@@ -75,5 +75,5 @@ deploy:
 
 deploy-remote:
 	git push origin main
-	ssh root@124.223.16.159 'cd /root/yiguan && git pull && bash deploy.sh'
-	@echo "✅ 已上线 http://124.223.16.159:80"
+	ssh root@124.223.16.159 'cd /root/yiguan && git pull && cp deploy/host-nginx.conf /etc/nginx/conf.d/gjz.shadouyou.cloud.conf && nginx -t && systemctl reload nginx && bash deploy.sh'
+	@echo "✅ 已上线 https://gjz.shadouyou.cloud"
