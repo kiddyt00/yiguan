@@ -11,8 +11,10 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@tailwindcss/vite": "^4.2.4",
+    "echarts": "^6.1.0",
     "element-plus": "^2.9.0",
     "vue": "^3.5.32",
+    "vue-echarts": "^8.0.1",
     "vue-router": "^5.0.6"
   },
   "devDependencies": {

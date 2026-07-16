@@ -140,6 +140,8 @@ type UserStore interface {
 	GetTodayDivineCount() (int64, error)
 	GetActiveUserCount() (int64, error)
 	GetTotalDivineCount() (int64, error)
+	SearchUsers(keyword string, limit, offset int) ([]User, error)
+	SearchUsersCount(keyword string) (int64, error)
 }
 
 // HistoryStore 历史记录与卦象管理
@@ -158,6 +160,8 @@ type HistoryStore interface {
 	SearchHistoryCount(userID int64, keyword string) (int64, error)
 	// GetLatestHistory 获取用户最新一条历史记录
 	GetLatestHistory(userID int64) (*History, error)
+	// GetDailyDivineTrend 近7天每日起卦趋势
+	GetDailyDivineTrend() (map[string]int64, error)
 }
 
 // TranslationStore 翻译缓存

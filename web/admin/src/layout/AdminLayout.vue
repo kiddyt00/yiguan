@@ -29,6 +29,10 @@
           <el-icon><List /></el-icon>
           <span>卦象任务</span>
         </el-menu-item>
+        <el-menu-item index="/analytics">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>数据分析</span>
+        </el-menu-item>
         <el-menu-item index="/models">
           <el-icon><Cpu /></el-icon>
           <span>模型管理</span>
@@ -86,6 +90,7 @@ const titles = {
   '/': '仪表盘',
   '/users': '用户管理',
   '/hexagrams': '卦象任务',
+  '/analytics': '数据分析',
   '/models': '模型管理',
   '/ads': '广告管理',
 }

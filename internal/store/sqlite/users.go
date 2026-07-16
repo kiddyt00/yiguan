@@ -134,6 +134,35 @@ func (s *Store) UpdateUserGender(id int64, sex int) error {
 	return err
 }
 
+// SearchUsers 按昵称或手机号搜索用户
+func (s *Store) SearchUsers(keyword string, limit, offset int) ([]store.User, error) {
+	like := "%" + keyword + "%"
+	rows, err := s.db.Query(
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE nickname LIKE ? OR phone LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?",
+		like, like, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []store.User
+	for rows.Next() {
+		var u store.User
+		rows.Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+		u.Password = ""
+		list = append(list, u)
+	}
+	return list, rows.Err()
+}
+
+// SearchUsersCount 搜索结果总数
+func (s *Store) SearchUsersCount(keyword string) (int64, error) {
+	var count int64
+	like := "%" + keyword + "%"
+	err := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE nickname LIKE ? OR phone LIKE ?", like, like).Scan(&count)
+	return count, err
+}
+
 func min(a, b int) int {
 	if a < b { return a }
 	return b

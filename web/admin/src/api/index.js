@@ -27,8 +27,9 @@ export const adminApi = {
   }).then(r => r.json()),
 
   dashboard: () => api('/admin/dashboard'),
+  dashboardData: () => api('/admin/dashboard'),
 
-  users: (params) => api(`/admin/users?limit=${params.limit || 50}&offset=${params.offset || 0}`),
+  users: (params) => api(`/admin/users?limit=${params.limit || 50}&offset=${params.offset || 0}${params.keyword ? '&keyword=' + encodeURIComponent(params.keyword) : ''}`),
   toggleUser: (id) => api(`/admin/users/${id}/toggle`, { method: 'POST' }),
   adjustQuota: (id, delta) => api(`/admin/users/${id}/quota`, { method: 'POST', body: JSON.stringify({ delta }) }),
   userHistory: (id, limit = 20, offset = 0) => api(`/admin/users/${id}/history?limit=${limit}&offset=${offset}`),
@@ -45,6 +46,8 @@ export const adminApi = {
   toggleModel: (id, enabled) => api(`/admin/models/${id}/toggle?enabled=${enabled}`, { method: 'POST' }),
   fetchModels: (endpoint, api_key) => api('/admin/models/fetch', { method: 'POST', body: JSON.stringify({ endpoint, api_key }) }),
   testConnection: (endpoint, api_key, model) => api('/admin/models/test', { method: 'POST', body: JSON.stringify({ endpoint, api_key, model }) }),
+
+  analytics: () => api('/admin/analytics'),
 
   ads: () => api('/admin/ads'),
   createAd: (data) => api('/admin/ads', { method: 'POST', body: JSON.stringify(data) }),

@@ -11,7 +11,7 @@
     <!-- 搜索筛选 -->
     <el-card shadow="never" class="mb-4">
       <el-row :gutter="16">
-        <el-col :span="8"><el-input v-model="search" placeholder="搜索昵称或手机号" clearable @input="loadUsers" prefix-icon="Search" /></el-col>
+        <el-col :span="8"><el-input v-model="search" placeholder="搜索昵称或手机号" clearable @input="onSearchInput" prefix-icon="Search" /></el-col>
         <el-col :span="4"><el-select v-model="typeFilter" placeholder="用户类型" clearable @change="loadUsers" style="width:100%"><el-option label="全部" value="" /><el-option label="微信" value="wechat" /><el-option label="手机" value="phone" /></el-select></el-col>
         <el-col :span="4"><el-select v-model="statusFilter" placeholder="状态" clearable @change="loadUsers" style="width:100%"><el-option label="全部" value="" /><el-option label="启用" value="active" /><el-option label="禁用" value="disabled" /></el-select></el-col>
         <el-col :span="8" class="text-right"><el-button type="primary" @click="loadUsers">刷新</el-button></el-col>
@@ -82,6 +82,8 @@ import { ElMessage } from 'element-plus'
 
 const users=ref([]),total=ref(0),page=ref(1),pageSize=ref(20),loading=ref(false)
 const search=ref(''),typeFilter=ref(''),statusFilter=ref(''),currentUser=ref(null)
+const debounceTimer=ref(null)
+function onSearchInput(){clearTimeout(debounceTimer.value);debounceTimer.value=setTimeout(loadUsers,300)}
 const quotaVisible=ref(false),quotaDelta=ref(0),historyVisible=ref(false),userHistory=ref([]),historyLoading=ref(false)
 
 const stats=computed(()=>{const u=users.value||[];return{total:total.value,wechat:u.filter(x=>x.openid).length,phone:u.filter(x=>!x.openid).length,active:u.filter(x=>x.is_active).length}})
@@ -90,13 +92,12 @@ onMounted(loadUsers)
 async function loadUsers(){
   loading.value=true
   try{
-    const d=await adminApi.users({limit:pageSize.value,offset:(page.value-1)*pageSize.value})
+    const d=await adminApi.users({limit:pageSize.value,offset:(page.value-1)*pageSize.value,keyword:search.value||undefined})
     let items=d.items||[];total.value=d.total||items.length
     if(typeFilter.value==='wechat')items=items.filter(u=>u.openid)
     if(typeFilter.value==='phone')items=items.filter(u=>!u.openid)
     if(statusFilter.value==='active')items=items.filter(u=>u.is_active)
     if(statusFilter.value==='disabled')items=items.filter(u=>!u.is_active)
-    if(search.value){const q=search.value.toLowerCase();items=items.filter(u=>(u.nickname||'').toLowerCase().includes(q)||(u.phone||'').includes(q))}
     users.value=items
   }catch(e){ElMessage.error('加载失败: '+e.message)}finally{loading.value=false}
 }

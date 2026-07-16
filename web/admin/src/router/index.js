@@ -17,6 +17,7 @@ const router = createRouter({
         { path: '', component: Dashboard },
         { path: 'users', component: Users },
         { path: 'hexagrams', component: () => import('../views/Hexagrams.vue') },
+        { path: 'analytics', component: () => import('../views/Analytics.vue') },
         { path: 'models', component: () => import('../views/Models.vue') },
         { path: 'ads', component: () => import('../views/Ads.vue') },
       ],

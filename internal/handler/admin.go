@@ -27,14 +27,19 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	activeUsers, _ := h.store.GetActiveUserCount()
 	adWatchesToday, _ := h.store.GetTodayAdWatchCount()
 	totalAdWatches, _ := h.store.GetTotalAdWatchCount()
+	dailyDivineTrend, _ := h.store.GetDailyDivineTrend()
+	if dailyDivineTrend == nil {
+		dailyDivineTrend = map[string]int64{}
+	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"total_users":       totalUsers,
-		"active_users":      activeUsers,
-		"today_divines":     todayDivines,
-		"total_divines":     totalDivines,
-		"ad_watches_today":  adWatchesToday,
-		"total_ads_watched": totalAdWatches,
+		"total_users":        totalUsers,
+		"active_users":       activeUsers,
+		"today_divines":      todayDivines,
+		"total_divines":      totalDivines,
+		"ad_watches_today":   adWatchesToday,
+		"total_ads_watched":  totalAdWatches,
+		"daily_divine_trend": dailyDivineTrend,
 	})
 }
 
@@ -45,8 +50,15 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		limit = 50
 	}
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-	users, _ := h.store.ListUsers(limit, offset)
-	total, _ := h.store.GetTotalUsers()
+	var users []store.User
+	var total int64
+	if keyword != "" {
+		users, _ = h.store.SearchUsers(keyword, limit, offset)
+		total, _ = h.store.SearchUsersCount(keyword)
+	} else {
+		users, _ = h.store.ListUsers(limit, offset)
+		total, _ = h.store.GetTotalUsers()
+	}
 	if users == nil {
 		users = []store.User{}
 	}
