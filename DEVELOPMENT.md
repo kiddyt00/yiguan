@@ -12,7 +12,7 @@ git commit -m "type: 描述"
 git push origin main
 
 # 3. 远程部署（自动拉取 + Docker 构建）
-ssh root@124.223.16.159
+ssh root@<server-ip>
 cd /root/yiguan
 git pull
 docker compose up -d --build
@@ -22,8 +22,8 @@ docker compose up -d --build
 
 | 项目 | 值 |
 |---|---|
-| **目标服务器** | `124.223.16.159` |
-| **SSH** | `root / Jason1987!@#` |
+| **目标服务器** | 腾讯云 |
+| **SSH** | 凭据在 1Password |
 | **代码目录** | `/root/yiguan` |
 | **生产域名** | `https://zgjz.insightj.cn` |
 | **管理后台** | `https://zgjz.insightj.cn/admin` |
@@ -48,12 +48,12 @@ JWT_SECRET=xxx
 LLM_API_KEY=xxx
 
 # 管理员
-ADMIN_PHONE=13800000000
-ADMIN_PASSWORD=admin123
+ADMIN_PHONE=<your-phone>
+ADMIN_PASSWORD=<your-password>
 
 # 微信开放平台（网站扫码登录）
-WX_OPEN_APPID=wx4f153ab5be9e4723
-WX_OPEN_SECRET=406484c5cd361f7a2c74c8b97d1e3ec2
+WX_OPEN_APPID=<your-appid>
+WX_OPEN_SECRET=<your-secret>
 
 # 微信小程序（暂未配置）
 WX_APPID=

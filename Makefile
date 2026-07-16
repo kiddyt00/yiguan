@@ -75,5 +75,5 @@ deploy:
 
 deploy-remote:
 	git push origin main
-	ssh root@124.223.16.159 'cd /root/yiguan && git pull && docker compose up -d --build'
+	ssh root@<server-ip> 'cd /root/yiguan && git pull && docker compose up -d --build'
 	@echo "✅ 已上线 https://zgjz.insightj.cn"

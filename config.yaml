@@ -1,17 +1,17 @@
 server:
   port: 8080
-jwt_secret: "yiguan-dev-secret-change-in-production"
+jwt_secret: "<your-secret>"
 db_path: "yiguan.db"
 
 admin:
-  phone: "13800000000"
-  password: "admin123"
+  phone: "<your-phone>"
+  password: "<your-password>"
 
 llm:
   default: "qwen"
   providers:
     qwen:
-      api_key: "sk-b8bd0f8077764c59b948c503cf1ee5f7"
+      api_key: "sk-xxx"
       endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
       model: "qwen-plus"
     deepseek:

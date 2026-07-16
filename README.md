@@ -66,7 +66,7 @@ make test-short    # 跳过慢速测试
 
 ```bash
 # 配置环境变量（复制 .env.example 或直接 export）
-export ADMIN_PHONE=13800000000
+export ADMIN_PHONE=<your-phone>
 export JWT_SECRET=your-secret
 export LLM_API_KEY=sk-xxx
 export WX_APPID=wx9e87b7216be83619
