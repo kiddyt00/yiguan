@@ -71,9 +71,9 @@ deploy:
 	$(DOCKER) up -d --build
 	@echo "🚀 部署完成! http://localhost:$${HTTP_PORT:-80}"
 
-# ========== 远程部署（gjz-new）==========
+# ========== 远程部署 ==========
 
 deploy-remote:
 	git push origin main
-	ssh root@124.223.16.159 'cd /root/yiguan && git pull && cp deploy/host-nginx.conf /etc/nginx/conf.d/gjz.shadouyou.cloud.conf && nginx -t && systemctl reload nginx && bash deploy.sh'
-	@echo "✅ 已上线 https://gjz.shadouyou.cloud"
+	ssh root@124.223.16.159 'cd /root/yiguan && git pull && docker compose up -d --build'
+	@echo "✅ 已上线 https://zgjz.insightj.cn"

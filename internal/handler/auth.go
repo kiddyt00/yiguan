@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 	"sync"
@@ -27,11 +26,6 @@ type AuthHandler struct {
 	wxOpenSecret string
 }
 
-// 微信扫码登录 ticket → token 内存存储
-var (
-	wxTickets = sync.Map{} // ticket -> "pending" | "token:xxx"
-)
-
 // smsCode 内存存储短信验证码
 var (
 	smsCodes   = sync.Map{} // phone -> code
@@ -51,9 +45,6 @@ func NewAuthHandler(st store.Store, jwtSecret string) *AuthHandler {
 	h.mux.HandleFunc("POST /api/auth/sms-send", h.smsSend)
 	h.mux.HandleFunc("POST /api/auth/sms-login", h.smsLogin)
 	h.mux.HandleFunc("GET /api/auth/wechat-appid", h.wechatAppID)
-	h.mux.HandleFunc("GET /api/auth/wechat-qrcode", h.wechatQRCode)
-	h.mux.HandleFunc("GET /api/auth/wechat-callback", h.wechatCallback)
-	h.mux.HandleFunc("GET /api/auth/wechat-check", h.wechatCheck)
 	h.mux.HandleFunc("POST /api/auth/wechat-code", h.wechatCode)
 	return h
 }
@@ -366,127 +357,6 @@ func (h *AuthHandler) wechatCode(w http.ResponseWriter, r *http.Request) {
 	fillUserAvatar(user)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: jwtToken})
-}
-
-// wechatQRCode 生成扫码登录 URL
-func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
-	if h.wxOpenAppID == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "微信开放平台未配置"})
-		return
-	}
-
-	ticket := fmt.Sprintf("wx_%d_%d", time.Now().UnixNano(), rand.Intn(10000))
-	redirectURI := url.QueryEscape("https://zgjz.insightj.cn/api/auth/wechat-callback")
-	qrURL := fmt.Sprintf(
-		"https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s#wechat_redirect",
-		h.wxOpenAppID, redirectURI, ticket,
-	)
-
-	wxTickets.Store(ticket, "pending")
-
-	// 5 分钟后过期
-	time.AfterFunc(5*time.Minute, func() {
-		if v, ok := wxTickets.Load(ticket); ok && v.(string) == "pending" {
-			wxTickets.Delete(ticket)
-		}
-	})
-
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"ticket":     ticket,
-		"qrcode_url": qrURL,
-	})
-}
-
-// wechatCallback 微信 OAuth 回调
-func (h *AuthHandler) wechatCallback(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	state := r.URL.Query().Get("state") // ticket
-
-	if code == "" || state == "" {
-		http.Error(w, "参数错误", http.StatusBadRequest)
-		return
-	}
-
-	// 用 code 换 access_token + openid
-	token, err := h.exchangeOpenCode(code)
-	if err != nil {
-		log.Printf("微信开放平台 code 换 token 失败: %v", err)
-		http.Error(w, "微信登录失败", http.StatusBadGateway)
-		return
-	}
-
-	// 获取微信用户信息（昵称、头像）
-	userInfo, err := h.fetchWechatUserInfo(token)
-	if err != nil {
-		log.Printf("获取微信用户信息失败: %v", err)
-		// 不中断流程，继续使用默认信息
-	}
-
-	openid := token.OpenID
-	nickname := "微信用户"
-	wxAvatar := ""
-	wxSex := 0
-	if userInfo != nil {
-		if userInfo.Nickname != "" {
-			nickname = userInfo.Nickname
-		}
-		wxAvatar = userInfo.Avatar
-		wxSex = userInfo.Sex
-	}
-
-	// 查找或创建用户
-	user, err := h.store.GetUserByOpenID(openid)
-	if err != nil {
-		user, err = h.store.CreateUserByOpenID(openid, nickname, wxAvatar)
-		if err != nil {
-			http.Error(w, "创建用户失败", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		// 已存在用户，更新微信昵称和头像
-		_ = h.store.UpdateUserWechatInfo(user.ID, nickname, wxAvatar)
-	}
-
-	// 保存性别
-	if wxSex > 0 {
-		_ = h.store.UpdateUserGender(user.ID, wxSex)
-	}
-
-	jwtToken, _ := h.generateToken(user.ID, user.Role)
-	wxTickets.Store(state, "token:"+jwtToken)
-
-	// 返回一个简单页面告知扫码成功
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>登录成功</title></head>
-<body style="text-align:center;padding-top:80px;font-family:sans-serif;">
-<h2>✅ 扫码成功</h2><p>正在返回...</p><script>setTimeout(function(){window.close()},1500)</script>
-</body></html>`))
-}
-
-// wechatCheck 轮询扫码状态
-func (h *AuthHandler) wechatCheck(w http.ResponseWriter, r *http.Request) {
-	ticket := r.URL.Query().Get("ticket")
-	if ticket == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 ticket"})
-		return
-	}
-
-	v, ok := wxTickets.Load(ticket)
-	if !ok {
-		writeJSON(w, http.StatusOK, map[string]interface{}{"status": "expired"})
-		return
-	}
-
-	val := v.(string)
-	if val == "pending" {
-		writeJSON(w, http.StatusOK, map[string]interface{}{"status": "pending"})
-		return
-	}
-
-	// "token:xxx"
-	jwtToken := strings.TrimPrefix(val, "token:")
-	wxTickets.Delete(ticket)
-	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "token": jwtToken})
 }
 
 // exchangeOpenCode 微信开放平台 code 换 access_token + openid
