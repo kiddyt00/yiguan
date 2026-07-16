@@ -287,7 +287,6 @@ async function openQR() {
       redirect_uri: encodeURIComponent('https://zgjz.insightj.cn/wx-callback'),
       state: state,
       stylelite: '1',
-      fast_login: '0',
     })
 
   } catch (e) {
