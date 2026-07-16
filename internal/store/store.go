@@ -112,6 +112,28 @@ type AdStat struct {
 	RewardTotal int64  `json:"reward_total"`
 }
 
+// OrderProduct 商品（用于下单，不持久化）
+type OrderProduct struct {
+	ProductID string `json:"product_id"`
+	Amount    int64  `json:"amount"`    // 金额（分）
+	Quota     int    `json:"quota"`     // 赠送次数
+}
+
+// Order 订单
+type Order struct {
+	ID         int64      `json:"id"`
+	UserID     int64      `json:"user_id"`
+	Amount     int64      `json:"amount"`
+	Quota      int        `json:"quota"`
+	ProductID  string     `json:"product_id"`
+	Status     string     `json:"status"`
+	OutTradeNo string     `json:"out_trade_no"`
+	PrepayID   string     `json:"prepay_id"`
+	CodeURL    string     `json:"code_url"`
+	PaidAt     *time.Time `json:"paid_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+}
+
 // ========== 子接口 ==========
 
 // UserStore 用户与配额操作
@@ -201,6 +223,16 @@ type AdStore interface {
 	GetTotalAdWatchCount() (int64, error)
 }
 
+// OrderStore 订单操作
+type OrderStore interface {
+	CreateOrder(userID int64, product *OrderProduct, outTradeNo, codeURL string) (*Order, error)
+	GetOrder(id int64) (*Order, error)
+	GetOrderByOutTradeNo(outTradeNo string) (*Order, error)
+	ListOrders(userID int64, limit, offset int) ([]Order, error)
+	MarkOrderPaid(id int64, prepayID string) error
+	UpdateCodeURL(id int64, codeURL string) error
+}
+
 // Store 组合接口（向后兼容）
 type Store interface {
 	UserStore
@@ -209,5 +241,6 @@ type Store interface {
 	ModelStore
 	AdStore
 	AnalyticsStore
+	OrderStore
 	Close() error
 }

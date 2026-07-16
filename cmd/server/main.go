@@ -213,6 +213,19 @@ func main() {
 	mux.Handle("GET /api/admin/analytics", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetAnalytics))))
 	mux.Handle("GET /api/admin/analytics/logins", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetRecentLogins))))
 
+	// 微信支付
+	mchID := os.Getenv("WX_PAY_MCHID")
+	payKey := os.Getenv("WX_PAY_API_KEY")
+	payNotifyURL := os.Getenv("WX_PAY_NOTIFY_URL")
+	if payNotifyURL == "" {
+		payNotifyURL = "https://zgjz.insightj.cn/api/orders/notify"
+	}
+	orderHandler := handler.NewOrderHandler(st, mchID, payKey, "", payNotifyURL)
+	mux.Handle("POST /api/orders/create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateOrder))))
+	mux.Handle("GET /api/orders/{id}", authMW(corsWrap(http.HandlerFunc(orderHandler.GetOrder))))
+	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
+	mux.Handle("POST /api/orders/notify", corsWrap(http.HandlerFunc(orderHandler.WechatNotify)))
+
 	// 中间件链：限流 → 日志 → 路由
 	rateLimitMW := middleware.RateLimit(loggingMiddleware(mux))
 
