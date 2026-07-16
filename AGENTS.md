@@ -24,7 +24,7 @@ docker compose logs -f         # Follow logs
 
 # Prod deploy
 git push origin main
-ssh root@***REMOVED***
+ssh root@<server-ip>
 cd /root/yiguan && git pull && docker compose up -d --build
 ```
 
@@ -120,11 +120,11 @@ Uses wxLogin.js official SDK (NOT the deprecated polling approach):
 |---|---|
 | Server | `***REMOVED***` (Tencent Cloud, Ubuntu 24.04) |
 | Domain | `https://zgjz.insightj.cn` |
-| Admin | `https://zgjz.insightj.cn/admin` (phone: `13800000000` / password: `admin123`) |
-| SSH | `root@***REMOVED***` password: `Jason1987!@#` |
+| Admin | `https://zgjz.insightj.cn/admin` |
+| SSH | `root@<server-ip>` (credentials in 1Password / `.env`) |
 | Deploy dir | `/root/yiguan` |
 | DB | `/root/yiguan/data/yiguan.db` (SQLite, ~864KB) |
-| WeChat Open | AppID: `wx4f153ab5be9e4723`, Secret in `.env` |
+| WeChat Open | AppID in `.env` |
 | SSL | Let's Encrypt via acme.sh, auto-renewed |
 
 ## Coding Conventions (observed)

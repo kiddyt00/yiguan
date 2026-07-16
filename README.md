@@ -66,7 +66,7 @@ make test-short    # 跳过慢速测试
 
 ```bash
 # 配置环境变量（复制 .env.example 或直接 export）
-export ADMIN_PHONE=13800000000
+export ADMIN_PHONE=<your-phone>
 export ***REMOVED***
 export ***REMOVED***
 export WX_***REMOVED***

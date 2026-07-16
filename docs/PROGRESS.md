@@ -25,9 +25,9 @@ AI 驱动的周易占筮平台。Go 后端 + Vue 3 SPA 前端，Docker 部署。
 
 | 项目 | 值 |
 |---|---|
-| **服务器** | 腾讯云 `***REMOVED***`（主机名: VM-0-13-ubuntu） |
+| **服务器** | 腾讯云（主机名: VM-0-13-ubuntu） |
 | **OS** | Ubuntu 24.04.4 LTS |
-| **SSH** | `root / Jason1987!@#` |
+| **SSH** | 凭据在 1Password / `.env` |
 | **生产域名** | `https://zgjz.insightj.cn` |
 | **管理后台** | `https://zgjz.insightj.cn/admin` |
 | **旧域名** | `gjz.shadouyou.cloud` → 已不再使用（DNS 仍指向老服务器 49.235.108.61） |
@@ -47,12 +47,13 @@ AI 驱动的周易占筮平台。Go 后端 + Vue 3 SPA 前端，Docker 部署。
 通过 `/root/yiguan/.env` 配置：
 
 ```bash
+# 此文件包含生产环境密钥，存储在 /root/yiguan/.env，请勿提交到 Git
 HTTP_PORT=8080
 ***REMOVED***
 ***REMOVED***
-ADMIN_PHONE=13800000000
+ADMIN_PHONE=<your-phone>
 ***REMOVED***
-WX_OPEN_***REMOVED***          # 微信开放平台（网站扫码登录）
+WX_OPEN_***REMOVED***
 ***REMOVED***
 ```
 
@@ -173,10 +174,10 @@ WX_OPEN_***REMOVED***          # 微信开放平台（网站扫码登录）
 当前分支: main
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git
-生产服务器: root@***REMOVED*** (密码: Jason1987!@#)
+生产服务器: 凭据在 1Password
 生产域名: https://zgjz.insightj.cn
 微信开放平台已配置: ✅
-微信小程序已配置: ❌ (用户有 appid/secret 但未提供)
+微信小程序已配置: ❌
 ```
 
 ---

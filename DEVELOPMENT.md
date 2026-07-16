@@ -12,7 +12,7 @@ git commit -m "type: 描述"
 git push origin main
 
 # 3. 远程部署（自动拉取 + Docker 构建）
-ssh root@***REMOVED***
+ssh root@<server-ip>
 cd /root/yiguan
 git pull
 docker compose up -d --build
@@ -22,8 +22,8 @@ docker compose up -d --build
 
 | 项目 | 值 |
 |---|---|
-| **目标服务器** | `***REMOVED***` |
-| **SSH** | `root / Jason1987!@#` |
+| **目标服务器** | 腾讯云 |
+| **SSH** | 凭据在 1Password |
 | **代码目录** | `/root/yiguan` |
 | **生产域名** | `https://zgjz.insightj.cn` |
 | **管理后台** | `https://zgjz.insightj.cn/admin` |
@@ -48,7 +48,7 @@ make dev-admin     # 管理后台（可选）
 ***REMOVED***
 
 # 管理员
-ADMIN_PHONE=13800000000
+ADMIN_PHONE=<your-phone>
 ***REMOVED***
 
 # 微信开放平台（网站扫码登录）
