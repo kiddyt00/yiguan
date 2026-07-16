@@ -216,6 +216,7 @@ import CoinAnimation from '../components/CoinAnimation.vue'
 import Hexagram from '../components/Hexagram.vue'
 import HistorySidebar from '../components/HistorySidebar.vue'
 import { toPng } from 'html-to-image'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 defineProps({ isDark: Boolean })
 
@@ -397,16 +398,13 @@ async function captureElement(el) {
 // 从数据库加载最新记录
 async function loadLatestFromDB() {
   try {
-    const res = await fetch('/api/history/latest', {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    })
+    const res = await apiGet('/api/history/latest')
     if (res.status === 404) {
       noHistory.value = true
       loadingFromDB.value = false
       return
     }
     if (!res.ok) {
-      if (res.status === 401) { auth.logout(); router.push('/login'); return }
       error.value = '加载历史记录失败'
       loadingFromDB.value = false
       return
@@ -495,18 +493,9 @@ function findMasterYao(yaoDesc) {
 
 async function startStream() {
   try {
-    const resp = await fetch('/api/divine/stream', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.token}`,
-        'Accept-Language': locale.value,
-      },
-      body: JSON.stringify({ question: questionRef.value }),
-    })
+    const resp = await apiPost('/api/divine/stream', { question: questionRef.value }, { 'Accept-Language': locale.value })
 
     if (!resp.ok) {
-      if (resp.status === 401) { auth.logout(); router.push('/login'); return }
       if (resp.status === 402) {
         error.value = t('quota.depleted')
         phase.value = 'done'

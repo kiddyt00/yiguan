@@ -28,6 +28,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 defineProps({ isDark: Boolean })
 
@@ -39,27 +40,17 @@ const saving = ref(false)
 const msg = ref('')
 
 onMounted(async () => {
-  const res = await fetch('/api/user', { headers: { Authorization: `Bearer ${auth.token}` } })
-  const json = await res.json()
-  if (res.ok) {
-    const data = json.user || json
-    form.value.nickname = data.nickname
-    form.value.address = data.address || ''
-  }
+  const json = await apiGetJSON('/api/user')
+  const data = json.user || json
+  form.value.nickname = data.nickname
+  form.value.address = data.address || ''
 })
 
 async function save() {
   saving.value = true
-  const res = await fetch('/api/user', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-    body: JSON.stringify(form.value),
-  })
-  if (res.ok) {
-    const json = await res.json()
-    auth.setAuth(auth.token, json.user || json)
-    msg.value = t('profile.saved')
-  }
+  const json = await apiPut('/api/user', { nickname: form.value.nickname, address: form.value.address }).then(r => r.json())
+  auth.setAuth(auth.token, json.user || json)
+  msg.value = t('profile.saved')
   saving.value = false
 }
 </script>

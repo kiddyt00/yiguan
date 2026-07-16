@@ -64,6 +64,7 @@ import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
 import { useI18n } from 'vue-i18n'
 import Hexagram from '../components/Hexagram.vue'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -101,16 +102,7 @@ const hexagramLines = computed(() => {
 onMounted(async () => {
   if (!question) { router.push('/'); return }
   try {
-    const res = await fetch('/api/divine', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.token}`,
-        'Accept-Language': locale.value,
-      },
-      body: JSON.stringify({ question }),
-    })
-    if (res.status === 401) { auth.logout(); router.push('/login'); return }
+    const res = await apiPost('/api/divine', { question }, { 'Accept-Language': locale.value })
     if (res.status === 402) {
       error.value = t('quota.depleted')
       loading.value = false

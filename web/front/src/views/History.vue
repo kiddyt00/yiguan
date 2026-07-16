@@ -129,6 +129,7 @@ import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTranslation } from '../composables/useTranslation'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -213,18 +214,9 @@ async function fetchHistory() {
     url = `/api/history?limit=${pageSize.value}&offset=${offset}`
   }
   try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    })
-    const data = await res.json()
-    if (res.ok) {
-      items.value = data.items
-      total.value = data.total
-    } else if (res.status === 401) {
-      auth.logout()
-      router.push('/login')
-      return
-    }
+    const data = await apiGetJSON(url)
+    items.value = data.items
+    total.value = data.total
   } catch (e) {
     console.error('加载历史失败:', e)
   } finally {

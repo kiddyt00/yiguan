@@ -48,6 +48,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -62,8 +63,7 @@ let timer = null
 
 onMounted(async () => {
   try {
-    const res = await fetch('/api/ads/active')
-    const data = await res.json()
+    const data = await apiGetJSON('/api/ads/active')
     ads.value = data.items || []
   } catch (e) {
     console.error('Failed to load ads:', e)
@@ -74,11 +74,7 @@ onMounted(async () => {
 
 async function watchAd(ad) {
   try {
-    const res = await fetch(`/api/ads/${ad.id}/watch`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${auth.token}` },
-    })
-    if (res.status === 401) { auth.logout(); router.push('/login'); return }
+    await apiPost(`/api/ads/${ad.id}/watch`)
     watchingAd.value = ad
     countdown.value = ad.watch_duration
     timer = setInterval(() => {
@@ -92,15 +88,7 @@ async function watchAd(ad) {
 
 async function claimReward() {
   try {
-    const res = await fetch(`/api/ads/${watchingAd.value.id}/complete`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify({ duration: watchingAd.value.watch_duration }),
-    })
-    const data = await res.json()
+    const data = await apiPostJSON(`/api/ads/${watchingAd.value.id}/complete`, { duration: watchingAd.value.watch_duration })
     if (data.rewarded) {
       emit('rewarded', data)
     } else if (data.error) {
