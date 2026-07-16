@@ -213,13 +213,13 @@ func main() {
 	mux.Handle("GET /api/admin/analytics", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetAnalytics))))
 	mux.Handle("GET /api/admin/analytics/logins", adminMW(corsWrap(http.HandlerFunc(analyticsH.GetRecentLogins))))
 
-	// 日志中间件
-	logMux := loggingMiddleware(mux)
+	// 中间件链：限流 → 日志 → 路由
+	rateLimitMW := middleware.RateLimit(loggingMiddleware(mux))
 
 	// 带超时配置的 HTTP Server
 	srv := &http.Server{
 		Addr:         ":" + cfg.Server.Port,
-		Handler:      logMux,
+		Handler:      rateLimitMW,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 120 * time.Second, // SSE 流式响应需要较长写超时
 		IdleTimeout:  60 * time.Second,
@@ -256,7 +256,15 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func corsWrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		allowedOrigins := map[string]bool{
+			"https://zgjz.insightj.cn": true,
+			"http://localhost:5173":     true,
+			"http://localhost:8080":     true,
+		}
+		if allowedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == "OPTIONS" {
