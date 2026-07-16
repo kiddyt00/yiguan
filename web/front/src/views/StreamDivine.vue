@@ -348,20 +348,29 @@ function goHome() {
 async function saveAsImage() {
   if (!resultArea.value) return
   const el = resultArea.value
-  const btns = el.querySelectorAll('button, .border-t, h2')
-  const origDisplay = []
-  btns.forEach(b => { origDisplay.push(b.style.display); b.style.display = 'none' })
   try {
     const dataUrl = await toPng(el, {
       backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
       pixelRatio: 2,
+      style: {
+        padding: '24px',
+        fontSize: '16px',
+        lineHeight: '1.8',
+        maxWidth: '600px',
+      },
+      filter: (node) => {
+        // 排除边框和按钮区域
+        if (node.classList?.contains('border-t')) return false
+        if (node.tagName === 'BUTTON') return false
+        return true
+      },
     })
     const link = document.createElement('a')
     link.download = '观己斋-结果.png'
     link.href = dataUrl
     link.click()
-  } finally {
-    btns.forEach((b, i) => { b.style.display = origDisplay[i] })
+  } catch (e) {
+    console.error('saveAsImage failed:', e)
   }
 }
 
@@ -376,14 +385,19 @@ async function captureResult() {
 }
 
 async function captureElement(el) {
-  let origDisplay = []
   try {
-    // 隐藏截图中的标题
-    const headings = el.querySelectorAll('h2')
-    headings.forEach(h => { origDisplay.push(h.style.display); h.style.display = 'none' })
     const dataUrl = await toPng(el, {
       backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
       pixelRatio: 2,
+      style: {
+        padding: '12px',
+        fontSize: '15px',
+        lineHeight: '1.8',
+      },
+      filter: (node) => {
+        if (node.tagName === 'BUTTON') return false
+        return true
+      },
     })
     resultImage.value = dataUrl
   } catch (e) {
