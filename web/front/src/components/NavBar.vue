@@ -40,29 +40,32 @@
           <!-- 用户下拉菜单 -->
           <div class="relative" @click.stop>
             <button @click="userOpen = !userOpen"
-              class="flex items-center gap-1 px-2 py-1 rounded-lg transition font-medium"
-              :class="isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-700 hover:bg-stone-100'">
-              <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{{ (auth.user?.nickname || '我').charAt(0) }}</span>
-              <span class="text-xs hidden sm:inline">{{ auth.user?.nickname || '我' }}</span>
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all duration-200"
+              :class="[userOpen
+                ? (isDark ? 'bg-stone-700 text-amber-300' : 'bg-amber-50 text-amber-700')
+                : (isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-700 hover:bg-stone-100')]">
+              <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm"
+                :class="isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'">{{ (auth.user?.nickname || '我').charAt(0) }}</span>
+              <span class="text-sm font-medium hidden sm:inline">{{ auth.user?.nickname || '我' }}</span>
+              <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="userOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-if="userOpen" class="absolute top-8 right-0 border rounded-lg shadow-xl z-50 overflow-hidden min-w-[140px]"
+            <div v-if="userOpen" class="absolute top-10 right-0 border rounded-xl shadow-xl z-50 overflow-hidden min-w-[160px]"
               :class="isDark ? 'bg-slate-800 border-stone-700' : 'bg-white border-stone-200'">
               <router-link to="/profile" @click="userOpen=false"
-                class="block px-4 py-2.5 text-sm transition"
-                :class="isDark ? 'text-stone-200 hover:bg-stone-700' : 'text-stone-700 hover:bg-stone-50'">
-                👤 个人中心
+                class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition hover:bg-amber-500/10"
+                :class="isDark ? 'text-stone-200' : 'text-stone-700'">
+                <span>👤</span> 个人中心
               </router-link>
               <router-link to="/recharge" @click="userOpen=false"
-                class="block px-4 py-2.5 text-sm transition"
-                :class="isDark ? 'text-stone-200 hover:bg-stone-700' : 'text-stone-700 hover:bg-stone-50'">
-                💎 充值
+                class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition hover:bg-amber-500/10"
+                :class="isDark ? 'text-stone-200' : 'text-stone-700'">
+                <span>💎</span> 充值
               </router-link>
-              <hr :class="isDark ? 'border-stone-700' : 'border-stone-200'">
-              <button @click="userOpen=false; doLogout()"
-                class="block w-full text-left px-4 py-2.5 text-sm transition"
-                :class="isDark ? 'text-red-400 hover:bg-stone-700' : 'text-red-500 hover:bg-stone-50'">
-                🚪 退出
+              <div class="h-px mx-3" :class="isDark ? 'bg-stone-700' : 'bg-stone-200'"></div>
+              <button @click="doLogout"
+                class="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm transition hover:bg-red-500/10"
+                :class="isDark ? 'text-red-400' : 'text-red-500'">
+                <span>🚪</span> 退出
               </button>
             </div>
           </div>
