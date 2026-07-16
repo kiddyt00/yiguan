@@ -50,6 +50,7 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		limit = 50
 	}
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	keyword := r.URL.Query().Get("keyword")
 	var users []store.User
 	var total int64
 	if keyword != "" {
