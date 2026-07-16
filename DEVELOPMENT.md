@@ -6,47 +6,63 @@
 # 1. 开发
 # 修改代码...
 
-# 2. 本地编译验证
-make build-backend  # 后端编译
-# 前端构建由 Docker 完成
-
-# 3. 提交 & 推送
+# 2. 提交 & 推送
 git add -A
 git commit -m "type: 描述"
 git push origin main
 
-# 4. 远程部署（自动拉取 + Docker 构建）
-make deploy-remote
-# 等价于：
-# ssh ubuntu@49.235.108.61 'sudo bash -c "cd /root/yiguan && git pull && bash deploy.sh"'
+# 3. 远程部署（自动拉取 + Docker 构建）
+ssh root@***REMOVED***
+cd /root/yiguan
+git pull
+docker compose up -d --build
 ```
 
 ## 远程部署细节
 
-- 目标服务器：`49.235.108.61`
-- 代码目录：`/root/yiguan`
-- 部署脚本：`deploy.sh`（拉取基础镜像 → `docker compose up -d --build`）
-- 前端地址：`http://49.235.108.61:8080`
-- 管理后台：`http://49.235.108.61:8080/admin`
-- 后端 API：通过前端 Nginx 反向代理 `/api/`
+| 项目 | 值 |
+|---|---|
+| **目标服务器** | `***REMOVED***` |
+| **SSH** | `root / Jason1987!@#` |
+| **代码目录** | `/root/yiguan` |
+| **生产域名** | `https://zgjz.insightj.cn` |
+| **管理后台** | `https://zgjz.insightj.cn/admin` |
+| **部署方式** | `docker compose up -d --build` |
+| **数据库** | `./data/yiguan.db`（挂载卷，重启不丢失） |
+
+## 本地开发
+
+```bash
+make dev-backend   # 后端（默认 8080 端口）
+make dev-frontend  # 前端 SPA（另一个终端）
+make dev-admin     # 管理后台（可选）
+```
 
 ## 环境变量
 
-通过项目根目录的 `.env` 文件配置：
+通过项目根目录的 `.env` 文件配置（生产环境通过 `/root/yiguan/.env`）：
 
 ```bash
+# 必需
 ***REMOVED***
 ***REMOVED***
-ADMIN_PHONE=138xxxx
+
+# 管理员
+ADMIN_PHONE=13800000000
 ***REMOVED***
-WX_***REMOVED***          # 微信小程序（手机端）
+
+# 微信开放平台（网站扫码登录）
+WX_OPEN_***REMOVED***
 ***REMOVED***
-WX_OPEN_***REMOVED***     # 微信开放平台（网页扫码登录）
-***REMOVED***
-SMS_ACCESS_KEY_ID=xxx # 阿里云短信
+
+# 微信小程序（暂未配置）
+WX_***REMOVED*** 阿里云短信（暂未接入）
+SMS_ACCESS_KEY_ID=
 SMS_ACCESS_KEY_***REMOVED***
-SMS_SIGN_NAME=观己斋
 SMS_TEMPLATE_CODE=SMS_xxx
+
+# 前端暴露端口
+HTTP_PORT=8080
 ```
 
 ## 注意事项
@@ -54,3 +70,5 @@ SMS_TEMPLATE_CODE=SMS_xxx
 - 前端 `/admin` 是独立 SPA，修改后需重新构建 Docker 镜像
 - 数据库文件挂载在 `./data/yiguan.db`，重启不丢失
 - 生产环境密钥通过 `.env` 注入，不硬编码在代码中
+- 构建时国内网络需要代理，参考 `deploy.sh` 中的 `ensure_image` 函数
+- 完整开发记录见 `docs/PROGRESS.md`
