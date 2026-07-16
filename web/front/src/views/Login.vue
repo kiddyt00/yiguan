@@ -120,7 +120,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
+import QRCode from 'qrcode'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -324,12 +325,12 @@ function startPoll() {
 }
 
 function drawQRCode(canvas, url) {
-  const img = new Image()
-  img.crossOrigin = 'anonymous'
-  img.onload = () => {
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(img, 0, 0, 200, 200)
-  }
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
+  QRCode.toCanvas(canvas, url, { width: 200, margin: 2 }, function (err) {
+    if (err) {
+      console.error('QR code generation failed:', err)
+      qrStatus.value = 'error'
+      qrError.value = '二维码生成失败'
+    }
+  })
 }
 </script>
