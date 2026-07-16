@@ -22,16 +22,20 @@ func (h *HexagramHandler) ListHistory(w http.ResponseWriter, r *http.Request) {
 	}
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	userID, _ := strconv.ParseInt(r.URL.Query().Get("user_id"), 10, 64)
+	keyword := r.URL.Query().Get("keyword")
+	dateFrom := r.URL.Query().Get("date_from")
+	dateTo := r.URL.Query().Get("date_to")
 
-	items, err := h.store.ListAllHistory(limit, offset, userID)
+	items, err := h.store.ListAllHistory(limit, offset, userID, keyword, dateFrom, dateTo)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "获取记录失败"})
 		return
 	}
+	total, _ := h.store.CountAllHistory(userID, keyword, dateFrom, dateTo)
 	if items == nil {
 		items = []store.History{}
 	}
-	writeJSON(w, http.StatusOK, map[string]interface{}{"items": items, "total": len(items)})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"items": items, "total": total})
 }
 
 func (h *HexagramHandler) GetHistoryDetail(w http.ResponseWriter, r *http.Request) {

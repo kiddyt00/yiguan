@@ -34,7 +34,14 @@ export const adminApi = {
   adjustQuota: (id, delta) => api(`/admin/users/${id}/quota`, { method: 'POST', body: JSON.stringify({ delta }) }),
   userHistory: (id, limit = 20, offset = 0) => api(`/admin/users/${id}/history?limit=${limit}&offset=${offset}`),
 
-  hexagrams: (params) => api(`/admin/hexagrams?limit=${params.limit || 20}&offset=${params.offset || 0}${params.userId ? '&user_id=' + params.userId : ''}`),
+  hexagrams: (params) => {
+    let url = `/admin/hexagrams?limit=${params.limit || 20}&offset=${params.offset || 0}`
+    if (params.user_id) url += '&user_id=' + params.user_id
+    if (params.keyword) url += '&keyword=' + encodeURIComponent(params.keyword)
+    if (params.date_from) url += '&date_from=' + params.date_from
+    if (params.date_to) url += '&date_to=' + params.date_to
+    return api(url)
+  },
   hexagramDetail: (id) => api(`/admin/hexagrams/${id}`),
   deleteHexagram: (id) => api(`/admin/hexagrams/${id}`, { method: 'DELETE' }),
 
