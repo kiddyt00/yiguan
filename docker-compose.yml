@@ -19,6 +19,8 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - WX_OPEN_APPID=${WX_OPEN_APPID}
       - WX_OPEN_SECRET=${WX_OPEN_SECRET}
+      - WX_PAY_MCHID=${WX_PAY_MCHID}
+      - WX_PAY_API_KEY=${WX_PAY_API_KEY}
     volumes:
       - ./data:/data
       - ./logs:/app/logs
