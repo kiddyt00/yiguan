@@ -346,81 +346,45 @@ function goHome() {
 }
 
 async function saveAsImage() {
-  if (!resultArea.value) return
-  const el = resultArea.value
-  // 临时允许父容器溢出可见，确保全内容截取
-  const parents = []
-  let p = el.parentElement
-  while (p && p !== document.body) {
-    const cs = getComputedStyle(p)
-    if (cs.overflow === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
-      parents.push({ el: p, overflow: p.style.overflow, overflowY: p.style.overflowY })
-      p.style.overflow = 'visible'
-      p.style.overflowY = 'visible'
-    }
-    p = p.parentElement
-  }
-  try {
-    const dataUrl = await toPng(el, {
-      backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
-      pixelRatio: 2,
-      filter: (node) => {
-        if (node.tagName === 'BUTTON') return false
-        return true
-      },
-    })
-    const link = document.createElement('a')
-    link.download = '观己斋-结果.png'
-    link.href = dataUrl
-    link.click()
-  } finally {
-    // 恢复父容器溢出设置
-    parents.forEach(p => {
-      p.el.style.overflow = p.overflow
-      p.el.style.overflowY = p.overflowY
-    })
-  }
+  const text = filterText(data.value?.interpretation || '')
+  if (!text) return
+  const md = marked.parse(text)
+  const dark = document.documentElement.classList.contains('light') ? false : true
+  try { const url = await captureOffscreen(md, question, dark); const a = document.createElement('a'); a.download = '观己斋-结果.png'; a.href = url; a.click() }
+  catch (e) { console.error(e) }
 }
-
-async function captureResult() {
-  if (!interpretArea.value) {
-    const el = document.querySelector('.border-t.pt-6')
-    if (!el) return
-    await captureElement(el)
-    return
+  // 离屏容器截图：HTML string
+  function capHTML(md, q, dk) {
+    var bg = dk ? '#0f172a' : '#faf8f5', tc = dk ? '#e2e8f0' : '#292524', sc = '#d4a853', dt = new Date().toLocaleDateString('zh-CN')
+    var s = 'font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Noto Sans SC\',sans-serif;background:'+bg+';color:'+tc+';padding:32px;font-size:15px;line-height:1.8'
+    var h = function(t,d){ return '<'+t+'>'+(d||'')+'</'+t+'>' }
+    var r = h('div','style="'+s+'"') + h('div','style="text-align:center;margin-bottom:24px"') + h('div','style="font-size:36px"', '☯') + h('div','style="font-size:20px;font-weight:700;color:'+sc+';margin-top:4px"', '观己斋 · 易观') + h('div','style="font-size:12px;color:'+(dk?'#9ca3af':'#78716c')+';margin-top:2px"', 'AI 周易占筮 · '+dt)
+    if (q) r += h('div','style="border:1px solid '+sc+'30;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px"', (h('strong','style="color:'+sc+'"', '所求：') + q))
+    r += md + h('div','style="text-align:center;margin-top:28px;font-size:11px;color:'+(dk?'#6b7280':'#a8a29e')+'"', '观己斋 · 易观')
+    return r
   }
-  await captureElement(interpretArea.value)
-}
-
-async function captureElement(el) {
-  const parents = []
-  let p = el.parentElement
-  while (p && p !== document.body) {
-    const cs = getComputedStyle(p)
-    if (cs.overflow === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
-      parents.push({ el: p, overflow: p.style.overflow, overflowY: p.style.overflowY })
-      p.style.overflow = 'visible'
-      p.style.overflowY = 'visible'
-    }
-    p = p.parentElement
-  }
-  try {
-    const dataUrl = await toPng(el, {
-      backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
-      pixelRatio: 2,
-      filter: (node) => {
-        if (node.tagName === 'BUTTON') return false
-        return true
-      },
+  async function captureOffscreen(mdHtml, q, dk) {
+    const frame = document.createElement('iframe')
+    frame.style.cssText = 'position:fixed;left:-9999px;top:0;width:600px;height:1px;border:none'
+    document.body.appendChild(frame)
+    const html = buildCaptureHTML(mdHtml, q, dk)
+    const blob = new Blob([html], {type:'text/html'}), url = URL.createObjectURL(blob)
+    frame.src = url
+    return new Promise((r,rej) => {
+      frame.onload = async () => {
+        try { r(await toPng(frame, {backgroundColor: dk ? '#0f172a' : '#faf8f5', pixelRatio: 2})) }
+        catch(e) { rej(e) }
+        finally { document.body.removeChild(frame); URL.revokeObjectURL(url) }
+      }
     })
-    resultImage.value = dataUrl
-  } catch (e) {
-    console.error('captureResult failed:', e)
-  } finally {
-    // 恢复
-    const headings = el.querySelectorAll('h2')
-    headings.forEach((h, i) => { if (i < origDisplay.length) h.style.display = origDisplay[i] })
   }
+  async function captureResult() {
+  const text = filterText(data.value?.interpretation || '')
+  if (!text) return
+  const md = marked.parse(text)
+  const dark = document.documentElement.classList.contains('light') ? false : true
+  try { resultImage.value = await captureOffscreen(md, question, dark) }
+  catch (e) { console.error(e) }
 }
 
 // 从数据库加载最新记录
