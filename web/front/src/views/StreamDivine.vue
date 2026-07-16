@@ -359,8 +359,7 @@ async function saveAsImage() {
         maxWidth: '600px',
       },
       filter: (node) => {
-        // 排除边框和按钮区域
-        if (node.classList?.contains('border-t')) return false
+        // 只排除按钮
         if (node.tagName === 'BUTTON') return false
         return true
       },
