@@ -19,6 +19,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Secrets
+SECRETS.md
+
 # Env
 .env
 .env.local
