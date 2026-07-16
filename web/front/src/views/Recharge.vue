@@ -67,6 +67,28 @@
     <p class="text-xs text-center mt-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'">
       支付即代表同意《服务协议》，充值次数永久有效
     </p>
+
+    <!-- 充值记录 -->
+    <div class="mt-10">
+      <h4 class="text-lg font-bold mb-3" :class="isDark ? 'text-stone-200' : 'text-stone-700'">📋 充值记录</h4>
+      <div v-if="orders.length === 0" class="text-sm text-center py-8" :class="isDark ? 'text-stone-500' : 'text-stone-400'">
+        暂无充值记录
+      </div>
+      <div v-else class="space-y-2">
+        <div v-for="o in orders" :key="o.id"
+          class="flex items-center justify-between p-3 rounded-lg text-sm"
+          :class="isDark ? 'bg-stone-800/60' : 'bg-stone-50'">
+          <div>
+            <span class="font-medium" :class="isDark ? 'text-stone-200' : 'text-stone-700'">{{ o.product_id === 'trial' ? '尝鲜包' : o.product_id === 'standard' ? '标准包' : '畅享包' }}</span>
+            <span class="mx-2" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ (o.amount / 100).toFixed(0) }}元</span>
+            <span class="text-xs" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ formatTime(o.created_at) }}</span>
+          </div>
+          <span :class="o.status === 'paid' ? 'text-green-500' : (o.status === 'pending' ? 'text-amber-500' : 'text-red-500')">
+            {{ o.status === 'paid' ? '✅ 已到账' : (o.status === 'pending' ? '⏳ 待支付' : '❌ 失败') }}
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -91,6 +113,7 @@ const showQR = ref(false)
 const qrStatus = ref('')
 const orderId = ref(0)
 const quota = ref(0)
+const orders = ref([])
 
 const selectedProduct = computed(() => products.find(p => p.id === selected.value))
 
@@ -98,8 +121,12 @@ function select(id) { selected.value = id }
 
 onMounted(async () => {
   try {
-    const data = await apiGetJSON('/api/user')
-    quota.value = data.remaining_quota || 0
+    const userData = await apiGetJSON('/api/user')
+    quota.value = userData.remaining_quota || 0
+  } catch (e) {}
+  try {
+    const ordData = await apiGetJSON('/api/orders')
+    orders.value = ordData.items || []
   } catch (e) {}
 })
 
@@ -151,9 +178,11 @@ function startPoll() {
       if (data.status === 'paid') {
         clearInterval(timer)
         qrStatus.value = 'paid'
-        // 刷新quota
+        // 刷新quota和订单记录
         const userData = await apiGetJSON('/api/user')
         quota.value = userData.remaining_quota || 0
+        const ordData = await apiGetJSON('/api/orders')
+        orders.value = ordData.items || []
       }
     } catch (e) {}
   }, 2000)
@@ -164,5 +193,9 @@ function startPoll() {
 function closeQR() {
   showQR.value = false
   qrStatus.value = ''
+}
+function formatTime(ts) {
+  if (!ts) return ''
+  return new Date(ts).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 </script>
