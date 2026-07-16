@@ -120,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -274,6 +274,10 @@ async function openQR() {
     // 加载 wxLogin.js
     await loadWxLoginScript()
 
+    // 先显示容器，再创建 WxLogin（确保 DOM 存在）
+    qrStatus.value = 'pending'
+    await nextTick()
+
     // 创建 WxLogin 实例
     new window.WxLogin({
       self_redirect: true,
@@ -285,7 +289,6 @@ async function openQR() {
       stylelite: '1',
     })
 
-    qrStatus.value = 'pending'
   } catch (e) {
     qrStatus.value = 'error'
     qrError.value = e.message || t('login.network.error')
