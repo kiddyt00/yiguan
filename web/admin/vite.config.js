@@ -8,5 +8,12 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: { '/api': 'http://localhost:8080' }
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
+  },
 })
