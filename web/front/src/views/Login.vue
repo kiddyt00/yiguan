@@ -58,7 +58,7 @@
         <template v-if="method === 'sms'">
           <div class="flex gap-2 mb-4">
             <input v-model="code" :placeholder="t('login.code.placeholder')" maxlength="6"
-              @input="onCodeInput" ref="codeInput"
+              @input="onCodeInput"
               class="flex-1 border rounded-lg p-3 bg-transparent outline-none focus:border-amber-500 transition"
               :class="isDark ? 'text-stone-100 border-stone-600 placeholder:text-stone-500' : 'text-stone-800 border-stone-300 placeholder:text-stone-400'" />
             <button @click="sendSMS" :disabled="smsCountdown > 0 || phone.length !== 11"
@@ -120,8 +120,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
-import QRCode from 'qrcode'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -151,9 +150,6 @@ const smsCountdown = ref(0)
 const showQR = ref(false)
 const qrStatus = ref('')
 const qrError = ref('')
-const qrTicket = ref('')
-let qrTimer = null
-const codeInput = ref(null)
 
 // 提交禁用判断
 const submitDisabled = computed(() => {
@@ -239,99 +235,87 @@ async function submit() {
   }
 }
 
-// ======== 微信扫码 ========
+// ======== 微信扫码（wxLogin.js 官方 SDK） ========
 
-function openQR() {
+// 加载 wxLogin.js 脚本
+function loadWxLoginScript() {
+  return new Promise((resolve, reject) => {
+    if (window.WxLogin) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js'
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('加载 wxLogin.js 失败'))
+    document.head.appendChild(script)
+  })
+}
+
+async function openQR() {
   showQR.value = true
   error.value = ''
-  genQRCode()
+  qrStatus.value = 'loading'
+  qrError.value = ''
+
+  try {
+    // 获取 AppID
+    const appRes = await fetch('/api/auth/wechat-appid')
+    if (!appRes.ok) {
+      const appData = await appRes.json()
+      throw new Error(appData.error || '配置错误')
+    }
+    const { appid } = await appRes.json()
+
+    // 生成随机 state（CSRF 防护）
+    const state = 'wx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+    sessionStorage.setItem('wx_login_state', state)
+
+    // 加载 wxLogin.js
+    await loadWxLoginScript()
+
+    // 创建 WxLogin 实例
+    new window.WxLogin({
+      self_redirect: true,
+      id: 'qrcode',
+      appid: appid,
+      scope: 'snsapi_login',
+      redirect_uri: encodeURIComponent('https://zgjz.insightj.cn/wx-callback'),
+      state: state,
+      stylelite: '1',
+    })
+
+    qrStatus.value = 'pending'
+  } catch (e) {
+    qrStatus.value = 'error'
+    qrError.value = e.message || t('login.network.error')
+  }
 }
 
 function closeQR() {
   showQR.value = false
-  if (qrTimer) { clearInterval(qrTimer); qrTimer = null }
   qrStatus.value = ''
-}
-
-watch(showQR, (val) => {
-  if (!val && qrTimer) {
-    clearInterval(qrTimer)
-    qrTimer = null
-  }
-})
-
-onUnmounted(() => {
-  if (qrTimer) clearInterval(qrTimer)
-})
-
-async function genQRCode() {
-  qrStatus.value = 'loading'
   qrError.value = ''
-  try {
-    const res = await fetch('/api/auth/wechat-qrcode')
-    const data = await res.json()
-    if (!res.ok) {
-      qrStatus.value = 'error'
-      qrError.value = data.error || t('login.network.error')
-      return
-    }
-    qrTicket.value = data.ticket
-    qrStatus.value = 'pending'
-    await nextTick()
-    const container = document.getElementById('qrcode')
-    if (container) {
-      container.innerHTML = ''
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = 200
-      container.appendChild(canvas)
-      drawQRCode(canvas, data.qrcode_url)
-    }
-    startPoll()
-  } catch (e) {
-    qrStatus.value = 'error'
-    qrError.value = t('login.network.error')
+  // 清除 wxLogin 渲染的 iframe
+  const container = document.getElementById('qrcode')
+  if (container) container.innerHTML = ''
+}
+
+// 监听 postMessage 回调（从 WxCallback 页面发来）
+function handleMessage(e) {
+  if (e.data && e.data.type === 'wx-login') {
+    auth.setAuth(e.data.token, e.data.user || {})
+    closeQR()
+    router.push('/')
+  } else if (e.data && e.data.type === 'wx-login-close') {
+    closeQR()
   }
 }
 
-function startPoll() {
-  if (qrTimer) clearInterval(qrTimer)
-  qrTimer = setInterval(async () => {
-    try {
-      const res = await fetch('/api/auth/wechat-check?ticket=' + qrTicket.value)
-      const data = await res.json()
-      if (data.status === 'ok') {
-        clearInterval(qrTimer)
-        qrTimer = null
-        qrStatus.value = 'ok'
-        // 扫码成功后需要获取用户信息
-        const userRes = await fetch('/api/user', {
-          headers: { Authorization: 'Bearer ' + data.token }
-        })
-        if (userRes.ok) {
-          const userData = await userRes.json()
-          auth.setAuth(data.token, userData.user || {})
-        } else {
-          auth.setAuth(data.token, {})
-        }
-        setTimeout(() => router.push('/'), 1000)
-      } else if (data.status === 'expired') {
-        clearInterval(qrTimer)
-        qrTimer = null
-        qrStatus.value = 'expired'
-      }
-    } catch (e) {
-      // ignore poll errors
-    }
-  }, 2000)
-}
-
-function drawQRCode(canvas, url) {
-  QRCode.toCanvas(canvas, url, { width: 200, margin: 2 }, function (err) {
-    if (err) {
-      console.error('QR code generation failed:', err)
-      qrStatus.value = 'error'
-      qrError.value = '二维码生成失败'
-    }
-  })
-}
+onMounted(() => window.addEventListener('message', handleMessage))
+onUnmounted(() => {
+  window.removeEventListener('message', handleMessage)
+  const container = document.getElementById('qrcode')
+  if (container) container.innerHTML = ''
+})
 </script>

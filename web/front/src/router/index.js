@@ -8,6 +8,7 @@ const routes = [
   { path: '/stream', name: 'StreamDivine', component: () => import('../views/StreamDivine.vue'), meta: { auth: true } },
   { path: '/result', name: 'Result', component: () => import('../views/Result.vue'), meta: { auth: true } },
   { path: '/ads', name: 'AdCenter', component: () => import('../views/AdCenter.vue'), meta: { auth: true } },
+  { path: '/wx-callback', name: 'WxCallback', component: () => import('../views/WxCallback.vue') },
 ]
 
 const router = createRouter({
