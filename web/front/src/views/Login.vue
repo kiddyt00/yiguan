@@ -120,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
 import QRCode from 'qrcode'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -276,6 +276,8 @@ async function genQRCode() {
       return
     }
     qrTicket.value = data.ticket
+    qrStatus.value = 'pending'
+    await nextTick()
     const container = document.getElementById('qrcode')
     if (container) {
       container.innerHTML = ''
@@ -284,7 +286,6 @@ async function genQRCode() {
       container.appendChild(canvas)
       drawQRCode(canvas, data.qrcode_url)
     }
-    qrStatus.value = 'pending'
     startPoll()
   } catch (e) {
     qrStatus.value = 'error'
