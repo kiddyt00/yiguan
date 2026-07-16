@@ -124,6 +124,7 @@ import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 defineProps({ isDark: Boolean })
 
@@ -175,10 +176,7 @@ function onCodeInput(e) {
 async function sendSMS() {
   error.value = ''
   try {
-    const res = await fetch('/api/auth/sms-send', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: phone.value }),
-    })
+    const res = await apiPost('/api/auth/sms-send', { phone: phone.value })
     if (res.ok) {
       smsCountdown.value = 60
       const timer = setInterval(() => {
@@ -200,33 +198,13 @@ async function submit() {
   loading.value = true
   try {
     if (method.value === 'sms') {
-      const res = await fetch('/api/auth/sms-login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.value, code: code.value }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        auth.setAuth(data.token, data.user)
-        router.push('/')
-      } else {
-        error.value = data.error || t('login.network.error')
-      }
+      const data = await apiPostJSON('/api/auth/sms-login', { phone: phone.value, code: code.value })
+      auth.setAuth(data.token, data.user)
+      router.push('/')
     } else {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.value, password: password.value }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        auth.setAuth(data.token, data.user)
-        router.push('/')
-      } else {
-        if (res.status === 401) {
-          error.value = t('login.error.unauthorized')
-        } else {
-          error.value = data.error || t('login.network.error')
-        }
-      }
+      const data = await apiPostJSON('/api/auth/login', { phone: phone.value, password: password.value })
+      auth.setAuth(data.token, data.user)
+      router.push('/')
     }
   } catch (e) {
     error.value = t('login.network.error')
@@ -260,12 +238,7 @@ async function openQR() {
 
   try {
     // 获取 AppID
-    const appRes = await fetch('/api/auth/wechat-appid')
-    if (!appRes.ok) {
-      const appData = await appRes.json()
-      throw new Error(appData.error || '配置错误')
-    }
-    const { appid } = await appRes.json()
+    const { appid } = await apiGetJSON('/api/auth/wechat-appid')
 
     // 生成随机 state（CSRF 防护）
     const state = 'wx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)

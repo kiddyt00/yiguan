@@ -24,6 +24,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 const route = useRoute()
 const loading = ref(true)
@@ -52,13 +53,8 @@ onMounted(async () => {
   sessionStorage.removeItem('wx_login_state')
 
   try {
-    const res = await fetch('/api/auth/wechat-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
+    const data = await apiPostJSON('/api/auth/wechat-code', { code })
+    if (!data.token) {
       error.value = data.error || '登录失败'
       loading.value = false
       return

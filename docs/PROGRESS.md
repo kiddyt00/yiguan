@@ -147,14 +147,15 @@ WX_OPEN_SECRET=406484c5cd361f7a2c74c8b97d1e3ec2
 ## 五、待办与注意事项
 
 ### ⚠️ 急迫事项
-- [ ] **SSL 证书续期** — `zgjz.insightj.cn` 证书 2026-09-14 到期，约 2 个月后过期
+- [ ] **SSL 证书续期** — `zgjz.insightj.cn` 证书 2026-09-14 到期（acme.sh 自动续期，无需手动）
 - [ ] **短信服务接入** — 当前验证码仅打印日志，未接入真实短信服务
 
-### 🗑️ 可清理项
-- [x] ~~清理旧接口 `wechatQRCode`、`wechatCheck`、`wechatCallback`~~ ✅ 已删除
-- [x] ~~删除 `qrcode` npm 依赖~~ ✅ 已卸载
-- [x] ~~更新 Makefile 过时目标~~ ✅ `deploy-remote` 已指向新域名
-- [ ] 生产服务器上的 `gjz.shadouyou.cloud` Nginx 配置可清理
+### ✅ 安全加固
+- [x] ~~修复 5 处 err.Error() 泄露~~ ✅ 已统一替换为通用提示
+- [x] ~~CORS 全开 `*`~~ ✅ 改为白名单模式
+- [x] ~~API 限流~~ ✅ 新增 60次/分钟/IP 滑动窗口限流
+- [x] ~~Docker 日志轮转~~ ✅ 每个容器限 10MB x 3 个文件
+- [x] ~~前端统一 fetch 封装~~ ✅ utils/request.js + 8 个视图文件改造（401 自动拦截）
 
 ### 📝 开发备忘
 - 后端无第三方框架，路由在 `cmd/server/main.go` 中硬编码

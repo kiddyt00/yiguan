@@ -52,6 +52,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
 
 defineProps({ isDark: Boolean })
 
@@ -65,13 +66,8 @@ const remainingQuota = ref(-1)
 onMounted(async () => {
   if (auth.isLoggedIn()) {
     try {
-      const res = await fetch('/api/user', {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      })
-      if (res.ok) {
-        const data = await res.json()
-        remainingQuota.value = data.remaining_quota
-      }
+      const data = await apiGetJSON('/api/user')
+      remainingQuota.value = data.remaining_quota
     } catch {}
   }
 })
