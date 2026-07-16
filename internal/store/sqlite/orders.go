@@ -12,7 +12,7 @@ func (s *Store) CreateOrder(userID int64, product *store.OrderProduct, outTradeN
 	result, err := s.db.Exec(
 		`INSERT INTO orders (user_id, amount, quota, product_id, out_trade_no, code_url)
 		 VALUES (?, ?, ?, ?, ?, ?)`,
-		userID, product.Amount, product.Quota, product.ProductID, outTradeNo, codeURL,
+		userID, product.Amount, product.Quota, product.ID, outTradeNo, codeURL,
 	)
 	if err != nil {
 		return nil, err
