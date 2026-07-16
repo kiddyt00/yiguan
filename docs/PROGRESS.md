@@ -151,8 +151,9 @@ WX_OPEN_***REMOVED***          # 微信开放平台（网站扫码登录）
 - [ ] **短信服务接入** — 当前验证码仅打印日志，未接入真实短信服务
 
 ### 🗑️ 可清理项
-- [ ] 清理旧接口 `wechatQRCode`、`wechatCheck`、`wechatCallback`（前端已不再调用）
-- [ ] 删除 `qrcode` npm 依赖（前端已改用 wxLogin.js）
+- [x] ~~清理旧接口 `wechatQRCode`、`wechatCheck`、`wechatCallback`~~ ✅ 已删除
+- [x] ~~删除 `qrcode` npm 依赖~~ ✅ 已卸载
+- [x] ~~更新 Makefile 过时目标~~ ✅ `deploy-remote` 已指向新域名
 - [ ] 生产服务器上的 `gjz.shadouyou.cloud` Nginx 配置可清理
 
 ### 📝 开发备忘
