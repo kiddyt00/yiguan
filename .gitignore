@@ -35,3 +35,6 @@ web/admin/dist/
 *.db-shm
 .worktrees/
 logs/
+**/.codewhale/*
+!**/.codewhale/constitution.json
+.deepseek/

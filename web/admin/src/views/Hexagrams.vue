@@ -77,7 +77,7 @@ onMounted(()=>ld())
 async function ld(){loading.value=true;try{const p={limit:ps.value,offset:(page.value-1)*ps.value};if(uf.value)p.userId=uf.value;const d=await adminApi.hexagrams(p);items.value=d.items||[];total.value=d.total||0}catch(e){ElMessage.error('加载失败: '+e.message)}finally{loading.value=false}}
 function sd(r){dl.value=r;dv.value=true}
 async function rm(r){try{await ElMessageBox.confirm('确定删除？','确认');await adminApi.deleteHexagram(r.id);ElMessage.success('已删除');ld()}catch(e){if(e!=='cancel')ElMessage.error(e.message)}}
-function fd(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
+function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
 </script>
 <style scoped>
 .filter-bar{margin-bottom:12px}.text-right{text-align:right}
