@@ -37,10 +37,35 @@
           </span>
           <router-link to="/history" class="transition"
             :class="isDark ? 'text-gray-300 hover:text-amber-300' : 'text-stone-600 hover:text-amber-600'">{{ t('nav.history') }}</router-link>
-          <router-link to="/profile" class="transition"
-            :class="isDark ? 'text-gray-300 hover:text-amber-300' : 'text-stone-600 hover:text-amber-600'">{{ auth.user?.nickname || t('nav.profile') }}</router-link>
-          <button @click="doLogout" class="transition"
-            :class="isDark ? 'text-gray-400 hover:text-amber-300' : 'text-stone-400 hover:text-amber-600'">{{ t('nav.logout') }}</button>
+          <!-- 用户下拉菜单 -->
+          <div class="relative" @click.stop>
+            <button @click="userOpen = !userOpen"
+              class="flex items-center gap-1 px-2 py-1 rounded-lg transition font-medium"
+              :class="isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-700 hover:bg-stone-100'">
+              <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{{ (auth.user?.nickname || '我').charAt(0) }}</span>
+              <span class="text-xs hidden sm:inline">{{ auth.user?.nickname || '我' }}</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div v-if="userOpen" class="absolute top-8 right-0 border rounded-lg shadow-xl z-50 overflow-hidden min-w-[140px]"
+              :class="isDark ? 'bg-slate-800 border-stone-700' : 'bg-white border-stone-200'">
+              <router-link to="/profile" @click="userOpen=false"
+                class="block px-4 py-2.5 text-sm transition"
+                :class="isDark ? 'text-stone-200 hover:bg-stone-700' : 'text-stone-700 hover:bg-stone-50'">
+                👤 个人中心
+              </router-link>
+              <router-link to="/recharge" @click="userOpen=false"
+                class="block px-4 py-2.5 text-sm transition"
+                :class="isDark ? 'text-stone-200 hover:bg-stone-700' : 'text-stone-700 hover:bg-stone-50'">
+                💎 充值
+              </router-link>
+              <hr :class="isDark ? 'border-stone-700' : 'border-stone-200'">
+              <button @click="userOpen=false; doLogout()"
+                class="block w-full text-left px-4 py-2.5 text-sm transition"
+                :class="isDark ? 'text-red-400 hover:bg-stone-700' : 'text-red-500 hover:bg-stone-50'">
+                🚪 退出
+              </button>
+            </div>
+          </div>
         </template>
         <template v-else>
           <router-link to="/login" class="transition"
@@ -63,6 +88,7 @@ const auth = useAuthStore()
 const $router = useRouter()
 const quota = ref(null)
 const langOpen = ref(false)
+const userOpen = ref(false)
 
 function setLocale(v) {
   locale.value = v
