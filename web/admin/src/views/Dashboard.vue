@@ -28,8 +28,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminApi } from '../api'
 import { ElMessage } from 'element-plus'
+import { use } from 'echarts/core'
+import { BarChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
-import 'echarts'
+use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
 
 const router = useRouter()
 const stats = ref({})
