@@ -140,7 +140,7 @@ func (h *ModelHandler) FetchModels(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "请求供应商失败: " + err.Error()})
+		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "请求供应商失败，请检查配置"})
 		return
 	}
 	defer resp.Body.Close()
@@ -188,7 +188,7 @@ func testHTTP(ctx context.Context, method, url, apiKey string, body []byte) (int
 	resp, err := client.Do(req)
 	elapsed := time.Since(start).Round(time.Millisecond)
 	if err != nil {
-		return 0, err.Error(), elapsed
+		return 0, "连接失败", elapsed
 	}
 	defer resp.Body.Close()
 	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 512))

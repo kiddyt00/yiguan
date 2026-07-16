@@ -85,7 +85,7 @@ func (h *UserHandler) BindWechat(w http.ResponseWriter, r *http.Request) {
 	openid, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
 	if err != nil {
 		log.Printf("微信 code 换 openid 失败: %v", err)
-		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败: " + err.Error()})
+		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败"})
 		return
 	}
 	existing, _ := h.store.GetUserByOpenID(openid)

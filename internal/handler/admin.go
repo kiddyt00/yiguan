@@ -92,7 +92,7 @@ func (h *AdminHandler) AdjustUserQuota(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.store.UpdateUserQuota(id, req.Delta); err != nil {
 		log.Printf("调整配额失败 user=%d delta=%d: %v", id, req.Delta, err)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "调整配额失败: " + err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "调整配额失败"})
 		return
 	}
 	remaining, _ := h.store.GetUserQuota(id)
