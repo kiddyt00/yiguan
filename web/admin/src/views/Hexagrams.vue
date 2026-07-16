@@ -43,7 +43,7 @@
         </tbody>
       </table>
     </div>
-    <div class="pg"><el-pagination v-model:current-page="page" :page-size="pageSize" :total="total" layout="total, prev, pager, next" @current-change="load" background small /></div>
+    <div class="pg"><el-pagination v-model:current-page="page" :page-size="pageSize" :total="total" layout="total, prev, pager, next" @current-change="load" background size="small" /></div>
     <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh" destroy-on-close>
       <div v-if="detail" class="dw">
         <div class="ds dm"><div class="mi"><span class="ml">用户</span><span class="mv">{{ detail.nickname || '微信用户' }} <span class="g">#{{ detail.user_id }}</span></span></div><div class="mi"><span class="ml">时间</span><span class="mv">{{ formatDate(detail.created_at) }}</span></div></div>
