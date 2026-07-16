@@ -80,7 +80,7 @@ use([BarChart, LineChart, PieChart, GridComponent, TooltipComponent, CanvasRende
 const analytics = ref({})
 
 const loginTrendOption = computed(() => {
-  const data = analytics.value.login_trend || {}
+  const data = analytics.value.daily_trend || {}
   return {
     grid: { left: 40, right: 20, top: 20, bottom: 30 },
     xAxis: { type: 'category', data: Object.keys(data) },
@@ -102,7 +102,7 @@ const hourOption = computed(() => {
 })
 
 const deviceOption = computed(() => {
-  const data = analytics.value.devices || {}
+  const data = analytics.value.login_by_device || {}
   const entries = Object.entries(data)
   if (!entries.length) return {}
   return {
@@ -117,7 +117,7 @@ const deviceOption = computed(() => {
 })
 
 const osOption = computed(() => {
-  const data = analytics.value.operating_systems || {}
+  const data = analytics.value.login_by_os || {}
   const entries = Object.entries(data)
   if (!entries.length) return {}
   return {
@@ -132,7 +132,7 @@ const osOption = computed(() => {
 })
 
 const cityList = computed(() => {
-  const data = analytics.value.cities || {}
+  const data = analytics.value.login_by_city || {}
   return Object.entries(data)
     .map(([city, count]) => ({ city, count }))
     .sort((a, b) => b.count - a.count)
