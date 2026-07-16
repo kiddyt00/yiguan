@@ -348,18 +348,23 @@ function goHome() {
 async function saveAsImage() {
   if (!resultArea.value) return
   const el = resultArea.value
+  // 临时允许父容器溢出可见，确保全内容截取
+  const parents = []
+  let p = el.parentElement
+  while (p && p !== document.body) {
+    const cs = getComputedStyle(p)
+    if (cs.overflow === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
+      parents.push({ el: p, overflow: p.style.overflow, overflowY: p.style.overflowY })
+      p.style.overflow = 'visible'
+      p.style.overflowY = 'visible'
+    }
+    p = p.parentElement
+  }
   try {
     const dataUrl = await toPng(el, {
       backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
       pixelRatio: 2,
-      style: {
-        padding: '24px',
-        fontSize: '16px',
-        lineHeight: '1.8',
-        maxWidth: '600px',
-      },
       filter: (node) => {
-        // 只排除按钮
         if (node.tagName === 'BUTTON') return false
         return true
       },
@@ -368,8 +373,12 @@ async function saveAsImage() {
     link.download = '观己斋-结果.png'
     link.href = dataUrl
     link.click()
-  } catch (e) {
-    console.error('saveAsImage failed:', e)
+  } finally {
+    // 恢复父容器溢出设置
+    parents.forEach(p => {
+      p.el.style.overflow = p.overflow
+      p.el.style.overflowY = p.overflowY
+    })
   }
 }
 
@@ -384,15 +393,21 @@ async function captureResult() {
 }
 
 async function captureElement(el) {
+  const parents = []
+  let p = el.parentElement
+  while (p && p !== document.body) {
+    const cs = getComputedStyle(p)
+    if (cs.overflow === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
+      parents.push({ el: p, overflow: p.style.overflow, overflowY: p.style.overflowY })
+      p.style.overflow = 'visible'
+      p.style.overflowY = 'visible'
+    }
+    p = p.parentElement
+  }
   try {
     const dataUrl = await toPng(el, {
       backgroundColor: document.documentElement.classList.contains('light') ? '#faf8f5' : '#0f172a',
       pixelRatio: 2,
-      style: {
-        padding: '12px',
-        fontSize: '15px',
-        lineHeight: '1.8',
-      },
       filter: (node) => {
         if (node.tagName === 'BUTTON') return false
         return true
