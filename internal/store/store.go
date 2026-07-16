@@ -201,16 +201,6 @@ type AdStore interface {
 	GetTotalAdWatchCount() (int64, error)
 }
 
-// OrderStore 订单操作
-type OrderStore interface {
-	CreateOrder(userID int64, product *OrderProduct, outTradeNo, codeURL string) (*Order, error)
-	GetOrder(id int64) (*Order, error)
-	GetOrderByOutTradeNo(outTradeNo string) (*Order, error)
-	ListOrders(userID int64, limit, offset int) ([]Order, error)
-	MarkOrderPaid(id int64, prepayID string) error
-	UpdateCodeURL(id int64, codeURL string) error
-}
-
 // Store 组合接口（向后兼容）
 type Store interface {
 	UserStore
