@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"sync"
@@ -312,8 +313,8 @@ func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ticket := fmt.Sprintf("wx_%d_%d", time.Now().UnixNano(), rand.Intn(10000))
-	redirectURI := fmt.Sprintf("https://zgjz.insightj.cn/api/auth/wechat-callback")
-	url := fmt.Sprintf(
+	redirectURI := url.QueryEscape("https://zgjz.insightj.cn/api/auth/wechat-callback")
+	qrURL := fmt.Sprintf(
 		"https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s",
 		h.wxOpenAppID, redirectURI, ticket,
 	)
@@ -329,7 +330,7 @@ func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"ticket":     ticket,
-		"qrcode_url": url,
+		"qrcode_url": qrURL,
 	})
 }
 
