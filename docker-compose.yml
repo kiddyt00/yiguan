@@ -12,6 +12,8 @@ services:
       - SERVER_PORT=8080
       - ADMIN_PHONE=${ADMIN_PHONE}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - WX_OPEN_APPID=${WX_OPEN_APPID}
+      - WX_OPEN_SECRET=${WX_OPEN_SECRET}
     volumes:
       - ./data:/data
       - ./logs:/app/logs

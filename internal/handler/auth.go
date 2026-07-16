@@ -312,7 +312,7 @@ func (h *AuthHandler) wechatQRCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ticket := fmt.Sprintf("wx_%d_%d", time.Now().UnixNano(), rand.Intn(10000))
-	redirectURI := fmt.Sprintf("https://49.235.108.61/api/auth/wechat-callback")
+	redirectURI := fmt.Sprintf("https://zgjz.insightj.cn/api/auth/wechat-callback")
 	url := fmt.Sprintf(
 		"https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s",
 		h.wxOpenAppID, redirectURI, ticket,
