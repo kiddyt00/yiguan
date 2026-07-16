@@ -38,28 +38,7 @@
       </div>
     </div>
 
-    <!-- 充值记录（简化） -->
-    <div class="rounded-2xl p-6" :class="isDark ? 'bg-stone-800/60' : 'bg-white border border-stone-100'">
-      <div class="flex items-center justify-between cursor-pointer" @click="showOrders = !showOrders">
-        <h3 class="text-sm font-bold" :class="isDark ? 'text-stone-200' : 'text-stone-700'">充值记录</h3>
-        <span class="text-xs" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ showOrders ? '收起' : '展开' }}</span>
-      </div>
-      <div v-if="showOrders" class="mt-3 space-y-1">
-        <div v-if="orders.length === 0" class="text-xs text-center py-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'">暂无记录</div>
-        <div v-for="o in orders" :key="o.id"
-          class="flex items-center justify-between py-2 px-3 rounded-lg text-xs"
-          :class="isDark ? 'bg-stone-700/40' : 'bg-stone-50'">
-          <div>
-            <span class="font-medium" :class="isDark ? 'text-stone-200' : 'text-stone-700'">{{ {trial:'尝鲜包',standard:'标准包',unlimited:'畅享包'}[o.product_id] || o.product_id }}</span>
-            <span class="ml-1.5" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ (o.amount/100).toFixed(0) }}元</span>
-            <span class="ml-2 text-2xs opacity-60" :class="isDark ? 'text-stone-500' : 'text-stone-400'">{{ formatTime(o.created_at) }}</span>
-          </div>
-          <span :class="o.status==='paid'?'text-green-500':o.status==='pending'?'text-amber-500':'text-red-400'">
-            {{ o.status==='paid'?'已到账':o.status==='pending'?'待支付':'失败' }}
-          </span>
-        </div>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -75,13 +54,6 @@ const form = ref({ nickname: '', address: '' })
 const saving = ref(false)
 const msg = ref('')
 const quota = ref(0)
-const orders = ref([])
-const showOrders = ref(false)
-
-function formatTime(ts) {
-  if (!ts) return ''
-  return new Date(ts).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-}
 
 onMounted(async () => {
   try {
@@ -89,10 +61,6 @@ onMounted(async () => {
     quota.value = data.remaining_quota || 0
     form.value.nickname = (data.user || data).nickname || ''
     form.value.address = (data.user || data).address || ''
-  } catch (e) {}
-  try {
-    const d = await apiGetJSON('/api/orders')
-    orders.value = d.items || []
   } catch (e) {}
 })
 
