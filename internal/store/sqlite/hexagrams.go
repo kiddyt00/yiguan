@@ -6,17 +6,31 @@ import (
 	"github.com/kiddyt00/yiguan/internal/store"
 )
 
-func (s *Store) ListAllHistory(limit, offset int, userID int64) ([]store.History, error) {
-	var rows *sql.Rows
-	var err error
-	query := `SELECT h.id, h.user_id, u.nickname, h.question, h.primary_gua, h.changing_gua,
+func (s *Store) ListAllHistory(limit, offset int, userID int64, keyword, dateFrom, dateTo string) ([]store.History, error) {
+	base := `SELECT h.id, h.user_id, u.nickname, h.question, h.primary_gua, h.changing_gua,
 	           h.yao_positions, h.primary_yao, h.changing_yao, h.toss_data, h.master_yao, h.interpretation, h.lang, h.created_at
 	          FROM history h LEFT JOIN users u ON h.user_id = u.id`
+	where := " WHERE 1=1"
+	var args []interface{}
 	if userID > 0 {
-		rows, err = s.db.Query(query+` WHERE h.user_id = ? ORDER BY h.id DESC LIMIT ? OFFSET ?`, userID, limit, offset)
-	} else {
-		rows, err = s.db.Query(query+` ORDER BY h.id DESC LIMIT ? OFFSET ?`, limit, offset)
+		where += " AND h.user_id = ?"
+		args = append(args, userID)
 	}
+	if keyword != "" {
+		where += " AND (h.question LIKE ? OR h.primary_gua LIKE ? OR h.changing_gua LIKE ? OR u.nickname LIKE ?)"
+		kw := "%" + keyword + "%"
+		args = append(args, kw, kw, kw, kw)
+	}
+	if dateFrom != "" {
+		where += " AND date(h.created_at) >= ?"
+		args = append(args, dateFrom)
+	}
+	if dateTo != "" {
+		where += " AND date(h.created_at) <= ?"
+		args = append(args, dateTo)
+	}
+	args = append(args, limit, offset)
+	rows, err := s.db.Query(base+where+` ORDER BY h.id DESC LIMIT ? OFFSET ?`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +45,32 @@ func (s *Store) ListAllHistory(limit, offset int, userID int64) ([]store.History
 		list = append(list, h)
 	}
 	return list, rows.Err()
+}
+
+func (s *Store) CountAllHistory(userID int64, keyword, dateFrom, dateTo string) (int64, error) {
+	base := `SELECT COUNT(*) FROM history h LEFT JOIN users u ON h.user_id = u.id`
+	where := " WHERE 1=1"
+	var args []interface{}
+	if userID > 0 {
+		where += " AND h.user_id = ?"
+		args = append(args, userID)
+	}
+	if keyword != "" {
+		where += " AND (h.question LIKE ? OR h.primary_gua LIKE ? OR h.changing_gua LIKE ? OR u.nickname LIKE ?)"
+		kw := "%" + keyword + "%"
+		args = append(args, kw, kw, kw, kw)
+	}
+	if dateFrom != "" {
+		where += " AND date(h.created_at) >= ?"
+		args = append(args, dateFrom)
+	}
+	if dateTo != "" {
+		where += " AND date(h.created_at) <= ?"
+		args = append(args, dateTo)
+	}
+	var count int64
+	err := s.db.QueryRow(base+where, args...).Scan(&count)
+	return count, err
 }
 
 func (s *Store) GetHistoryByID(id int64) (*store.History, error) {

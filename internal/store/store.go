@@ -150,7 +150,8 @@ type HistoryStore interface {
 	GetHistory(userID int64, limit, offset int) ([]History, error)
 	GetHistoryCount(userID int64) (int64, error)
 
-	ListAllHistory(limit, offset int, userID int64) ([]History, error)
+	ListAllHistory(limit, offset int, userID int64, keyword, dateFrom, dateTo string) ([]History, error)
+	CountAllHistory(userID int64, keyword, dateFrom, dateTo string) (int64, error)
 	GetHistoryByID(id int64) (*History, error)
 	DeleteHistory(id int64) error
 	GetUserHistory(userID int64, limit, offset int) ([]History, error)
