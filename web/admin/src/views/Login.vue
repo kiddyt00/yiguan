@@ -7,11 +7,13 @@
     </div>
 
     <div class="relative z-10 w-full max-w-md px-4">
-      <!-- Logo 区 -->
+      <!-- Logo & Branding -->
       <div class="text-center mb-8">
-        <div class="text-5xl mb-3">☯</div>
-        <h1 class="text-2xl font-bold text-white">易观后台管理</h1>
-        <p class="text-slate-400 text-sm mt-2">AI 智能解卦平台</p>
+        <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-amber-100/20 backdrop-blur flex items-center justify-center border border-amber-500/20 shadow-lg shadow-amber-500/5">
+          <span class="text-5xl">☯</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-wide">易观后台管理</h1>
+        <p class="text-amber-400/70 text-sm mt-2 font-light">AI 智能解卦平台 v2.1</p>
       </div>
 
       <!-- 登录卡片 -->

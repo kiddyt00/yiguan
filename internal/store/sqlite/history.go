@@ -84,3 +84,23 @@ func (s *Store) GetTodayDivineCount() (int64, error) {
 	).Scan(&count)
 	return count, err
 }
+
+// GetDailyDivineTrend 近7天每日起卦趋势
+func (s *Store) GetDailyDivineTrend() (map[string]int64, error) {
+	trend := make(map[string]int64)
+	rows, err := s.db.Query(`
+		SELECT date(created_at) as d, COUNT(*) FROM history
+		WHERE created_at >= date('now', '-6 days')
+		GROUP BY d ORDER BY d`)
+	if err != nil {
+		return trend, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var d string
+		var c int64
+		rows.Scan(&d, &c)
+		trend[d] = c
+	}
+	return trend, rows.Err()
+}
