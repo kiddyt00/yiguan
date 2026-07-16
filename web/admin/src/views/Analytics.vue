@@ -70,8 +70,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { adminApi } from '../api'
 import { ElMessage } from 'element-plus'
+import { use } from 'echarts/core'
+import { BarChart, LineChart, PieChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
-import 'echarts'
+use([BarChart, LineChart, PieChart, GridComponent, TooltipComponent, CanvasRenderer])
 
 const analytics = ref({})
 
