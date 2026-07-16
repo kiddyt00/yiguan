@@ -3,10 +3,10 @@
     <div class="page-header"><h2>卦象任务管理</h2></div>
     <el-card shadow="never" class="filter-bar">
       <el-row :gutter="8">
-        <el-col :span="4"><el-input v-model="kw" placeholder="问题/卦名/用户" clearable @keyup.enter="load" /></el-col>
-        <el-col :span="3"><el-input v-model="uid" placeholder="用户ID" clearable @keyup.enter="load" /></el-col>
-        <el-col :span="4"><el-input v-model="nickname" placeholder="用户昵称" clearable @keyup.enter="load" /></el-col>
-        <el-col :span="4"><el-input v-model="guaName" placeholder="本卦/变卦名" clearable @keyup.enter="load" /></el-col>
+        <el-col :span="4"><el-input v-model="kw" placeholder="问题/卦名/用户" clearable @keydown="onEnter" /></el-col>
+        <el-col :span="3"><el-input v-model="uid" placeholder="用户ID" clearable @keydown="onEnter" /></el-col>
+        <el-col :span="4"><el-input v-model="nickname" placeholder="用户昵称" clearable @keydown="onEnter" /></el-col>
+        <el-col :span="4"><el-input v-model="guaName" placeholder="本卦/变卦名" clearable @keydown="onEnter" /></el-col>
         <el-col :span="5"><el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" style="width:100%" @change="load" /></el-col>
         <el-col :span="4" class="text-right"><el-button type="primary" @click="load">搜索</el-button></el-col>
       </el-row>
@@ -76,6 +76,7 @@ const items=ref([]),total=ref(0),page=ref(1),pageSize=ref(20),loading=ref(false)
 const kw=ref(''),uid=ref(''),nickname=ref(''),guaName=ref(''),dr=ref(null),dv=ref(false),dl=ref(null)
 const pt=computed(()=>{if(!dl.value?.toss_data)return[];try{return JSON.parse(dl.value.toss_data)}catch{return[]}})
 onMounted(()=>ld())
+function onEnter(e){if(e.key==='Enter')load()}
 async function ld(){loading.value=true;try{const p={limit:pageSize.value,offset:(page.value-1)*pageSize.value};if(kw.value||nickname.value||guaName.value){p.keyword=[kw.value,nickname.value,guaName.value].filter(Boolean).join(' ')};if(uid.value)p.user_id=uid.value;if(dr.value){p.date_from=formatDateStr(dr.value[0]);p.date_to=formatDateStr(dr.value[1])};const d=await adminApi.hexagrams(p);items.value=d.items||[];total.value=d.total||0}catch(e){ElMessage.error('加载失败: '+e.message)}finally{loading.value=false}}
 function formatDateStr(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
 function sd(r){dl.value=r;dv.value=true}
