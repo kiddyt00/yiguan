@@ -30,15 +30,20 @@
             :class="remainingQuota > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-red-400' : 'text-red-600')">
             {{ remainingQuota > 0 ? t('quota.remaining', { n: remainingQuota }) : t('quota.depleted') }}
           </span>
+          <router-link v-if="auth.isLoggedIn()" to="/recharge"
+            class="text-xs px-2 py-1 rounded-full transition"
+            :class="isDark ? 'text-amber-300 bg-amber-500/10 hover:bg-amber-500/20' : 'text-amber-700 bg-amber-100 hover:bg-amber-200'">
+            💎 充值
+          </router-link>
         </div>
 
         <!-- 次数已用完提示 -->
         <div v-if="remainingQuota === 0" class="mt-4 p-4 rounded-lg text-sm space-y-2"
           :class="isDark ? 'bg-slate-800/60 text-stone-300' : 'bg-stone-100 text-stone-600'">
           <p class="font-medium">{{ t('quota.depleted') }}</p>
-          <button class="block w-full py-2 rounded-lg transition text-amber-400 hover:text-amber-300 text-xs">
-            {{ t('quota.recharge', { price: '9.9', n: 10 }) }}
-          </button>
+          <router-link to="/recharge" class="block w-full py-2 rounded-lg transition text-amber-400 hover:text-amber-300 text-xs font-medium border border-amber-500/30 hover:bg-amber-500/10">
+            💎 {{ t('quota.recharge', { price: '9.9', n: 10 }) }}
+          </router-link>
           <button class="block w-full py-2 rounded-lg transition opacity-50 text-xs">📺 {{ t('quota.watch_ad') }}</button>
           <button class="block w-full py-2 rounded-lg transition opacity-50 text-xs">💬 {{ t('quota.share') }}</button>
         </div>
