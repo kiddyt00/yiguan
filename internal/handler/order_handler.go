@@ -40,22 +40,22 @@ func NewOrderHandler(st store.Store, mchID, apiKey, appID, notifyURL string) *Or
 	}
 }
 
-// products 商品定义
+// products 商品定义（与前端 Recharge.vue 一致）
 var products = map[string]*store.OrderProduct{
-	"basic_quota_1": {
-		ProductID: "basic_quota_1",
-		Amount:    100,   // 1 元 = 100 分
-		Quota:     1,
+	"trial": {
+		ID:     "trial",
+		Amount: 500,
+		Quota:  10,
 	},
-	"basic_quota_3": {
-		ProductID: "basic_quota_3",
-		Amount:    200, // 2 元
-		Quota:     3,
+	"standard": {
+		ID:     "standard",
+		Amount: 2000,
+		Quota:  50,
 	},
-	"basic_quota_10": {
-		ProductID: "basic_quota_10",
-		Amount:    500, // 5 元
-		Quota:     10,
+	"unlimited": {
+		ID:     "unlimited",
+		Amount: 6000,
+		Quota:  200,
 	},
 }
 
