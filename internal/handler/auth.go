@@ -50,9 +50,11 @@ func NewAuthHandler(st store.Store, jwtSecret string) *AuthHandler {
 	h.mux.HandleFunc("POST /api/auth/wechat-login", h.wechatLogin)
 	h.mux.HandleFunc("POST /api/auth/sms-send", h.smsSend)
 	h.mux.HandleFunc("POST /api/auth/sms-login", h.smsLogin)
+	h.mux.HandleFunc("GET /api/auth/wechat-appid", h.wechatAppID)
 	h.mux.HandleFunc("GET /api/auth/wechat-qrcode", h.wechatQRCode)
 	h.mux.HandleFunc("GET /api/auth/wechat-callback", h.wechatCallback)
 	h.mux.HandleFunc("GET /api/auth/wechat-check", h.wechatCheck)
+	h.mux.HandleFunc("POST /api/auth/wechat-code", h.wechatCode)
 	return h
 }
 
@@ -303,6 +305,67 @@ type wechatUserInfo struct {
 	Sex      int    `json:"sex"`
 	ErrCode  int    `json:"errcode"`
 	ErrMsg   string `json:"errmsg"`
+}
+
+// wechatAppID 返回微信开放平台 AppID（供前端 wxLogin.js 使用）
+func (h *AuthHandler) wechatAppID(w http.ResponseWriter, r *http.Request) {
+	if h.wxOpenAppID == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "微信开放平台未配置"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"appid": h.wxOpenAppID})
+}
+
+// wechatCode 接收前端回调页传来的 code，换 openid 并返回 JWT
+func (h *AuthHandler) wechatCode(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Code == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 code"})
+		return
+	}
+
+	// 用 code 换 access_token + openid
+	token, err := h.exchangeOpenCode(req.Code)
+	if err != nil {
+		log.Printf("微信开放平台 code 换 token 失败: %v", err)
+		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败"})
+		return
+	}
+
+	// 获取微信用户信息（昵称、头像）
+	userInfo, err := h.fetchWechatUserInfo(token)
+	nickname := "微信用户"
+	wxAvatar := ""
+	wxSex := 0
+	if err == nil && userInfo != nil {
+		if userInfo.Nickname != "" {
+			nickname = userInfo.Nickname
+		}
+		wxAvatar = userInfo.Avatar
+		wxSex = userInfo.Sex
+	}
+
+	// 查找或创建用户
+	user, err := h.store.GetUserByOpenID(token.OpenID)
+	if err != nil {
+		user, err = h.store.CreateUserByOpenID(token.OpenID, nickname, wxAvatar)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建用户失败"})
+			return
+		}
+	} else {
+		_ = h.store.UpdateUserWechatInfo(user.ID, nickname, wxAvatar)
+	}
+	if wxSex > 0 {
+		_ = h.store.UpdateUserGender(user.ID, wxSex)
+	}
+
+	jwtToken, _ := h.generateToken(user.ID, user.Role)
+	fillUserAvatar(user)
+	user.Password = ""
+	writeJSON(w, http.StatusOK, authResp{User: user, Token: jwtToken})
 }
 
 // wechatQRCode 生成扫码登录 URL
