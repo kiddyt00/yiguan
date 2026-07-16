@@ -345,45 +345,58 @@ function goHome() {
   router.push('/')
 }
 
-async function saveAsImage() {
-  const text = filterText(data.value?.interpretation || '')
-  if (!text) return
-  const md = marked.parse(text)
-  const dark = document.documentElement.classList.contains('light') ? false : true
-  try { const url = await captureOffscreen(md, question, dark); const a = document.createElement('a'); a.download = '观己斋-结果.png'; a.href = url; a.click() }
-  catch (e) { console.error(e) }
+function el(t,a){ return '<'+t+(a?' '+a:'')+'>' }
+function el2(t,a,c){ return el(t,a)+c+'</'+t+'>' }
+
+function buildHexHTML(g, dk) {
+  if (!g||!g.primary) return ''
+  var sc='#d4a853', cr=dk?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.03)', c2=dk?'rgba(212,168,83,0.1)':'rgba(180,100,30,0.08)', bg=dk?'#9ca3af':'#78716c'
+  var st='display:inline-block;padding:14px 20px;border-radius:10px;text-align:center'
+  var s1='font-size:12px;color:'+bg, s2='font-size:14px;font-weight:700;color:'+sc+';margin-top:4px', s3='font-size:28px;margin:4px 0'
+  var p=el2('div','style="'+st+';background:'+cr+'"',el2('div','style="'+s1+'"','本卦')+el2('div','style="'+s2+'"',g.primary.name||'')+el2('div','style="'+s3+'"',g.primary.symbol||''))
+  var c=g.changing?el2('div','style="'+st+';background:'+c2+'"',el2('div','style="'+s1+'"','变卦')+el2('div','style="'+s2+'"',g.changing.name||'')+el2('div','style="'+s3+'"',g.changing.symbol||'')):''
+  var yy=''
+  if(g.yaoPositions&&g.yaoPositions.length) yy=el2('div','style="text-align:center;margin:10px 0 16px"',el2('span','style="display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;background:'+(dk?'rgba(220,38,38,0.2)':'rgba(220,38,38,0.08)')+';color:'+(dk?'#fca5a5':'#dc2626')+'"','变爻: '+g.yaoPositions.map(function(y){return y.position}).join(',')+(g.masterYao!==null?' | 主变爻: '+(g.masterYao+1):'')))
+  return el2('div','style="text-align:center;margin-bottom:20px"',el2('div','style="display:flex;justify-content:center;gap:14px"',p+c)+yy)
 }
-  // 离屏容器截图：HTML string
-  function capHTML(md, q, dk) {
-    var bg = dk ? '#0f172a' : '#faf8f5', tc = dk ? '#e2e8f0' : '#292524', sc = '#d4a853', dt = new Date().toLocaleDateString('zh-CN')
-    var s = 'font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Noto Sans SC\',sans-serif;background:'+bg+';color:'+tc+';padding:32px;font-size:15px;line-height:1.8'
-    var h = function(t,d){ return '<'+t+'>'+(d||'')+'</'+t+'>' }
-    var r = h('div','style="'+s+'"') + h('div','style="text-align:center;margin-bottom:24px"') + h('div','style="font-size:36px"', '☯') + h('div','style="font-size:20px;font-weight:700;color:'+sc+';margin-top:4px"', '观己斋 · 易观') + h('div','style="font-size:12px;color:'+(dk?'#9ca3af':'#78716c')+';margin-top:2px"', 'AI 周易占筮 · '+dt)
-    if (q) r += h('div','style="border:1px solid '+sc+'30;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px"', (h('strong','style="color:'+sc+'"', '所求：') + q))
-    r += md + h('div','style="text-align:center;margin-top:28px;font-size:11px;color:'+(dk?'#6b7280':'#a8a29e')+'"', '观己斋 · 易观')
-    return r
-  }
-  async function captureOffscreen(mdHtml, q, dk) {
-    const frame = document.createElement('iframe')
-    frame.style.cssText = 'position:fixed;left:-9999px;top:0;width:600px;height:1px;border:none'
-    document.body.appendChild(frame)
-    const html = buildCaptureHTML(mdHtml, q, dk)
-    const blob = new Blob([html], {type:'text/html'}), url = URL.createObjectURL(blob)
-    frame.src = url
-    return new Promise((r,rej) => {
-      frame.onload = async () => {
-        try { r(await toPng(frame, {backgroundColor: dk ? '#0f172a' : '#faf8f5', pixelRatio: 2})) }
-        catch(e) { rej(e) }
-        finally { document.body.removeChild(frame); URL.revokeObjectURL(url) }
-      }
-    })
-  }
-  async function captureResult() {
-  const text = filterText(data.value?.interpretation || '')
+
+async function saveAsImage() {
+  var t=filterText(data.value?.interpretation||''); if(!t)return
+  var hx=buildHexHTML(guaResult.value,document.documentElement.classList.contains('light')?false:true)
+  var md=marked.parse(t), dk=document.documentElement.classList.contains('light')?false:true
+  try{var u=await capOff(hx+md,questionRef.value,dk);var a=document.createElement('a');a.download='观己斋-结果.png';a.href=u;a.click()}catch(e){console.error(e)}
+}
+
+function capHTML(body,q,dk){
+  var bg=dk?'#0f172a':'#faf8f5',tc=dk?'#e2e8f0':'#292524',sc='#d4a853',dt=new Date().toLocaleDateString('zh-CN')
+  var s='font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Noto Sans SC\',sans-serif;background:'+bg+';color:'+tc+';padding:32px;font-size:15px;line-height:1.8'
+  return el2('div','style="'+s+'"',
+    el2('div','style="text-align:center;margin-bottom:24px"',
+      el2('div','style="font-size:36px"','\u262f')+
+      el2('div','style="font-size:20px;font-weight:700;color:'+sc+';margin-top:4px"','\u89c2\u5df1\u658b \u00b7 \u6613\u89c2')+
+      el2('div','style="font-size:12px;color:'+(dk?'#9ca3af':'#78716c')+';margin-top:2px"','AI \u5468\u6613\u5360\u7b56 \u00b7 '+dt)
+    )+
+    (q?el2('div','style="border:1px solid '+sc+'30;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:'+tc+'"',el2('strong','style="color:'+sc+'"','\u6240\u6c42\uff1a')+q):'')+
+    body+
+    el2('div','style="text-align:center;margin-top:28px;font-size:11px;color:'+(dk?'#6b7280':'#a8a29e')+'"','\u89c2\u5df1\u658b \u00b7 \u6613\u89c2')
+  )
+}
+
+async function capOff(body,q,dk){
+  var f=document.createElement('iframe');f.style.cssText='position:fixed;left:-9999px;top:0;width:600px;height:1px;border:none'
+  document.body.appendChild(f)
+  var full=capHTML(body,q,dk),blob=new Blob([full],{type:'text/html'}),url=URL.createObjectURL(blob)
+  f.src=url
+  return new Promise(function(r,rej){f.onload=async function(){try{r(await toPng(f,{backgroundColor:dk?'#0f172a':'#faf8f5',pixelRatio:2}))}catch(e){rej(e)}finally{document.body.removeChild(f);URL.revokeObjectURL(url)}}})
+}
+
+async function captureResult() {
+  var text = filterText(data.value?.interpretation || '')
   if (!text) return
-  const md = marked.parse(text)
-  const dark = document.documentElement.classList.contains('light') ? false : true
-  try { resultImage.value = await captureOffscreen(md, question, dark) }
+  var hexHtml = buildHexHTML(guaResult.value, document.documentElement.classList.contains('light') ? false : true)
+  var md = marked.parse(text)
+  var dark = document.documentElement.classList.contains('light') ? false : true
+  try { resultImage.value = await captureOffscreen(hexHtml + md, questionRef.value, dark) }
   catch (e) { console.error(e) }
 }
 
