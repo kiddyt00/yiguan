@@ -5,6 +5,11 @@ services:
       dockerfile: Dockerfile.backend
     container_name: yiguan-backend
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - DB_PATH=/data/yiguan.db
       - JWT_SECRET=${JWT_SECRET}
@@ -30,6 +35,11 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: yiguan-frontend
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "${HTTP_PORT:-8080}:80"
     depends_on:
