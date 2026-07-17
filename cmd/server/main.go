@@ -220,7 +220,11 @@ func main() {
 	if payNotifyURL == "" {
 		payNotifyURL = "https://zgjz.insightj.cn/api/orders/notify"
 	}
-	orderHandler := handler.NewOrderHandler(st, mchID, payKey, os.Getenv("WX_OPEN_APPID"), payNotifyURL)
+	payAppID := os.Getenv("WX_PAY_APPID")
+	if payAppID == "" {
+		payAppID = os.Getenv("WX_OPEN_APPID")
+	}
+	orderHandler := handler.NewOrderHandler(st, mchID, payKey, payAppID, payNotifyURL)
 	mux.Handle("POST /api/orders/create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateOrder))))
 	mux.Handle("GET /api/orders/{id}", authMW(corsWrap(http.HandlerFunc(orderHandler.GetOrder))))
 	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
