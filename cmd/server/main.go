@@ -226,6 +226,7 @@ func main() {
 	}
 	orderHandler := handler.NewOrderHandler(st, mchID, payKey, payAppID, payNotifyURL)
 	mux.Handle("POST /api/orders/create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateOrder))))
+	mux.Handle("POST /api/orders/jsapi-create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateJSAPIOrder))))
 	mux.Handle("GET /api/orders/{id}", authMW(corsWrap(http.HandlerFunc(orderHandler.GetOrder))))
 	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
 	mux.Handle("POST /api/orders/notify", corsWrap(http.HandlerFunc(orderHandler.WechatNotify)))
