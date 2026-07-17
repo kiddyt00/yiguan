@@ -138,13 +138,31 @@ function drawQR(url) {
   const container = document.getElementById('pay-qrcode')
   if (!container) return
   container.innerHTML = ''
-  // 用 qrcode-generator 本地生成二维码
   try {
     const qr = QRCodeGen(0, 'L')
     qr.addData(url)
     qr.make()
+    // 手动渲染二维码到 canvas
+    const mods = qr.getModuleCount()
+    const cellSize = 200 / (mods + 8)  // +8 给 margin 留空间
+    const margin = cellSize * 4
+    const size = mods * cellSize + margin * 2
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, size, size)
+    ctx.fillStyle = '#000000'
+    for (let r = 0; r < mods; r++) {
+      for (let c = 0; c < mods; c++) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect(margin + c * cellSize, margin + r * cellSize, cellSize, cellSize)
+        }
+      }
+    }
     const img = document.createElement('img')
-    img.src = qr.createDataURL(8, 2)
+    img.src = canvas.toDataURL('image/png')
     img.alt = '微信支付二维码'
     img.width = 200
     img.height = 200
