@@ -17,9 +17,9 @@
         @click="select(p.id)">
         <div class="text-2xl mb-1">{{ p.icon }}</div>
         <div class="font-bold text-lg" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ p.name }}</div>
-        <div class="text-2xl font-bold text-amber-600 my-1">{{ (p.amount / 100).toFixed(0) }}<span class="text-sm font-normal">元</span></div>
+        <div class="text-2xl font-bold text-amber-600 my-1">{{ price(p.amount) }}<span class="text-sm font-normal">元</span></div>
         <div class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ p.quota }} 次</div>
-        <div class="text-xs mt-1" :class="isDark ? 'text-stone-500' : 'text-stone-400'">≈ {{ (p.amount / 100 / p.quota * 100).toFixed(1) }}元/次</div>
+        <div class="text-xs mt-1" :class="isDark ? 'text-stone-500' : 'text-stone-400'">≈ {{ (p.amount / p.quota).toFixed(1) }}分/次</div>
       </div>
     </div>
 
@@ -48,14 +48,14 @@
       :class="loading
         ? 'bg-amber-500 text-white cursor-wait'
         : 'bg-amber-600 text-white hover:bg-amber-500 active:bg-amber-700'">
-      {{ loading ? '处理中...' : '微信支付 ' + (selectedProduct ? '¥' + (selectedProduct.amount/100).toFixed(0) : '') }}
+      {{ loading ? '处理中...' : '微信支付 ' + (selectedProduct ? '¥' + price(selectedProduct.amount) : '') }}
     </button>
 
     <!-- 二维码弹窗 -->
     <div v-if="showQR" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="closeQR">
       <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl">
         <div class="text-lg font-bold text-stone-800 mb-1">微信支付</div>
-        <div class="text-sm text-stone-500 mb-4">{{ selectedProduct?.name }} · ¥{{ selectedProduct ? (selectedProduct.amount/100).toFixed(0) : '' }}</div>
+        <div class="text-sm text-stone-500 mb-4">{{ selectedProduct?.name }} · ¥{{ selectedProduct ? price(selectedProduct.amount) : '' }}</div>
         <div id="pay-qrcode" class="inline-block bg-white p-3 rounded-xl border"></div>
         <p class="text-sm text-stone-500 mt-4">请使用微信扫描二维码支付</p>
         <p class="text-xs text-stone-400 mt-1">支付后自动到账，请勿关闭页面</p>
@@ -83,6 +83,8 @@ import { apiGetJSON, apiPostJSON } from '../utils/request'
 
 const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
+
+function price(amount) { return (amount / 100).toFixed(amount < 100 ? 2 : 0) }
 
 const products = [
   { id: 'test', name: '测试包', quota: 1, amount: 1, icon: '🧪' },
