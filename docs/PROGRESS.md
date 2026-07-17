@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-07-16
+> 最后更新：2026-07-17
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -124,6 +124,74 @@ WX_OPEN_***REMOVED***
 
 ---
 
+### 2026-07-17 — 支付系统：微信支付修复 + JSAPI 小程序支付 + 支付宝准备
+
+#### 背景
+从微信扫码登录上线后，开始推进支付系统。修复了前端支付弹窗二维码渲染问题，新增小程序 JSAPI 支付，并规划支付宝扫码支付接入。
+
+#### 完成事项
+
+| # | 事项 | 文件 | 说明 |
+|---|---|---|---|
+| 1 | 修复截图离屏渲染 | `ResultView.vue` | 离屏容器渲染解决内容截断和 `overflow:hidden` 问题 |
+| 2 | 前端金额显示 ¥0.01 | `Recharge.vue` | 支持测试包 1 分钱金额显示 |
+| 3 | 支付二维码渲染修复 | `Recharge.vue` | **Vue `v-if` + `nextTick` 时序坑**（详见下方） |
+| 4 | `WX_PAY_APPID` 环境变量 | `docker-compose.yml` | 与 `WX_OPEN_APPID` 解耦，小程序支付独立 appid |
+| 5 | `qrcodejs` 本地化 | `web/front/index.html` | 从 CDN → 本地打包，避免国内 CDN 加载失败 |
+| 6 | 微信支付响应日志 | `order_handler.go` | 完整记录下单请求/响应日志便于排查 |
+| 7 | 新增测试包 (`¥0.01`) | `order_handler.go` | `products` map 加入 `"test"` 商品用于测试 |
+| 8 | **JSAPI 小程序支付后端** | `order_handler.go` | 统一下单重构 + 小程序支付接口 |
+| 9 | Vue nextTick 陷阱记录 | `AGENTS.md` | 记录典型陷阱供后续 Agent 参考 |
+
+#### 核心坑点：Vue `v-if` + DOM 操作时序
+
+**现象：** 支付弹窗点击后二维码不渲染，控制台无报错。
+
+**根因：**
+```
+showQR.value = true          ← v-if 触发 DOM 渲染
+// Vue 的 DOM 更新是异步的，这里 DOM 还没创建
+document.getElementById('pay-qrcode') → null  → 静默失败
+```
+
+**修复：**
+```js
+showQR.value = true
+await nextTick()             ← 等 Vue 完成 DOM 更新
+document.getElementById('pay-qrcode')  → 找到元素 ✅
+```
+
+⚠️ 花了大量时间排查 QR 库/CDN/构建/后端，根因就是少了一个 `nextTick`。
+
+#### JSAPI 小程序支付
+
+| 接口 | 说明 |
+|---|---|
+| `POST /api/orders/jsapi-create` | 小程序统一下单，返回 JSAPI 调起支付参数（`appId`、`timeStamp`、`nonceStr`、`package`、`paySign`） |
+
+**架构变化：** 原来 `wechatPayNative()` 直接调微信 API，重构为 `unifiedOrder()` 共用方法，参数化 `trade_type=NATIVE|JSAPI` 和 `openid`。
+
+#### 支付宝扫码支付 — 规划中
+
+| 事项 | 状态 |
+|---|---|
+| 资料准备清单 | ✅ 已整理下发（见下方待办） |
+| 后端下单 + 回调 | ⏳ 待资料齐全后开发 |
+| 前端支付切换 | ⏳ 待后端完成后对接 |
+
+**需准备的资料：** AppID、应用私钥、支付宝公钥（企业商户，应用名：真观己斋）
+
+#### 环境变量新增
+
+| 变量 | 用途 |
+|---|---|
+| `WX_PAY_MCHID` | 微信支付商户号 |
+| `WX_PAY_API_KEY` | 微信支付 API 密钥 |
+| `WX_PAY_APPID` | 微信支付 AppID（小程序支付用，与 `WX_OPEN_APPID` 可不同） |
+| `WX_PAY_NOTIFY_URL` | 微信支付回调地址（默认 `https://zgjz.insightj.cn/api/orders/notify`） |
+
+---
+
 ## 四、API 概览（用户端）
 
 | 方法 | 路径 | 说明 | 鉴权 |
@@ -140,6 +208,11 @@ WX_OPEN_***REMOVED***
 | POST | `/api/divine/stream` | 流式起卦解卦 (SSE) | Bearer Token |
 | GET | `/api/history` | 历史算卦记录 | Bearer Token |
 | GET/POST | `/api/history/{id}/translate` | 翻译 AI 解读 | Bearer Token |
+| POST | `/api/orders/create` | 微信支付 Native 下单（Web 扫码） | Bearer Token |
+| POST | `/api/orders/jsapi-create` | 微信支付 JSAPI 下单（小程序） | Bearer Token |
+| GET | `/api/orders/{id}` | 查询订单详情 | Bearer Token |
+| GET | `/api/orders` | 订单列表 | Bearer Token |
+| POST | `/api/orders/notify` | 微信支付回调通知 | 否（微信服务器回调） |
 
 管理后台 API 见后端代码 `cmd/server/main.go`。
 
@@ -150,6 +223,10 @@ WX_OPEN_***REMOVED***
 ### ⚠️ 急迫事项
 - [ ] **SSL 证书续期** — `zgjz.insightj.cn` 证书 2026-09-14 到期（acme.sh 自动续期，无需手动）
 - [ ] **短信服务接入** — 当前验证码仅打印日志，未接入真实短信服务
+- [ ] **支付宝扫码支付接入** — 后端下单 + 回调通知 + 前端支付切换
+  - 需要资料：AppID、应用私钥、支付宝公钥（企业商户，应用名：真观己斋）
+  - 后端进度：0%（待资料齐全后开发）
+  - 前端进度：占位按钮已渲染，`disabled` 状态
 
 ### ✅ 安全加固
 - [x] ~~修复 5 处 err.Error() 泄露~~ ✅ 已统一替换为通用提示
@@ -160,7 +237,8 @@ WX_OPEN_***REMOVED***
 
 ### 📝 开发备忘
 - 后端无第三方框架，路由在 `cmd/server/main.go` 中硬编码
-- 微信配置通过环境变量注入，不用 `config.yaml`
+- 微信配置/支付配置通过环境变量注入，不用 `config.yaml`
+- 支付环境变量：`WX_PAY_MCHID`、`WX_PAY_API_KEY`、`WX_PAY_APPID`、`WX_PAY_NOTIFY_URL`
 - 小程序端 `miniapp/` 和 `miniapp-native/` 两个版本存在，API 地址写死为 `gjz.shadouyou.cloud`（需更新）
 - 本地开发：`make dev-backend` / `make dev-frontend` / `make dev-admin`
 - Docker 部署：`docker compose up -d --build`
@@ -170,13 +248,17 @@ WX_OPEN_***REMOVED***
 ### 给下一个 Agent 的交接信息
 
 ```
-当前最新 commit: 1a71f60 (2026-07-16)
+当前最新 commit: 17965d0 (2026-07-17 14:35)
 当前分支: main
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git
 生产服务器: 凭据在 1Password
 生产域名: https://zgjz.insightj.cn
 微信开放平台已配置: ✅
+微信扫码登录: ✅（wxLogin.js 官方 SDK）
+微信支付（Web 扫码）: ✅ 已上线
+微信支付（小程序 JSAPI）: ✅ 后端已完成，前端待对接
+支付宝扫码支付: ⏳ 规划中，待资料齐全后开发
 微信小程序已配置: ❌
 ```
 
@@ -199,7 +281,8 @@ yiguan/
 │   │   ├── ad_handler.go            # 广告
 │   │   ├── admin.go                 # 后台用户管理
 │   │   ├── analytics.go             # 后台统计数据
-│   │   └── translate_handler.go     # 翻译
+│   │   ├── translate_handler.go     # 翻译
+│   │   └── order_handler.go         # 订单（微信支付 Native + JSAPI）
 │   ├── middleware/
 │   │   └── auth.go                  # JWT 鉴权
 │   ├── llm/
