@@ -78,6 +78,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import QRCode from 'qrcode'
 import { useAuthStore } from '../stores/auth'
 import { apiGetJSON, apiPostJSON } from '../utils/request'
 
@@ -139,11 +140,11 @@ async function drawQR(url) {
   container.innerHTML = ''
   // 使用 qrcode 生成（已在前端项目中）
   try {
-    const QRCode = (await import('qrcode')).default
     const canvas = document.createElement('canvas')
     await QRCode.toCanvas(canvas, url, { width: 200, margin: 2 })
     container.appendChild(canvas)
-  } catch {
+  } catch (e) {
+    console.error('QRCode failed:', e)
     // fallback: 使用图片
     const img = document.createElement('img')
     img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
