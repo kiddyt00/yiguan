@@ -140,7 +140,7 @@ async function drawQR(url) {
   try {
     const QRCode = (await import('qrcode')).default
     const canvas = document.createElement('canvas')
-    QRCode.toCanvas(canvas, url, { width: 200, margin: 2 })
+    await QRCode.toCanvas(canvas, url, { width: 200, margin: 2 })
     container.appendChild(canvas)
   } catch {
     // fallback: 使用图片
