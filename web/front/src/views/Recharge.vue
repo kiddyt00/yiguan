@@ -79,6 +79,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+
 import { apiGetJSON, apiPostJSON } from '../utils/request'
 
 const props = defineProps({ isDark: Boolean })
@@ -137,12 +138,19 @@ async function drawQR(url) {
   const container = document.getElementById('pay-qrcode')
   if (!container) return
   container.innerHTML = ''
+  // 直接通过 img 标签显示二维码（api.qrserver + 国内替代）
   const img = document.createElement('img')
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
+  // 尝试国内可访问的 QR 码 API
+  const encoded = encodeURIComponent(url)
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded
   img.alt = '微信支付二维码'
   img.width = 200
   img.height = 200
   img.style.borderRadius = '8px'
+  // 如果 qrserver 图片加载失败，尝试其他源
+  img.onerror = function() {
+    if (!this.dataset.fallback) { this.dataset.fallback = '1'; this.src = 'https://myqrcode.com/api/v1/create?size=200&data=' + encoded }
+  }
   container.appendChild(img)
 }
 
