@@ -21,6 +21,7 @@ services:
       - WX_OPEN_SECRET=${WX_OPEN_SECRET}
       - WX_PAY_MCHID=${WX_PAY_MCHID}
       - WX_PAY_API_KEY=${WX_PAY_API_KEY}
+      - WX_PAY_APPID=${WX_PAY_APPID}
     volumes:
       - ./data:/data
       - ./logs:/app/logs
