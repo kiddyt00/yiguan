@@ -138,20 +138,23 @@ async function drawQR(url) {
   const container = document.getElementById('pay-qrcode')
   if (!container) return
   container.innerHTML = ''
-  // 直接通过 img 标签显示二维码（api.qrserver + 国内替代）
-  const img = document.createElement('img')
-  // 尝试国内可访问的 QR 码 API
-  const encoded = encodeURIComponent(url)
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded
-  img.alt = '微信支付二维码'
-  img.width = 200
-  img.height = 200
-  img.style.borderRadius = '8px'
-  // 如果 qrserver 图片加载失败，尝试其他源
-  img.onerror = function() {
-    if (!this.dataset.fallback) { this.dataset.fallback = '1'; this.src = 'https://myqrcode.com/api/v1/create?size=200&data=' + encoded }
+  // 用 esm.sh CDN（支持国内访问）加载 qrcode ESM 模块后生成二维码
+  try {
+    const mod = await import('https://esm.sh/qrcode@1.5.4?bundle')
+    const canvas = document.createElement('canvas')
+    await mod.toCanvas(canvas, url, { width: 200, margin: 2 })
+    container.appendChild(canvas)
+  } catch {
+    // fallback: 直接用图片
+    const img = document.createElement('img')
+    const encoded = encodeURIComponent(url)
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded
+    img.alt = '微信支付二维码'
+    img.width = 200
+    img.height = 200
+    img.style.borderRadius = '8px'
+    container.appendChild(img)
   }
-  container.appendChild(img)
 }
 
 function startPoll() {
