@@ -85,6 +85,7 @@ const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
 
 const products = [
+  { id: 'test', name: '测试包', quota: 1, amount: 1, icon: '🧪' },
   { id: 'trial', name: '尝鲜包', quota: 10, amount: 500, icon: '🔮' },
   { id: 'standard', name: '标准包', quota: 50, amount: 2000, icon: '🌟' },
   { id: 'unlimited', name: '畅享包', quota: 200, amount: 6000, icon: '👑' },

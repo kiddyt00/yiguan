@@ -361,7 +361,7 @@ function buildHexHTML(g, dk) {
 }
 
 async function saveAsImage() {
-  var t=filterText(data.value?.interpretation||''); if(!t)return
+  var t=filterText(aiText.value); if(!t)return
   var hx=buildHexHTML(guaResult.value,document.documentElement.classList.contains('light')?false:true)
   var md=marked.parse(t), dk=document.documentElement.classList.contains('light')?false:true
   try{var u=await capOff(hx+md,questionRef.value,dk);var a=document.createElement('a');a.download='观己斋-结果.png';a.href=u;a.click()}catch(e){console.error(e)}
@@ -391,7 +391,7 @@ async function capOff(body,q,dk){
 }
 
 async function captureResult() {
-  var text = filterText(data.value?.interpretation || '')
+  var text = filterText(aiText.value)
   if (!text) return
   var hexHtml = buildHexHTML(guaResult.value, document.documentElement.classList.contains('light') ? false : true)
   var md = marked.parse(text)
