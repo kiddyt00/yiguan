@@ -136,14 +136,19 @@ async function pay() {
 function drawQR(codeUrl) {
   const el = document.getElementById('pay-qrcode')
   if (!el) return
-  el.innerHTML = ''
+  el.innerHTML = '加载中..'
   if (!window.QRCode) {
     const s = document.createElement('script')
     s.src = '/qrcode.min.js'
-    s.onload = () => new window.QRCode(el, { text: codeUrl, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.H })
+    s.onload = function() {
+      try { new window.QRCode(el, { text: codeUrl, width: 200, height: 200 }); el.querySelector('img') && (el.querySelector('img').style.borderRadius = '8px') }
+      catch(e) { el.textContent = 'err:' + e.message }
+    }
+    s.onerror = function() { el.textContent = '加载QR库失败' }
     document.head.appendChild(s)
   } else {
-    new window.QRCode(el, { text: codeUrl, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.H })
+    new window.QRCode(el, { text: codeUrl, width: 200, height: 200 })
+    el.querySelector('img') && (el.querySelector('img').style.borderRadius = '8px')
   }
 }
 
