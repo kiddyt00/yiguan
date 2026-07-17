@@ -27,6 +27,7 @@ type OrderProduct struct {
 
 // 预定义套餐
 var Products = []OrderProduct{
+	{ID: "test", Name: "测试包", Quota: 1, Amount: 1},          // ¥0.01（仅测试）
 	{ID: "trial", Name: "尝鲜包", Quota: 10, Amount: 500},    // ¥5
 	{ID: "standard", Name: "标准包", Quota: 50, Amount: 2000}, // ¥20
 	{ID: "unlimited", Name: "畅享包", Quota: 200, Amount: 6000}, // ¥60
