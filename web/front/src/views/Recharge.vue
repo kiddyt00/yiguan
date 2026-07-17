@@ -116,11 +116,12 @@ async function pay() {
   loading.value = true
   try {
     const data = await apiPostJSON('/api/orders/create', { product_id: selected.value })
-    if (data.code_url) {
-      orderId.value = data.id
+    const codeUrl = data.code_url || (data.order && data.order.code_url)
+    if (codeUrl) {
+      orderId.value = data.id || (data.order && data.order.id)
       showQR.value = true
       qrStatus.value = 'pending'
-      await drawQR(data.code_url)
+      await drawQR(codeUrl)
       startPoll()
     } else {
       alert('创建订单失败')
