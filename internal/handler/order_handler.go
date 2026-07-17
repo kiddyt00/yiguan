@@ -42,18 +42,27 @@ func NewOrderHandler(st store.Store, mchID, apiKey, appID, notifyURL string) *Or
 
 // products 商品定义（与前端 Recharge.vue 一致）
 var products = map[string]*store.OrderProduct{
+	"test": {
+		ID:     "test",
+		Name:  "测试包",
+		Amount: 1,
+		Quota:  1,
+	},
 	"trial": {
 		ID:     "trial",
+		Name:   "尝鲜包",
 		Amount: 500,
 		Quota:  10,
 	},
 	"standard": {
 		ID:     "standard",
+		Name:   "标准包",
 		Amount: 2000,
 		Quota:  50,
 	},
 	"unlimited": {
 		ID:     "unlimited",
+		Name:   "畅享包",
 		Amount: 6000,
 		Quota:  200,
 	},
@@ -311,8 +320,11 @@ func (h *OrderHandler) wechatPayNative(product *store.OrderProduct, outTradeNo s
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	log.Printf("微信支付响应: %s", string(bodyBytes))
+
 	var payResp wechatPayResponse
-	if err := xml.NewDecoder(resp.Body).Decode(&payResp); err != nil {
+	if err := xml.Unmarshal(bodyBytes, &payResp); err != nil {
 		return "", fmt.Errorf("解析微信支付响应失败: %w", err)
 	}
 
