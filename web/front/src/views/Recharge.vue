@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { apiGetJSON, apiPostJSON } from '../utils/request'
 
@@ -121,6 +121,7 @@ async function pay() {
       orderId.value = data.id || (data.order && data.order.id)
       showQR.value = true
       qrStatus.value = 'pending'
+      await nextTick()
       drawQR(codeUrl)
       startPoll()
     } else {
