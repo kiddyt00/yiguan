@@ -79,8 +79,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-
 import { apiGetJSON, apiPostJSON } from '../utils/request'
+import QRCodeGen from '../utils/qrcode.mjs'
 
 const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
@@ -134,26 +134,25 @@ async function pay() {
   }
 }
 
-async function drawQR(url) {
+function drawQR(url) {
   const container = document.getElementById('pay-qrcode')
   if (!container) return
   container.innerHTML = ''
-  // 用 esm.sh CDN（支持国内访问）加载 qrcode ESM 模块后生成二维码
+  // 用 qrcode-generator 本地生成二维码
   try {
-    const mod = await import('https://esm.sh/qrcode@1.5.4?bundle')
-    const canvas = document.createElement('canvas')
-    await mod.toCanvas(canvas, url, { width: 200, margin: 2 })
-    container.appendChild(canvas)
-  } catch {
-    // fallback: 直接用图片
+    const qr = QRCodeGen(0, 'L')
+    qr.addData(url)
+    qr.make()
     const img = document.createElement('img')
-    const encoded = encodeURIComponent(url)
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded
+    img.src = qr.createDataURL(8, 2)
     img.alt = '微信支付二维码'
     img.width = 200
     img.height = 200
     img.style.borderRadius = '8px'
     container.appendChild(img)
+  } catch (e) {
+    console.error('QRCode failed:', e)
+    container.innerHTML = '<p style="font-size:12px;color:red">二维码生成失败</p>'
   }
 }
 
