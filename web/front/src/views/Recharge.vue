@@ -80,7 +80,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { apiGetJSON, apiPostJSON } from '../utils/request'
-import QRCodeGen from '../utils/qrcode.mjs'
 
 const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
@@ -122,7 +121,7 @@ async function pay() {
       orderId.value = data.id || (data.order && data.order.id)
       showQR.value = true
       qrStatus.value = 'pending'
-      await drawQR(codeUrl)
+      drawQR(codeUrl)
       startPoll()
     } else {
       alert('创建订单失败')
@@ -134,18 +133,17 @@ async function pay() {
   }
 }
 
-function drawQR(url) {
-  const container = document.getElementById('pay-qrcode')
-  if (!container) return
-  try {
-    const qr = QRCodeGen(0, 'L')
-    qr.addData(url)
-    qr.make()
-    // createImgTag 直接返回 <img src="data:image/gif;base64,..."> 字符串
-    container.innerHTML = qr.createImgTag(8, 2)
-  } catch (e) {
-    console.error('QRCode failed:', e)
-    container.innerHTML = '二维码生成失败'
+function drawQR(codeUrl) {
+  const el = document.getElementById('pay-qrcode')
+  if (!el) return
+  el.innerHTML = ''
+  if (!window.QRCode) {
+    const s = document.createElement('script')
+    s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
+    s.onload = () => new window.QRCode(el, { text: codeUrl, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.H })
+    document.head.appendChild(s)
+  } else {
+    new window.QRCode(el, { text: codeUrl, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.H })
   }
 }
 
