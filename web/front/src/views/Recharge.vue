@@ -139,7 +139,7 @@ function drawQR(codeUrl) {
   el.innerHTML = ''
   if (!window.QRCode) {
     const s = document.createElement('script')
-    s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
+    s.src = '/qrcode.min.js'
     s.onload = () => new window.QRCode(el, { text: codeUrl, width: 200, height: 200, correctLevel: window.QRCode.CorrectLevel.H })
     document.head.appendChild(s)
   } else {
