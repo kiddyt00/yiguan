@@ -78,7 +78,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import QRCode from 'qrcode'
 import { useAuthStore } from '../stores/auth'
 import { apiGetJSON, apiPostJSON } from '../utils/request'
 
@@ -138,20 +137,13 @@ async function drawQR(url) {
   const container = document.getElementById('pay-qrcode')
   if (!container) return
   container.innerHTML = ''
-  // 使用 qrcode 生成（已在前端项目中）
-  try {
-    const canvas = document.createElement('canvas')
-    await QRCode.toCanvas(canvas, url, { width: 200, margin: 2 })
-    container.appendChild(canvas)
-  } catch (e) {
-    console.error('QRCode failed:', e)
-    // fallback: 使用图片
-    const img = document.createElement('img')
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
-    img.width = 200
-    img.height = 200
-    container.appendChild(img)
-  }
+  const img = document.createElement('img')
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url)
+  img.alt = '微信支付二维码'
+  img.width = 200
+  img.height = 200
+  img.style.borderRadius = '8px'
+  container.appendChild(img)
 }
 
 function startPoll() {
