@@ -114,6 +114,77 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// jsapiCreateOrderReq JSAPI 下单请求
+type jsapiCreateOrderReq struct {
+	ProductID string `json:"product_id"`
+	OpenID    string `json:"openid"`
+}
+
+// CreateJSAPIOrder 小程序下单（POST /api/orders/jsapi-create）
+func (h *OrderHandler) CreateJSAPIOrder(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int64)
+
+	var req jsapiCreateOrderReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
+		return
+	}
+	if req.OpenID == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 openid"})
+		return
+	}
+
+	product, ok := products[req.ProductID]
+	if !ok {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "商品不存在"})
+		return
+	}
+
+	outTradeNo := generateOutTradeNo()
+
+	prepayID, err := h.wechatPayJSAPI(product, outTradeNo, req.OpenID)
+	if err != nil {
+		log.Printf("微信支付JSAPI下单失败: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "支付下单失败"})
+		return
+	}
+
+	order, err := h.store.CreateOrder(userID, product, outTradeNo, "")
+	if err != nil {
+		log.Printf("创建订单失败: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建订单失败"})
+		return
+	}
+
+	// 生成 JSAPI 调起支付参数
+	timeStamp := fmt.Sprintf("%d", time.Now().Unix())
+	nonceStr := randStr(16)
+	packageStr := "prepay_id=" + prepayID
+	payParams := map[string]string{
+		"appId":     h.appID,
+		"timeStamp": timeStamp,
+		"nonceStr":  nonceStr,
+		"package":   packageStr,
+		"signType":  "MD5",
+	}
+	paySign := wechatSign(payParams, h.apiKey)
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"id":           order.ID,
+		"amount":       order.Amount,
+		"quota":        order.Quota,
+		"out_trade_no": order.OutTradeNo,
+		"payment": map[string]string{
+			"appId":     h.appID,
+			"timeStamp": timeStamp,
+			"nonceStr":  nonceStr,
+			"package":   packageStr,
+			"signType":  "MD5",
+			"paySign":   paySign,
+		},
+	})
+}
+
 // GetOrder 获取订单详情（GET /api/orders/{id}）
 func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIDKey).(int64)
@@ -176,6 +247,7 @@ type wechatPayRequest struct {
 	SpbillCreateIP string   `xml:"spbill_create_ip"`
 	NotifyURL      string   `xml:"notify_url"`
 	TradeType      string   `xml:"trade_type"`
+	OpenID         string   `xml:"openid,omitempty"`
 }
 
 // wechatPayResponse 微信支付统一下单响应
@@ -273,11 +345,22 @@ func (h *OrderHandler) WechatNotify(w http.ResponseWriter, r *http.Request) {
 
 // wechatPayNative 调用微信支付 Native 下单
 func (h *OrderHandler) wechatPayNative(product *store.OrderProduct, outTradeNo string) (string, error) {
-	// 未配置微信支付，返回 mock 值用于测试
 	if h.mchID == "" {
 		return "wechat://pay/test?order=" + outTradeNo, nil
 	}
+	return h.unifiedOrder(product, outTradeNo, "NATIVE", "")
+}
 
+// wechatPayJSAPI 调用微信支付 JSAPI 下单（小程序）
+func (h *OrderHandler) wechatPayJSAPI(product *store.OrderProduct, outTradeNo, openid string) (string, error) {
+	if h.mchID == "" {
+		return "", fmt.Errorf("微信支付未配置")
+	}
+	return h.unifiedOrder(product, outTradeNo, "JSAPI", openid)
+}
+
+// unifiedOrder 统一下单（共用逻辑）
+func (h *OrderHandler) unifiedOrder(product *store.OrderProduct, outTradeNo, tradeType, openid string) (string, error) {
 	nonceStr := randStr(16)
 	params := map[string]string{
 		"appid":            h.appID,
@@ -288,7 +371,10 @@ func (h *OrderHandler) wechatPayNative(product *store.OrderProduct, outTradeNo s
 		"total_fee":        fmt.Sprintf("%d", product.Amount),
 		"spbill_create_ip": "127.0.0.1",
 		"notify_url":       h.notifyURL,
-		"trade_type":       "NATIVE",
+		"trade_type":       tradeType,
+	}
+	if openid != "" {
+		params["openid"] = openid
 	}
 
 	sign := wechatSign(params, h.apiKey)
@@ -304,7 +390,7 @@ func (h *OrderHandler) wechatPayNative(product *store.OrderProduct, outTradeNo s
 		TotalFee:       fmt.Sprintf("%d", product.Amount),
 		SpbillCreateIP: "127.0.0.1",
 		NotifyURL:      h.notifyURL,
-		TradeType:      "NATIVE",
+		TradeType:      tradeType,
 	}
 
 	xmlBody, err := xml.MarshalIndent(req, "", "")
@@ -333,6 +419,9 @@ func (h *OrderHandler) wechatPayNative(product *store.OrderProduct, outTradeNo s
 			payResp.ReturnCode, payResp.ResultCode, payResp.ErrCode, payResp.ErrCodeDes)
 	}
 
+	if tradeType == "JSAPI" {
+		return payResp.PrepayID, nil
+	}
 	return payResp.CodeURL, nil
 }
 
