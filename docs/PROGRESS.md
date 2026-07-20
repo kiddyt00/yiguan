@@ -202,6 +202,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | 2 | 清理旧微信扫码接口 | 路由 + handler 代码 | `wechat-qrcode`、`wechat-check`、`wechat-callback` 已删除 |
 | 3 | 卦象管理页点击弹窗修复 | `Hexagrams.vue` | 函数名 + ref 变量名缩短导致的不匹配问题已修复 |
 | 4 | 生产部署 | 服务器部署 | 已 SSH 登录生产部署新版 |
+| 5 | 【新增】小程序支付（JSAPI） | `miniapp-native/` + `miniapp/` | 用户页面添加充值功能，调起 `wx.requestPayment()` |
 
 ---
 
@@ -240,8 +241,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
   - 需要资料：AppID、应用私钥、支付宝公钥（企业商户，应用名：真观己斋）
   - 后端进度：0%（待资料齐全后开发）
   - 前端进度：占位按钮已渲染，`disabled` 状态
-- [ ] **小程序对接微信支付** — 后端 JSAPI 已完成，小程序前端需调用 jsapi-create 接口
-  - 前置条件：小程序已开通微信支付 + WX_PAY_APPID 匹配小程序 appid
+- [x] ~~小程序对接微信支付~~ ✅ 已完成（miniapp-native + miniapp 双端）
 
 ### ✅ 安全加固
 - [x] ~~修复 5 处 err.Error() 泄露~~ ✅ 已统一替换为通用提示
@@ -272,7 +272,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 微信开放平台已配置: ✅
 微信扫码登录: ✅（wxLogin.js 官方 SDK）
 微信支付（Web 扫码）: ✅ 已上线
-微信支付（小程序 JSAPI）: ✅ 后端已完成，前端待对接
+微信支付（小程序 JSAPI）: ✅ 已上线（miniapp-native + miniapp 双端）
 支付宝扫码支付: ⏳ 规划中，待资料齐全后开发
 微信小程序已配置: ❌
 ```

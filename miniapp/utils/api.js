@@ -58,4 +58,7 @@ export const api = {
   // 翻译
   getTranslation: (historyId, target) => request(`/history/${historyId}/translate?target=${target}`),
   generateTranslation: (historyId, target) => request(`/history/${historyId}/translate?target=${target}`, { method: 'POST', timeout: 60000 }),
+
+  // 支付
+  jsapiCreateOrder: (productID, openid) => request('/orders/jsapi-create', { method: 'POST', data: { product_id: productID, openid } }),
 }

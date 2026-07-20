@@ -44,4 +44,9 @@ module.exports = {
   activeAds: () => request('/ads/active'),
   watchAd: (id) => request('/ads/' + id + '/watch', { method: 'POST' }),
   completeAd: (id, duration) => request('/ads/' + id + '/complete', { method: 'POST', data: { duration } }),
+
+  // 支付
+  jsapiCreateOrder: (productID, openid) => request('/orders/jsapi-create', { method: 'POST', data: { product_id: productID, openid } }),
+  getOrder: (id) => request('/orders/' + id),
+  listOrders: () => request('/orders'),
 }
