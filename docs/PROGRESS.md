@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-07-17
+> 最后更新：2026-07-20
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -97,10 +97,10 @@ WX_OPEN_SECRET=<your-secret>
 - `GET /api/auth/wechat-appid` → 返回 `{"appid": "wx4f153..."}`
 - `POST /api/auth/wechat-code` → 接收 `{"code": "xxx"}`，换 openid，返回 JWT
 
-**保留的旧接口（不再被前端调用，待清理）：**
-- `GET /api/auth/wechat-qrcode` — 生成扫码 URL
-- `GET /api/auth/wechat-check` — 轮询扫码状态
-- `GET /api/auth/wechat-callback` — OAuth 回调（返回 HTML）
+**已清理的旧接口：**
+- ~~`GET /api/auth/wechat-qrcode`~~ ✅ 已删除
+- ~~`GET /api/auth/wechat-check`~~ ✅ 已删除
+- ~~`GET /api/auth/wechat-callback`~~ ✅ 已删除
 
 #### 决策记录
 
@@ -192,6 +192,19 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 
 ---
 
+### 2026-07-20 — 小程序 API 地址更新 + 旧接口清理
+
+#### 完成事项
+
+| # | 事项 | 文件 | 说明 |
+|---|---|---|---|
+| 1 | 小程序 API 地址更新 | `miniapp/` 和 `miniapp-native/` 共 8 个文件 11 处 | `gjz.shadouyou.cloud` → `zgjz.insightj.cn` |
+| 2 | 清理旧微信扫码接口 | 路由 + handler 代码 | `wechat-qrcode`、`wechat-check`、`wechat-callback` 已删除 |
+| 3 | 卦象管理页点击弹窗修复 | `Hexagrams.vue` | 函数名 + ref 变量名缩短导致的不匹配问题已修复 |
+| 4 | 生产部署 | 服务器部署 | 已 SSH 登录生产部署新版 |
+
+---
+
 ## 四、API 概览（用户端）
 
 | 方法 | 路径 | 说明 | 鉴权 |
@@ -227,6 +240,8 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
   - 需要资料：AppID、应用私钥、支付宝公钥（企业商户，应用名：真观己斋）
   - 后端进度：0%（待资料齐全后开发）
   - 前端进度：占位按钮已渲染，`disabled` 状态
+- [ ] **小程序对接微信支付** — 后端 JSAPI 已完成，小程序前端需调用 jsapi-create 接口
+  - 前置条件：小程序已开通微信支付 + WX_PAY_APPID 匹配小程序 appid
 
 ### ✅ 安全加固
 - [x] ~~修复 5 处 err.Error() 泄露~~ ✅ 已统一替换为通用提示
@@ -239,7 +254,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 - 后端无第三方框架，路由在 `cmd/server/main.go` 中硬编码
 - 微信配置/支付配置通过环境变量注入，不用 `config.yaml`
 - 支付环境变量：`WX_PAY_MCHID`、`WX_PAY_API_KEY`、`WX_PAY_APPID`、`WX_PAY_NOTIFY_URL`
-- 小程序端 `miniapp/` 和 `miniapp-native/` 两个版本存在，API 地址写死为 `gjz.shadouyou.cloud`（需更新）
+- 小程序端 `miniapp/` 和 `miniapp-native/` 两个版本存在，API 地址已更新为 `zgjz.insightj.cn`
 - 本地开发：`make dev-backend` / `make dev-frontend` / `make dev-admin`
 - Docker 部署：`docker compose up -d --build`
 - 生产部署目录：`/root/yiguan`
@@ -248,7 +263,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 ### 给下一个 Agent 的交接信息
 
 ```
-当前最新 commit: 17965d0 (2026-07-17 14:35)
+当前最新 commit: (待 commit 后确定)
 当前分支: main
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git

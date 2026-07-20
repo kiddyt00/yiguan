@@ -1,5 +1,5 @@
 const api = require('../../utils/api.js')
-const API = 'https://gjz.shadouyou.cloud/api'
+const API = 'https://zgjz.insightj.cn/api'
 
 Page({
   data: { question:'', loading:false, showMaster:false, quota:-1, hasToken:false, nickname:'',

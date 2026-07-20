@@ -4,7 +4,7 @@
  */
 const config = {
   // API 服务地址（不含 /api 后缀，请求时自动拼接）
-  API_BASE: 'https://gjz.shadouyou.cloud/api',
+  API_BASE: 'https://zgjz.insightj.cn/api',
 
   // 本地开发调试地址（仅 HBuilder 真机/模拟器可用）
   DEV_API_BASE: 'http://localhost:8080/api',

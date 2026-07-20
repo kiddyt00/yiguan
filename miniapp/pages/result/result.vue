@@ -214,7 +214,7 @@ export default {
     goHome() { uni.reLaunch({ url: '/pages/index/index' }) },
     goHistory() { uni.navigateTo({ url: '/pages/history/history' }) },
     shareResult() {
-      uni.share({ provider: 'weixin', type: 0, title: '我在观己斋占了一卦', href: 'https://gjz.shadouyou.cloud' })
+      uni.share({ provider: 'weixin', type: 0, title: '我在观己斋占了一卦', href: 'https://zgjz.insightj.cn' })
     },
   }
 }
