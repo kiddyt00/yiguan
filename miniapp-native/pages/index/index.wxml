@@ -51,6 +51,9 @@
       <text wx:if="{{quota>=0}}" style="font-size:26rpx;color:{{quota>0?'#9E8C7A':'#C62828'}};">
         {{quota>0 ? '剩余 '+quota+' 次提问' : '次数已用完'}}
       </text>
+      <view wx:if="{{quota<=0}}" style="margin-top:12rpx;">
+        <button class="btn-primary" style="width:60%;font-size:24rpx;padding:12rpx 0;" bindtap="goUser">💎 去充值</button>
+      </view>
     </view>
     <view class="card">
       <view style="font-size:30rpx;font-weight:600;margin-bottom:16rpx;">请默想你的问题：</view>
