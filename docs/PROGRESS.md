@@ -263,7 +263,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 ### 给下一个 Agent 的交接信息
 
 ```
-当前最新 commit: (待 commit 后确定)
+当前最新 commit: 84e1693 (2026-07-20)
 当前分支: main
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git
