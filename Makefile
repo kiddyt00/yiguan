@@ -71,6 +71,25 @@ deploy:
 	$(DOCKER) up -d --build
 	@echo "🚀 部署完成! http://localhost:$${HTTP_PORT:-80}"
 
+# ========== 微信小程序上传 ==========
+
+# 使用方式：
+#   1. 先在微信公众平台生成上传密钥，下载为 private.xxx.key
+#   2. 放到 miniapp-native/ 目录下
+#   3. 执行: make upload-miniapp VERSION=1.0.1 DESC="版本描述"
+#   4. 上传后登录 mp.weixin.qq.com → 版本管理 → 提交审核 → 发布
+upload-miniapp:
+	@if [ -z "$$VERSION" ]; then echo "❌ 请指定版本号: make upload-miniapp VERSION=1.0.1"; exit 1; fi
+	@KEY_FILE=$$(ls miniapp-native/private.*.key 2>/dev/null | head -1); \
+	if [ -z "$$KEY_FILE" ]; then echo "❌ 未找到上传密钥文件 (private.*.key)，请先在微信公众平台生成"; exit 1; fi; \
+	cd miniapp-native && npx miniprogram-ci upload \
+		--pp . \
+		--pk "$$KEY_FILE" \
+		--appid wx9e87b7216be83619 \
+		--uv "$(VERSION)" \
+		--desc "$(DESC)"
+	@echo "✅ 小程序上传完成，版本: $(VERSION)"
+
 # ========== 远程部署 ==========
 
 deploy-remote:

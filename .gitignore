@@ -41,3 +41,7 @@ logs/
 **/.codewhale/*
 !**/.codewhale/constitution.json
 .deepseek/
+miniapp-native/node_modules/
+
+# 微信小程序上传密钥
+*.key
