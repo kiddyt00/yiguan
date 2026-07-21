@@ -10,37 +10,49 @@
       </div>
     </div>
 
-    <!-- 时间线 -->
-    <div class="tl-wrap">
-      <div v-for="(item, i) in timeline" :key="i" class="tl-item">
-        <div class="tl-dot" :class="item.dotClass"></div>
-        <div v-if="i < timeline.length - 1" class="tl-line"></div>
-        <div class="tl-card">
-          <div class="tl-header">
-            <span class="tl-date">{{ item.date }}</span>
-            <span class="tl-tag" :class="item.tagClass">{{ item.tag }}</span>
+    <!-- 双栏布局 -->
+    <div class="two-col">
+      <!-- 左栏：时间线（鱼骨式） -->
+      <div class="col-tl">
+        <div class="tl-spine">
+          <div class="tl-inner">
+            <div v-for="(item, i) in timeline" :key="i" class="tl-node">
+              <!-- 节点圆点 + 连到脊线的横线 -->
+              <div class="tl-connector">
+                <div class="tl-dot" :class="item.dotClass"></div>
+              </div>
+              <!-- 卡片 -->
+              <div class="tl-card" :class="item.cardClass">
+                <div class="tl-header">
+                  <span class="tl-date">{{ item.date }}</span>
+                  <span class="tl-tag" :class="item.tagClass">{{ item.tag }}</span>
+                </div>
+                <div class="tl-title">{{ item.title }}</div>
+                <ul class="tl-tasks">
+                  <li v-for="(t, ti) in item.tasks" :key="ti" class="tl-task">
+                    <span class="tl-check">{{ t.done ? '✅' : '⬜' }}</span>
+                    <span :class="t.done ? '' : 'tl-muted'">{{ t.text }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div class="tl-title">{{ item.title }}</div>
-          <ul class="tl-tasks">
-            <li v-for="(t, ti) in item.tasks" :key="ti" class="tl-task" :class="t.done ? 'done' : 'pending'">
-              <span class="tl-status">{{ t.done ? '✅' : '⏳' }}</span>
-              <span>{{ t.text }}</span>
-            </li>
-          </ul>
         </div>
       </div>
-    </div>
 
-    <!-- 待办 -->
-    <div class="todo-wrap">
-      <h3 class="todo-heading">📌 待办事项</h3>
-      <div v-for="(g, gi) in todos" :key="gi" class="todo-group">
-        <div class="todo-priority" :style="{ color: g.color }">{{ g.label }}</div>
-        <div v-for="(t, ti) in g.items" :key="ti" class="todo-item" :class="t.done ? 'done' : ''">
-          <span class="todo-check">{{ t.done ? '✅' : '⬜' }}</span>
-          <div class="todo-body">
-            <div class="todo-text">{{ t.text }}</div>
-            <div v-if="t.note" class="todo-note">{{ t.note }}</div>
+      <!-- 右栏：待办事项 -->
+      <div class="col-todo">
+        <div class="todo-wrap">
+          <h3 class="todo-heading">📌 待办事项</h3>
+          <div v-for="(g, gi) in todos" :key="gi" class="todo-group">
+            <div class="todo-priority" :style="{ color: g.color }">{{ g.label }}</div>
+            <div v-for="(t, ti) in g.items" :key="ti" class="todo-item" :class="t.done ? 'done' : ''">
+              <span class="todo-check">{{ t.done ? '✅' : '⬜' }}</span>
+              <div class="todo-body">
+                <div class="todo-text">{{ t.text }}</div>
+                <div v-if="t.note" class="todo-note">{{ t.note }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -58,7 +70,7 @@ const stats = [
 
 const timeline = [
   {
-    date: '2026-07-21', tag: '完成', tagClass: 'tag-done',
+    date: '2026-07-21', tag: '完成', tagClass: 'tag-done', dotClass: 'dot-done', cardClass: '',
     title: '小程序全流程打通',
     tasks: [
       { done: true, text: '微信小程序登录 + 支付全流程测试通过' },
@@ -68,7 +80,7 @@ const timeline = [
     ],
   },
   {
-    date: '2026-07-20', tag: '完成', tagClass: 'tag-done',
+    date: '2026-07-20', tag: '完成', tagClass: 'tag-done', dotClass: 'dot-done', cardClass: '',
     title: '小程序 API 地址更新 + 多项修复',
     tasks: [
       { done: true, text: '小程序 API 地址 11 处更新（gjz.shadouyou.cloud→zgjz.insightj.cn）' },
@@ -79,17 +91,17 @@ const timeline = [
     ],
   },
   {
-    date: '2026-07-17', tag: '完成', tagClass: 'tag-done',
+    date: '2026-07-17', tag: '完成', tagClass: 'tag-done', dotClass: 'dot-done', cardClass: '',
     title: '支付系统：微信支付修复 + JSAPI + 支付宝规划',
     tasks: [
       { done: true, text: '支付二维码渲染修复（Vue nextTick 时序坑）' },
       { done: true, text: 'JSAPI 小程序支付后端（统一下单重构）' },
       { done: true, text: '截图离屏渲染修复' },
-      { done: true, text: '支付宝接入规划（待商户资料）' },
+      { done: false, text: '支付宝接入规划（待商户资料）' },
     ],
   },
   {
-    date: '2026-07-16', tag: '完成', tagClass: 'tag-done',
+    date: '2026-07-16', tag: '完成', tagClass: 'tag-done', dotClass: 'dot-done', cardClass: '',
     title: '微信扫码登录上线',
     tasks: [
       { done: true, text: 'wxLogin.js 官方 SDK 接入' },
@@ -99,7 +111,7 @@ const timeline = [
     ],
   },
   {
-    date: '2026-06-01', tag: '上线', tagClass: 'tag-launch',
+    date: '2026-06-01', tag: '上线', tagClass: 'tag-launch', dotClass: 'dot-launch', cardClass: '',
     title: '易观 v2.1 正式部署',
     tasks: [
       { done: true, text: 'Docker Compose 生产部署' },
@@ -139,43 +151,68 @@ const todos = [
 .page-header { margin-bottom: 20px; }
 .page-header h2 { font-size: 20px; font-weight: 700; color: #1c1917; }
 
-/* 统计卡片 */
+/* ——— 统计卡片 ——— */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
 .stat-card { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 18px; text-align: center; }
 .stat-value { font-size: 28px; font-weight: 800; line-height: 1; }
 .stat-label { font-size: 13px; color: #8a7e72; margin-top: 6px; }
 
-/* 时间线 */
-.tl-wrap { position: relative; padding-left: 24px; margin-bottom: 28px; }
-.tl-item { position: relative; padding-bottom: 20px; }
-.tl-dot { position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid; z-index: 1; }
-.tl-dot.tag-done { background: #d4a853; border-color: #d4a853; }
-.tl-dot.tag-launch { background: #2e7d32; border-color: #2e7d32; }
-.tl-line { position: absolute; left: -23px; top: 16px; width: 2px; bottom: 0; background: #e5ddd0; }
-.tl-card { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 16px 20px; }
-.tl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+/* ——— 双栏布局 ——— */
+.two-col { display: flex; gap: 20px; align-items: flex-start; }
+.col-tl { flex: 3; min-width: 0; }
+.col-todo { flex: 2; min-width: 280px; }
+
+/* ——— 鱼骨时间线 ——— */
+.tl-spine { position: relative; padding: 0; }
+.tl-inner { position: relative; }
+/* 脊椎线 */
+.tl-inner::before {
+  content: ''; position: absolute; left: 17px; top: 6px; bottom: 6px;
+  width: 2px; background: linear-gradient(to bottom, #d4a853 0%, #e5ddd0 60%, #e5ddd0 100%);
+  border-radius: 1px;
+}
+/* 每个节点 */
+.tl-node { position: relative; padding-left: 42px; padding-bottom: 18px; }
+.tl-node:last-child { padding-bottom: 0; }
+/* 连接器：横线+圆点 */
+.tl-connector { position: absolute; left: 0; top: 2px; display: flex; align-items: center; width: 42px; height: 22px; }
+/* 横线从脊线到卡片 */
+.tl-connector::before {
+  content: ''; flex: 1; height: 2px; background: #d4a853; margin-right: -1px;
+}
+/* 圆点节点 */
+.tl-dot {
+  width: 12px; height: 12px; border-radius: 50%; border: 2px solid; flex-shrink: 0;
+  position: relative; z-index: 1;
+}
+.tl-dot.dot-done { background: #d4a853; border-color: #d4a853; }
+.tl-dot.dot-launch { background: #2e7d32; border-color: #2e7d32; }
+/* 卡片 */
+.tl-card { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 12px 16px; }
+.tl-card:hover { border-color: #d4a853; box-shadow: 0 2px 8px rgba(212,168,83,0.1); }
+.tl-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .tl-date { font-size: 12px; color: #8a7e72; font-weight: 600; }
 .tl-tag { font-size: 11px; padding: 1px 8px; border-radius: 4px; font-weight: 600; }
 .tag-done { background: #fdf8f0; color: #b8860b; border: 1px solid #d4a853; }
 .tag-launch { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-.tl-title { font-size: 15px; font-weight: 700; color: #1c1917; margin-bottom: 8px; }
+.tl-title { font-size: 14px; font-weight: 700; color: #1c1917; margin-bottom: 6px; }
 .tl-tasks { list-style: none; padding: 0; margin: 0; }
-.tl-task { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: #292524; padding: 3px 0; line-height: 1.5; }
-.tl-task.pending { color: #8a7e72; }
-.tl-status { flex-shrink: 0; font-size: 12px; }
+.tl-task { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: #292524; padding: 2px 0; line-height: 1.5; }
+.tl-check { flex-shrink: 0; font-size: 12px; }
+.tl-muted { color: #8a7e72; }
 
-/* 待办 */
-.todo-wrap { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 20px; }
-.todo-heading { font-size: 16px; font-weight: 700; color: #1c1917; margin-bottom: 16px; }
+/* ——— 待办 ——— */
+.todo-wrap { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 18px; position: sticky; top: 12px; }
+.todo-heading { font-size: 16px; font-weight: 700; color: #1c1917; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f0ebe0; }
 .todo-group { margin-bottom: 16px; }
 .todo-group:last-child { margin-bottom: 0; }
 .todo-priority { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-.todo-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0ebe0; }
+.todo-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f5f0e8; }
 .todo-item:last-child { border-bottom: none; }
 .todo-item.done { opacity: 0.5; }
 .todo-check { flex-shrink: 0; font-size: 13px; }
 .todo-body { flex: 1; }
 .todo-text { font-size: 13px; color: #292524; }
 .todo-item.done .todo-text { text-decoration: line-through; }
-.todo-note { font-size: 12px; color: #8a7e72; margin-top: 2px; }
+.todo-note { font-size: 12px; color: #8a7e72; margin-top: 2px; background: #f8f5f0; padding: 2px 6px; border-radius: 3px; display: inline-block; }
 </style>
