@@ -299,12 +299,12 @@ function scrollTo(target) {
 .fb-spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #d4a853 0%, #e5ddd0 70%, #e5ddd0 100%); transform: translateX(-50%); }
 .fb-node { position: relative; display: flex; align-items: flex-start; margin-bottom: 20px; min-height: 40px; }
 .fb-node:last-child { margin-bottom: 0; }
-.fb-left { flex-direction: row; justify-content: flex-start; padding-right: calc(50% + 10px); }
-.fb-left .fb-arm { position: absolute; right: calc(50% - 1px); top: 16px; width: 18px; height: 2px; background: #d4a853; }
-.fb-left .fb-dot { position: absolute; right: calc(50% - 6px); top: 10px; }
-.fb-right { flex-direction: row-reverse; justify-content: flex-start; padding-left: calc(50% + 10px); }
-.fb-right .fb-arm { position: absolute; left: calc(50% - 1px); top: 16px; width: 18px; height: 2px; background: #d4a853; }
-.fb-right .fb-dot { position: absolute; left: calc(50% - 6px); top: 10px; }
+.fb-left { flex-direction: row; justify-content: flex-start; padding-right: calc(50% + 6px); }
+.fb-left .fb-arm { position: absolute; right: calc(50% - 1px); top: 16px; width: 20px; height: 2px; background: #d4a853; }
+.fb-left .fb-dot { position: absolute; right: calc(50% - 6px); top: 10px; z-index: 3; }
+.fb-right { flex-direction: row-reverse; justify-content: flex-start; padding-left: calc(50% + 6px); }
+.fb-right .fb-arm { position: absolute; left: calc(50% - 1px); top: 16px; width: 20px; height: 2px; background: #d4a853; }
+.fb-right .fb-dot { position: absolute; left: calc(50% - 6px); top: 10px; z-index: 3; }
 
 .fb-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; z-index: 2; }
 .dot-done { background: #d4a853; border-color: #d4a853; }
