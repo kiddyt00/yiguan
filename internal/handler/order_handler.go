@@ -391,6 +391,7 @@ func (h *OrderHandler) unifiedOrder(product *store.OrderProduct, outTradeNo, tra
 		SpbillCreateIP: "127.0.0.1",
 		NotifyURL:      h.notifyURL,
 		TradeType:      tradeType,
+		OpenID:         openid,
 	}
 
 	xmlBody, err := xml.MarshalIndent(req, "", "")
