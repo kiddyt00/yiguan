@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-07-20
+> 最后更新：2026-07-21
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -203,6 +203,23 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | 3 | 卦象管理页点击弹窗修复 | `Hexagrams.vue` | 函数名 + ref 变量名缩短导致的不匹配问题已修复 |
 | 4 | 生产部署 | 服务器部署 | 已 SSH 登录生产部署新版 |
 | 5 | 【新增】小程序支付（JSAPI） | `miniapp-native/` + `miniapp/` | 用户页面添加充值功能，调起 `wx.requestPayment()` |
+
+---
+
+### 2026-07-21 — 小程序全流程打通 + 生产配置修复
+
+#### 完成事项
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | 安装 `miniprogram-ci` 上传工具 | 已添加到 Makefile：`make upload-miniapp` |
+| 2 | 上传密钥配置 | 已放入 `miniapp-native/` |
+| 3 | 上传体验版 v1.0.0 | ✅ 成功上传 |
+| 4 | 服务器域名 + IP 白名单配置 | `zgjz.insightj.cn` + `221.12.22.43` |
+| 5 | 修复生产环境缺失 `WX_APPID`/`WX_SECRET` | docker-compose 缺少 env 传递，已修复 |
+| 6 | 修复 JSAPI 下单 XML 缺少 `openid` | request_struct 漏了 OpenID 字段，微信返回签名错误 |
+| 7 | **小程序支付全流程测试通过** | ✅ 微信登录→选套餐→调起支付→支付成功 |
+| 8 | `favicon.ico` 404 修复 | Nginx 301 重定向到 SVG |
 
 ---
 
