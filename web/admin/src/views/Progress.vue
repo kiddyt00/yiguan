@@ -15,11 +15,9 @@
         <div ref="tlSection" class="tl-section">
           <h3 class="section-title">🕐 完整开发时间线（共 {{totalCommits}} 次提交）</h3>
           <div class="fishbone">
-            <div class="fb-spine"></div>
             <div v-for="(phase, i) in phases" :key="i" class="fb-node" :class="i % 2 === 0 ? 'fb-left' : 'fb-right'">
-              <div class="fb-arm"></div>
-              <div class="fb-dot" :class="phase.dotClass"></div>
-              <div class="fb-card">
+              <div class="fb-side fb-side-left">
+                <div v-if="i % 2 === 0" class="fb-card">
                 <div class="tl-header">
                   <span class="tl-date">{{ phase.period }}</span>
                   <span class="tl-tag" :class="phase.tagClass">{{ phase.tag }}</span>
@@ -34,6 +32,26 @@
                     <span>{{ t.text }}</span>
                   </li>
                 </ul>
+              </div>
+              </div>
+              <div class="fb-center"><div class="fb-dot" :class="phase.dotClass"></div></div>
+              <div class="fb-side fb-side-right">
+                <div v-if="i % 2 !== 0" class="fb-card">
+                <div class="tl-header">
+                  <span class="tl-date">{{ phase.period }}</span>
+                  <span class="tl-tag" :class="phase.tagClass">{{ phase.tag }}</span>
+                  <span class="tl-count">{{ phase.commits }} 次提交</span>
+                </div>
+                <div class="tl-title">{{ phase.title }}</div>
+                <div v-if="phase.subtitle" class="tl-subtitle">{{ phase.subtitle }}</div>
+                <div class="tl-progress"><div class="tl-bar" :style="'width:'+phase.pct+'%'"></div></div>
+                <ul class="tl-tasks">
+                  <li v-for="(t, ti) in phase.tasks" :key="ti" class="tl-task">
+                    <span class="tl-check">{{ t.done ? '✅' : '⬜' }}</span>
+                    <span>{{ t.text }}</span>
+                  </li>
+                </ul>
+              </div>
               </div>
             </div>
           </div>
@@ -295,24 +313,32 @@ function scrollTo(target) {
 .tl-section, .todo-wrap { transition: box-shadow .3s, border-color .3s; border-radius: 10px; }
 .tl-section.highlight, .todo-wrap.highlight { box-shadow: 0 0 0 3px #d4a85340; }
 
-.fishbone { position: relative; padding: 4px 0; }
-.fb-spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #d4a853 0%, #e5ddd0 70%, #e5ddd0 100%); transform: translateX(-50%); }
-.fb-node { position: relative; display: flex; align-items: flex-start; margin-bottom: 20px; min-height: 40px; }
+.fishbone { position: relative; }
+/* 每行 = 左侧卡片区 + 中央固定列 + 右侧卡片区 */
+.fb-node { display: flex; align-items: flex-start; margin-bottom: 20px; min-height: 40px; }
 .fb-node:last-child { margin-bottom: 0; }
-.fb-left { flex-direction: row; justify-content: flex-start; padding-right: calc(50% + 6px); }
-.fb-left .fb-arm { position: absolute; right: calc(50% - 1px); top: 16px; width: 20px; height: 2px; background: #d4a853; }
-.fb-left .fb-dot { position: absolute; right: calc(50% - 6px); top: 10px; z-index: 3; }
-.fb-right { flex-direction: row-reverse; justify-content: flex-start; padding-left: calc(50% + 6px); }
-.fb-right .fb-arm { position: absolute; left: calc(50% - 1px); top: 16px; width: 20px; height: 2px; background: #d4a853; }
-.fb-right .fb-dot { position: absolute; left: calc(50% - 6px); top: 10px; z-index: 3; }
-
-.fb-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; z-index: 2; }
+.fb-left { flex-direction: row; }
+.fb-right { flex-direction: row; }
+/* 左/右/中心三列 */
+.fb-side { flex: 1; min-width: 0; display: flex; }
+.fb-center { width: 28px; flex-shrink: 0; position: relative; display: flex; justify-content: center; padding-top: 8px; }
+/* 左侧卡片：靠右对齐 */
+.fb-left .fb-side-left { justify-content: flex-end; padding-right: 10px; }
+.fb-left .fb-side-right { flex: 0; }
+/* 右侧卡片：靠左对齐 */
+.fb-right .fb-side-left { flex: 0; }
+.fb-right .fb-side-right { justify-content: flex-start; padding-left: 10px; }
+/* 脊椎线：在中央列用伪元素画竖线 */
+.fb-center::before { content: ''; position: absolute; left: 50%; top: 0; bottom: -20px; width: 2px; background: #d4a853; transform: translateX(-50%); }
+.fb-node:last-child .fb-center::before { display: none; }
+/* 圆点 */
+.fb-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; z-index: 2; position: relative; }
 .dot-done { background: #d4a853; border-color: #d4a853; }
 .dot-launch { background: #2e7d32; border-color: #2e7d32; }
 .dot-v1 { background: #3b82f6; border-color: #3b82f6; }
 .dot-v2 { background: #667eea; border-color: #667eea; }
 
-.fb-card { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 12px 16px; flex: 1; max-width: 420px; }
+.fb-card { background: #fff; border: 1px solid #e5ddd0; border-radius: 10px; padding: 12px 16px; width: 100%; }
 .fb-card:hover { border-color: #d4a853; box-shadow: 0 2px 8px rgba(212,168,83,0.1); }
 .tl-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
 .tl-date { font-size: 12px; color: #8a7e72; font-weight: 600; }
