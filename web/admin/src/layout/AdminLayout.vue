@@ -41,6 +41,10 @@
           <el-icon><Notification /></el-icon>
           <span>广告管理</span>
         </el-menu-item>
+        <el-menu-item index="/progress">
+          <el-icon><List /></el-icon>
+          <span>开发进度</span>
+        </el-menu-item>
       </el-menu>
 
       <!-- 底部版本 -->
@@ -93,6 +97,7 @@ const titles = {
   '/analytics': '数据分析',
   '/models': '模型管理',
   '/ads': '广告管理',
+  '/progress': '开发进度',
 }
 const pageTitle = computed(() => titles[route.path] || '')
 

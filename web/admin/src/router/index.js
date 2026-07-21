@@ -20,6 +20,7 @@ const router = createRouter({
         { path: 'analytics', component: () => import('../views/Analytics.vue') },
         { path: 'models', component: () => import('../views/Models.vue') },
         { path: 'ads', component: () => import('../views/Ads.vue') },
+        { path: 'progress', component: () => import('../views/Progress.vue') },
       ],
     },
   ],
