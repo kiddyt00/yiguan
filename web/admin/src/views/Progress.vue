@@ -11,7 +11,7 @@
     <div class="two-col">
       <div class="col-tl">
         <div ref="tlSection" class="tl-section">
-          <h3 class="section-title">🕐 完整开发时间线（共 {{totalCommits}} 次提交）</h3>
+          <h3 class="section-title">🕐 完整开发时间线（共 {{total}} 次提交）</h3>
           <div class="tl">
             <div class="tl-spine"></div>
             <div v-for="(phase, i) in phases" :key="i" class="tl-row" :class="i%2===0?'tl-left':'tl-right'">
@@ -48,7 +48,7 @@
             <div class="dr"><span>生产域名</span><span>zgjz.insightj.cn</span></div>
             <div class="dr"><span>服务器</span><span>腾讯云 Ubuntu 24.04</span></div>
             <div class="dr"><span>SSL到期</span><span>2026-09-14</span></div>
-            <div class="dr"><span>代码提交</span><span>{{ totalCommits }}次</span></div>
+            <div class="dr"><span>代码提交</span><span>{{ total }}次</span></div>
           </div>
         </div>
       </div>
