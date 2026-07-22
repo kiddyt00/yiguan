@@ -28,6 +28,7 @@ func (h *UserHandler) SetWechatConfig(appID, appSecret string) {
 type updateUserReq struct {
 	Nickname string `json:"nickname"`
 	Address  string `json:"address"`
+	Avatar   string `json:"avatar"`
 }
 
 type bindWechatReq struct {
@@ -60,6 +61,9 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err := h.store.UpdateUser(userID, req.Nickname, req.Address); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "更新失败"})
 		return
+	}
+	if req.Avatar != "" {
+		h.store.UpdateUserWechatInfo(userID, req.Nickname, req.Avatar)
 	}
 	user, _ := h.store.GetUserByID(userID)
 	fillUserAvatar(user)

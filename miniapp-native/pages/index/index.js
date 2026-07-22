@@ -48,7 +48,7 @@ Page({
             wx.setStorageSync('token',r.data.token)
             wx.getUserInfo({success:info=>{
               if(info.userInfo&&info.userInfo.nickName){
-                api.updateProfile({nickname:info.userInfo.nickName}).catch(()=>{})
+                api.updateProfile({nickname:info.userInfo.nickName,avatar:info.userInfo.avatarUrl}).catch(()=>{})
               }
             },fail:()=>{}})
             wx.showToast({title:'登录成功'});setTimeout(()=>this.onShow(),800)
