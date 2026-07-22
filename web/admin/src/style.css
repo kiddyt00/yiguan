@@ -332,4 +332,4 @@ body {
 }
 
 /* 全局表格表头不换行 */
-.el-table th.el-table__cell>.cell { white-space: nowrap; }
+.el-table th.el-table__cell>.cell { white-space: nowrap; overflow: visible; text-overflow: clip; }
