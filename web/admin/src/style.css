@@ -330,3 +330,6 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #d4a85380;
 }
+
+/* 全局表格表头不换行 */
+.el-table th.el-table__cell>.cell { white-space: nowrap; }
