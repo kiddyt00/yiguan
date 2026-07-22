@@ -295,6 +295,7 @@ func (h *AuthHandler) smsLogin(w http.ResponseWriter, r *http.Request) {
 type wechatOpenToken struct {
 	OpenID      string `json:"openid"`
 	AccessToken string `json:"access_token"`
+	UnionID     string `json:"unionid"`
 	ErrCode     int    `json:"errcode"`
 	ErrMsg      string `json:"errmsg"`
 }
@@ -349,9 +350,15 @@ func (h *AuthHandler) wechatCode(w http.ResponseWriter, r *http.Request) {
 		wxSex = userInfo.Sex
 	}
 
-	// 查找或创建用户
-	user, err := h.store.GetUserByOpenID(token.OpenID)
-	if err != nil {
+	// 查找或创建用户（先查 unionid 再查 openid）
+	var user *store.User
+	if token.UnionID != "" {
+		user, _ = h.store.GetUserByUnionID(token.UnionID)
+	}
+	if user == nil {
+		user, _ = h.store.GetUserByOpenID(token.OpenID)
+	}
+	if user == nil {
 		user, err = h.store.CreateUserByOpenID(token.OpenID, nickname, wxAvatar)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建用户失败"})
@@ -359,6 +366,9 @@ func (h *AuthHandler) wechatCode(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		_ = h.store.UpdateUserWechatInfo(user.ID, nickname, wxAvatar)
+	}
+	if token.UnionID != "" {
+		_ = h.store.UpdateUserUnionID(user.ID, token.UnionID)
 	}
 	if wxSex > 0 {
 		_ = h.store.UpdateUserGender(user.ID, wxSex)
