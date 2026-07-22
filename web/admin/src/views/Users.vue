@@ -43,9 +43,9 @@
         <el-table-column label="配额" width="60" align="center">
           <template #default="{row}"><span :style="{color:row.remaining_quota>0?'#67C23A':'#F56C6C',fontWeight:600}">{{ row.remaining_quota??'-' }}</span></template>
         </el-table-column>
-        <el-table-column label="状态" width="60" align="center">
+        <el-table-column label="状态" width="65" align="center">
           <template #default="{row}">
-            <el-tag :type="row.is_active?'success':'danger'" size="small" effect="plain" style="white-space:nowrap">{{ row.is_active?'正常':'禁用' }}</el-tag>
+            <el-tag :type="row.is_active?'success':'danger'" size="small" style="white-space:nowrap">{{ row.is_active?'正常':'禁用' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
