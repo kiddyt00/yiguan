@@ -89,8 +89,9 @@ const phases=[
   {period:'2026-07-20~21',tag:'完成',tagClass:'tdone',dotClass:'ddone',title:'小程序全流程打通',subtitle:'14次 · 支付+管理后台',commits:14,pct:100,tasks:[
     {done:true,text:'小程序API地址更新11处'},{done:true,text:'miniprogram-ci上传工具'},{done:true,text:'miniapp-native+miniapp支付'},{done:true,text:'JSAPI缺少openid修复'},{done:true,text:'WX_APPID/WX_SECRET修复'},{done:true,text:'管理后台进度页'},
   ]},
-  {period:'2026-07-22',tag:'准备',tagClass:'tdone',dotClass:'ddone',title:'支付宝接入准备',subtitle:'RSA2密钥生成+进度页完善',commits:6,pct:100,tasks:[
-    {done:true,text:'支付宝RSA2密钥对生成（私钥+公钥）'},{done:true,text:'管理后台进度页完善（完整生命周期）'},{done:true,text:'SECRETS.md更新+gitignore保护密钥'},
+  {period:'2026-07-22',tag:'完善',tagClass:'tdone',dotClass:'ddone',title:'账号体系+头像+用户管理大修',subtitle:'多轮修复 · 去重/合并/头像',commits:20,pct:100,tasks:[
+    {done:true,text:'支付宝RSA2密钥对生成'},{done:true,text:'进度页完整生命周期+鱼骨图'},{done:true,text:'用户管理新设计（紧凑列+弹性表）'},{done:true,text:'全局表头不换行CSS'},{done:true,text:'卦象表格改用el-table'},{done:true,text:'微信头像保存+展示（admin+小程序+Web导航栏）'},{done:true,text:'UnionID去重机制+账号合并'},{done:true,text:'清除重复微信用户+逗号分隔openid'},
+
   ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
