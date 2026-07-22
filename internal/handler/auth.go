@@ -165,8 +165,11 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	openid, unionid := res.OpenID, res.UnionID
 
-	// 先按 unionid 查，避免同一用户不同 openid 重复注册
-	user, _ := h.store.GetUserByUnionID(unionid)
+	// 先按 unionid 查（仅非空时），避免同一用户不同 openid 重复注册
+	var user *store.User
+	if unionid != "" {
+		user, _ = h.store.GetUserByUnionID(unionid)
+	}
 	if user == nil {
 		user, _ = h.store.GetUserByOpenID(openid)
 	}
