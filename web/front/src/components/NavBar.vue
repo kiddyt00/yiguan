@@ -44,7 +44,8 @@
               :class="[userOpen
                 ? (isDark ? 'bg-stone-700 text-amber-300' : 'bg-amber-50 text-amber-700')
                 : (isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-700 hover:bg-stone-100')]">
-              <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm"
+              <img v-if="auth.user?.avatar" :src="auth.user.avatar" class="w-7 h-7 rounded-full object-cover shadow-sm" />
+              <span v-else class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm"
                 :class="isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'">{{ (auth.user?.nickname || '我').charAt(0) }}</span>
               <span class="text-sm font-medium hidden sm:inline">{{ auth.user?.nickname || '我' }}</span>
               <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="userOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
