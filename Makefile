@@ -77,7 +77,8 @@ deploy:
 #   1. 先在微信公众平台生成上传密钥，下载为 private.xxx.key
 #   2. 放到 miniapp-native/ 目录下
 #   3. 执行: make upload-miniapp VERSION=1.0.1 DESC="版本描述"
-#   4. 上传后登录 mp.weixin.qq.com → 版本管理 → 提交审核 → 发布
+#   4. ⚠️ 每次上传版本号必须递增！小程序不允许重复版本号
+#   5. 上传后登录 mp.weixin.qq.com → 版本管理 → 提交审核 → 发布
 upload-miniapp:
 	@if [ -z "$$VERSION" ]; then echo "❌ 请指定版本号: make upload-miniapp VERSION=1.0.1"; exit 1; fi
 	@KEY_FILE=$$(ls miniapp-native/private.*.key 2>/dev/null | head -1); \
