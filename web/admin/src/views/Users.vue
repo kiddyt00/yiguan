@@ -18,18 +18,21 @@
 
     <el-card shadow="never" body-style="padding:0">
       <el-table :data="users" stripe v-loading="loading" empty-text="暂无用户" size="small" style="width:100%">
-        <el-table-column label="昵称" min-width="110">
+        <el-table-column label="昵称" width="100">
           <template #default="{row}">
             <div class="nc">{{ row.openid?(row.nickname&&row.nickname!=='微信用户'?row.nickname:'用户'+row.id):(row.nickname||row.phone) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="类型" width="70" align="center">
+        <el-table-column label="类型" width="55" align="center">
           <template #default="{row}">
-            <el-tag :type="row.openid?'success':'info'" size="small" effect="plain" style="white-space:nowrap">{{ row.openid?'微信':'手机' }}</el-tag>
+            <el-tag :type="row.openid?'success':'info'" size="small" style="white-space:nowrap">{{ row.openid?'微信':'手机' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="手机号" width="120">
           <template #default="{row}"><span style="font-size:13px;color:#606266;font-family:monospace">{{ row.phone||'-' }}</span></template>
+        </el-table-column>
+        <el-table-column label="微信ID" min-width="130">
+          <template #default="{row}"><span style="font-size:12px;color:#909399;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">{{ row.openid||'-' }}</span></template>
         </el-table-column>
         <el-table-column label="注册时间" width="100">
           <template #default="{row}"><span style="font-size:12px;color:#909399;white-space:nowrap">{{ formatDate(row.created_at) }}</span></template>
