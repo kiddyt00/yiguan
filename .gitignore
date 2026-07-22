@@ -45,3 +45,6 @@ miniapp-native/node_modules/
 
 # 微信小程序上传密钥
 *.key
+
+# 支付宝密钥
+*.pem
