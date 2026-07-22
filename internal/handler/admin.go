@@ -71,6 +71,7 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	items := make([]userWithQuota, 0, len(users))
 	for _, u := range users {
 		q, _ := h.store.GetUserQuota(u.ID)
+		fillUserAvatar(&u)
 		items = append(items, userWithQuota{User: u, RemainingQuota: q})
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{
