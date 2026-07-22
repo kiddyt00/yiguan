@@ -82,12 +82,13 @@ upload-miniapp:
 	@if [ -z "$$VERSION" ]; then echo "❌ 请指定版本号: make upload-miniapp VERSION=1.0.1"; exit 1; fi
 	@KEY_FILE=$$(ls miniapp-native/private.*.key 2>/dev/null | head -1); \
 	if [ -z "$$KEY_FILE" ]; then echo "❌ 未找到上传密钥文件 (private.*.key)，请先在微信公众平台生成"; exit 1; fi; \
+	ABS_KEY=$$(cd miniapp-native && pwd)/$$(basename "$$KEY_FILE"); \
 	cd miniapp-native && npx miniprogram-ci upload \
 		--pp . \
-		--pk "$$KEY_FILE" \
+		--pkp "$$ABS_KEY" \
 		--appid wx9e87b7216be83619 \
 		--uv "$(VERSION)" \
-		--desc "$(DESC)"
+		--ud "$(DESC)"
 	@echo "✅ 小程序上传完成，版本: $(VERSION)"
 
 # ========== 远程部署 ==========
