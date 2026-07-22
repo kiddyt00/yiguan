@@ -88,7 +88,7 @@ function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-C
 .table-wrap{background:#fff;border:1px solid #e5ddd0;border-radius:10px;overflow:hidden}
 .custom-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 .custom-table thead{background:#f8f5f0}
-.custom-table th,.custom-table td{padding:9px 6px;white-space:nowrap;font-size:13px}
+.custom-table th,.custom-table td{padding:8px 6px;white-space:nowrap;font-size:13px;line-height:20px;height:36px;box-sizing:border-box}
 .custom-table th{font-weight:600;color:#8a7e72;text-align:left;border-bottom:1px solid #e5ddd0}
 .custom-table td{border-bottom:1px solid #eee8e0;color:#292524;overflow:hidden;text-overflow:ellipsis}
 .custom-table tbody tr{cursor:pointer;transition:background .1s}
