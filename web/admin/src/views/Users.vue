@@ -23,7 +23,7 @@
             <div class="nc">{{ row.openid?(row.nickname&&row.nickname!=='微信用户'?row.nickname:'用户'+row.id):(row.nickname||row.phone) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="类型" width="55" align="center">
+        <el-table-column label="来源" width="55" align="center">
           <template #default="{row}">
             <el-tag :type="row.openid?'success':'info'" size="small" style="white-space:nowrap">{{ row.openid?'微信':'手机' }}</el-tag>
           </template>
