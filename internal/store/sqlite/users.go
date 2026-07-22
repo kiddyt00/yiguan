@@ -60,9 +60,9 @@ func (s *Store) CreateUserByOpenID(openid, nickname, wxAvatar string) (*store.Us
 func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE phone = ?",
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE phone = ?",
 		phone,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -76,9 +76,9 @@ func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ?",
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ?",
 		openid,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -86,6 +86,28 @@ func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 		return nil, err
 	}
 	return u, nil
+}
+
+// GetUserByUnionID 按微信 UnionID 查找用户
+func (s *Store) GetUserByUnionID(unionid string) (*store.User, error) {
+	u := &store.User{}
+	err := s.db.QueryRow(
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE unionid = ?",
+		unionid,
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, store.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+// UpdateUserUnionID 更新用户的 unionid
+func (s *Store) UpdateUserUnionID(id int64, unionid string) error {
+	_, err := s.db.Exec("UPDATE users SET unionid = ? WHERE id = ?", unionid, id)
+	return err
 }
 
 // GetUserByID 按 ID 查找用户

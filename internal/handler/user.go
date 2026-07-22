@@ -86,11 +86,16 @@ func (h *UserHandler) BindWechat(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录未配置"})
 		return
 	}
-	openid, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
+	res, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
 	if err != nil {
 		log.Printf("微信 code 换 openid 失败: %v", err)
 		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败"})
 		return
+	}
+	openid, unionid := res.OpenID, res.UnionID
+	// 保存 unionid
+	if unionid != "" {
+		h.store.UpdateUserUnionID(userID, unionid)
 	}
 	existing, _ := h.store.GetUserByOpenID(openid)
 	if existing != nil && existing.ID != userID {
@@ -106,26 +111,32 @@ func (h *UserHandler) BindWechat(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"user": user, "bound": true, "openid": openid})
 }
 
-func exchangeWechatCode(appID, secret, code string) (string, error) {
+type wechatCodeResult struct {
+	OpenID  string
+	UnionID string
+}
+
+func exchangeWechatCode(appID, secret, code string) (*wechatCodeResult, error) {
 	if appID == "" || secret == "" {
-		return "", fmt.Errorf("微信小程序未配置")
+		return nil, fmt.Errorf("微信小程序未配置")
 	}
 	resp, err := http.Get(fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code", appID, secret, code))
 	if err != nil {
-		return "", fmt.Errorf("请求微信API失败: %w", err)
+		return nil, fmt.Errorf("请求微信API失败: %w", err)
 	}
 	defer resp.Body.Close()
 	var wr struct {
 		OpenID     string `json:"openid"`
 		SessionKey string `json:"session_key"`
+		UnionID    string `json:"unionid"`
 		ErrCode    int    `json:"errcode"`
 		ErrMsg     string `json:"errmsg"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&wr); err != nil {
-		return "", fmt.Errorf("解析微信响应失败: %w", err)
+		return nil, fmt.Errorf("解析微信响应失败: %w", err)
 	}
 	if wr.ErrCode != 0 {
-		return "", fmt.Errorf("微信错误 %d: %s", wr.ErrCode, wr.ErrMsg)
+		return nil, fmt.Errorf("微信错误 %d: %s", wr.ErrCode, wr.ErrMsg)
 	}
-	return wr.OpenID, nil
+	return &wechatCodeResult{OpenID: wr.OpenID, UnionID: wr.UnionID}, nil
 }

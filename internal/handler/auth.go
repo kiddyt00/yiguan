@@ -157,21 +157,29 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	openid, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
+	res, err := exchangeWechatCode(h.wxAppID, h.wxSecret, req.Code)
 	if err != nil {
 		log.Printf("微信 code 换 openid 失败: %v", err)
 		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "微信登录失败"})
 		return
 	}
+	openid, unionid := res.OpenID, res.UnionID
 
-	user, err := h.store.GetUserByOpenID(openid)
-	if err != nil {
-		// 新用户，自动注册（小程序无法直接拿到昵称头像，前端登录后会补充）
+	// 先按 unionid 查，避免同一用户不同 openid 重复注册
+	user, _ := h.store.GetUserByUnionID(unionid)
+	if user == nil {
+		user, _ = h.store.GetUserByOpenID(openid)
+	}
+	if user == nil {
 		user, err = h.store.CreateUserByOpenID(openid, "微信用户", "")
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建用户失败"})
 			return
 		}
+	}
+	// 保存 unionid（如果拿到了）
+	if unionid != "" {
+		h.store.UpdateUserUnionID(user.ID, unionid)
 	}
 
 	if user.IsActive == 0 {
