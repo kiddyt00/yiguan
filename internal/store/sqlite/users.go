@@ -76,8 +76,8 @@ func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ?",
-		openid,
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ? OR openid LIKE ?",
+		openid, "%"+openid+"%",
 	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
