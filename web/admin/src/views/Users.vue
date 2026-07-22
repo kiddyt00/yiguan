@@ -37,6 +37,9 @@
         </el-table-column>
         <el-table-column label="注册时间" width="150"><template #default="{ row }">{{ formatDate(row.created_at) }}</template></el-table-column>
         <el-table-column label="角色" width="70"><template #default="{ row }"><el-tag :type="row.role==='admin'?'danger':'info'" size="small">{{ row.role==='admin'?'管理员':'用户' }}</el-tag></template></el-table-column>
+        <el-table-column label="当前配额" width="90" align="center">
+          <template #default="{ row }"><span :style="{color:row.remaining_quota>0?'#67C23A':'#F56C6C',fontWeight:600}">{{ row.remaining_quota ?? '-' }}</span></template>
+        </el-table-column>
         <el-table-column label="状态" width="70">
           <template #default="{ row }">
             <el-tag :type="row.is_active?'success':'danger'" size="small" effect="plain">
@@ -48,7 +51,7 @@
         <el-table-column label="操作" width="210" fixed="right">
           <template #default="{ row }">
             <el-button size="small" :type="row.is_active?'warning':'success'" plain @click="toggleUser(row)">{{ row.is_active ? '禁用' : '启用' }}</el-button>
-            <el-button size="small" type="primary" plain @click="adjustQuota(row)">配额</el-button>
+            <el-button size="small" type="primary" plain @click="adjustQuota(row)">配额调整</el-button>
             <el-button size="small" type="info" plain @click="viewHistory(row)">记录</el-button>
           </template>
         </el-table-column>
@@ -58,6 +61,7 @@
 
     <el-dialog v-model="quotaVisible" title="调整配额" width="360px">
       <div class="mb-2">用户：<strong>{{ currentUser?.nickname||currentUser?.phone }}</strong></div>
+      <div class="mb-2" style="font-size:13px;color:#909399">当前配额：<span style="font-weight:600;color:{{(currentUser?.remaining_quota||0)>0?'#67C23A':'#F56C6C'}}">{{ currentUser?.remaining_quota ?? 0 }} 次</span></div>
       <el-input-number v-model="quotaDelta" :min="-100" :max="100" />
       <div style="font-size:12px;color:#909399;margin-top:8px">正数增加，负数减少</div>
       <template #footer><el-button @click="quotaVisible=false">取消</el-button><el-button type="primary" @click="confirmQuota">确认</el-button></template>
@@ -103,7 +107,7 @@ async function loadUsers(){
 }
 async function toggleUser(u){try{await adminApi.toggleUser(u.id);u.is_active=u.is_active?0:1;ElMessage.success(u.is_active?'已启用':'已禁用')}catch(e){ElMessage.error(e.message)}}
 function adjustQuota(u){currentUser.value=u;quotaDelta.value=0;quotaVisible.value=true}
-async function confirmQuota(){try{await adminApi.adjustQuota(currentUser.value.id,quotaDelta.value);ElMessage.success('调整成功');quotaVisible.value=false}catch(e){ElMessage.error(e.message)}}
+async function confirmQuota(){try{await adminApi.adjustQuota(currentUser.value.id,quotaDelta.value);ElMessage.success('调整成功');quotaVisible.value=false;loadUsers()}catch(e){ElMessage.error(e.message)}}
 async function viewHistory(u){currentUser.value=u;historyLoading.value=true;historyVisible.value=true;try{const d=await adminApi.userHistory(u.id);userHistory.value=d.items||[]}catch(e){ElMessage.error(e.message)}finally{historyLoading.value=false}}
 function formatDate(ts){if(!ts)return '';return new Date(ts).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
 </script>
