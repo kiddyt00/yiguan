@@ -11,38 +11,34 @@
         <el-col :span="4" class="text-right"><el-button type="primary" @click="load">搜索</el-button></el-col>
       </el-row>
     </el-card>
-    <div class="table-wrap">
-      <table class="custom-table">
-        <thead>
-          <tr>
-            <th class="cid">ID</th>
-            <th class="cu">用户</th>
-            <th class="cuid">UID</th>
-            <th class="cq">问题</th>
-            <th class="cg">本卦</th>
-            <th class="cg">变卦</th>
-            <th class="cy">变爻</th>
-            <th class="ct">时间</th>
-            <th class="ca">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading"><td colspan="9" class="empty">加载中...</td></tr>
-          <tr v-else-if="!items.length"><td colspan="9" class="empty">暂无数据</td></tr>
-          <tr v-for="row in items" :key="row.id" @click="showDetail(row)">
-            <td class="cid">{{ row.id }}</td>
-            <td class="cu"><span class="un">{{ row.nickname || '微信用户' }}</span></td>
-            <td class="cuid">{{ row.user_id }}</td>
-            <td class="cq" :title="row.question">{{ row.question }}</td>
-            <td class="cg"><span class="t t1">{{ row.primary_gua }}</span></td>
-            <td class="cg"><span v-if="row.changing_gua" class="t t2">{{ row.changing_gua }}</span><span v-else class="g">—</span></td>
-            <td class="cy"><span class="yao-text">{{ row.yao_positions || '—' }}</span></td>
-            <td class="ct">{{ formatDate(row.created_at) }}</td>
-            <td class="ca" @click.stop><button class="b" @click="showDetail(row)">详情</button><button class="b bd" @click="remove(row)">删除</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据" size="small" style="width:100%" @row-click="showDetail">
+      <el-table-column label="ID" prop="id" width="55" align="center" />
+      <el-table-column label="用户" min-width="100">
+        <template #default="{row}"><span style="font-weight:600">{{ row.nickname||'微信用户' }}</span></template>
+      </el-table-column>
+      <el-table-column label="UID" prop="user_id" width="55" align="center" />
+      <el-table-column label="问题" min-width="150" show-overflow-tooltip>
+        <template #default="{row}">{{ row.question }}</template>
+      </el-table-column>
+      <el-table-column label="本卦" width="70" align="center">
+        <template #default="{row}"><el-tag size="small" effect="plain" style="background:#fdf8f0;color:#b8860b;border-color:#d4a853">{{ row.primary_gua }}</el-tag></template>
+      </el-table-column>
+      <el-table-column label="变卦" width="70" align="center">
+        <template #default="{row}"><el-tag v-if="row.changing_gua" size="small" effect="plain" style="background:#fef0f0;color:#c62828;border-color:#fca5a5">{{ row.changing_gua }}</el-tag><span v-else style="color:#999">—</span></template>
+      </el-table-column>
+      <el-table-column label="变爻" width="140" show-overflow-tooltip>
+        <template #default="{row}"><span style="color:#8a6020">{{ row.yao_positions||'—' }}</span></template>
+      </el-table-column>
+      <el-table-column label="时间" width="110">
+        <template #default="{row}"><span style="color:#8a7e72;font-size:12px">{{ formatDate(row.created_at) }}</span></template>
+      </el-table-column>
+      <el-table-column label="操作" width="150" fixed="right">
+        <template #default="{row}">
+          <el-button size="small" @click.stop="showDetail(row)" style="padding:4px 10px;font-size:12px">详情</el-button>
+          <el-button size="small" type="danger" plain @click.stop="remove(row)" style="padding:4px 10px;font-size:12px">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
     <div class="pg"><el-pagination v-model:current-page="page" :page-size="pageSize" :total="total" layout="total, prev, pager, next" @current-change="load" background size="small" /></div>
     <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh" destroy-on-close>
       <div v-if="detail" class="dw">
@@ -85,33 +81,6 @@ function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-C
 </script>
 <style scoped>
 .filter-bar{margin-bottom:12px}.text-right{text-align:right}
-.table-wrap{background:#fff;border:1px solid #e5ddd0;border-radius:10px;overflow:hidden}
-.custom-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-.custom-table thead{background:#f8f5f0}
-.custom-table th,.custom-table td{padding:8px 6px;white-space:nowrap;font-size:13px;line-height:20px;height:36px;box-sizing:border-box}
-.custom-table th{font-weight:600;color:#8a7e72;border-bottom:1px solid #e5ddd0}
-.custom-table td{border-bottom:1px solid #eee8e0;color:#292524;overflow:hidden;text-overflow:ellipsis}
-.custom-table tbody tr{cursor:pointer;transition:background .1s}
-.custom-table tbody tr:hover{background:#fdf8f0}
-.custom-table tbody tr:last-child td{border-bottom:none}
-.empty{text-align:center;padding:36px 0;color:#999}
-.cid{width:44px;text-align:center}
-.cu{width:76px}.cuid{width:44px;text-align:center;color:#999;font-size:12px}
-.cq{width:170px}.cg{width:64px;text-align:center}
-.cy{width:200px;overflow:visible;text-overflow:clip}
-.ct{width:105px;color:#8a7e72;font-size:12px}
-.ca{width:120px;text-align:center;white-space:nowrap}
-.un{font-weight:600;color:#292524;font-size:13px}
-.t{display:inline-block;padding:1px 7px;border-radius:4px;font-size:12px;font-weight:600}
-.t1{background:#fdf8f0;color:#b8860b;border:1px solid #d4a853}
-.t2{background:#fef0f0;color:#c62828;border:1px solid #fca5a5}
-.g{color:#999;font-size:12px}
-.yao-text{font-size:13px;color:#8a6020}
-.b{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid #d4a853;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;background:#fff;color:#b8860b}
-.b:hover{background:#d4a853;color:#fff}
-.bd{border-color:#fca5a5;color:#c62828}
-.bd:hover{background:#c62828;color:#fff;border-color:#c62828}
-.b+.b{margin-left:5px}
 .pg{display:flex;justify-content:center;margin-top:12px}
 .dw{max-height:65vh;overflow-y:auto;padding-right:4px}
 .ds{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee8e0}
