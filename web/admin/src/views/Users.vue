@@ -23,7 +23,7 @@
             <div class="nc">{{ row.openid?(row.nickname&&row.nickname!=='微信用户'?row.nickname:'用户'+row.id):(row.nickname||row.phone) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="来源" width="55" align="center">
+        <el-table-column label="来源" width="62" align="center" header-align="center">
           <template #default="{row}">
             <el-tag :type="row.openid?'success':'info'" size="small" style="white-space:nowrap">{{ row.openid?'微信':'手机' }}</el-tag>
           </template>
@@ -123,4 +123,5 @@ function formatDate(ts){if(!ts)return '';return new Date(ts).toLocaleString('zh-
 .text-right{text-align:right}
 .nc{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pg{display:flex;justify-content:center;padding:12px 0}
+:deep(.el-table th.el-table__cell>.cell){white-space:nowrap}
 </style>
