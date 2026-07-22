@@ -33,6 +33,7 @@ func migrate(db *sql.DB) error {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			phone TEXT UNIQUE NOT NULL,
 			openid TEXT DEFAULT '',
+			unionid TEXT DEFAULT '',
 			nickname TEXT NOT NULL,
 			avatar TEXT DEFAULT '',
 			wx_avatar TEXT DEFAULT '',
@@ -168,6 +169,7 @@ func migrate(db *sql.DB) error {
 		{"history", "changing_yao", "TEXT", "''"},
 		{"history", "toss_data", "TEXT", "''"},
 		{"history", "master_yao", "INTEGER", "0"},
+		{"users", "unionid", "TEXT", "''"},
 	}
 	for _, m := range migrations {
 		var n int

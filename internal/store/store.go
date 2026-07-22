@@ -18,6 +18,7 @@ type User struct {
 	ID        int64     `json:"id"`
 	Phone     string    `json:"phone"`
 	OpenID    string    `json:"openid,omitempty"`
+	UnionID   string    `json:"unionid,omitempty"`
 	Nickname  string    `json:"nickname"`
 	Avatar    string    `json:"avatar"`
 	WxAvatar  string    `json:"-"`       // 微信头像 URL，不直接暴露，后端计算回退
@@ -122,9 +123,11 @@ type UserStore interface {
 	UpdateUserGender(id int64, sex int) error
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByOpenID(openid string) (*User, error)
+	GetUserByUnionID(unionid string) (*User, error)
 	GetUserByID(id int64) (*User, error)
 	UpdateUser(id int64, nickname, address string) error
 	UpdateUserOpenID(id int64, openid string) error
+	UpdateUserUnionID(id int64, unionid string) error
 
 	ToggleUser(id int64, active bool) error
 	UpdateUserRole(id int64, role string) error
