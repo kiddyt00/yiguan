@@ -4,8 +4,8 @@
       <!-- Brand 区 -->
       <div class="sidebar-brand">
         <span class="brand-icon">☯</span>
-        <div class="brand-text">易观后台</div>
-        <div class="brand-sub">YI GUAN ADMIN</div>
+        <div class="brand-text">真观己斋后台</div>
+        <div class="brand-sub">ZHEN GUAN JI ZHAI</div>
       </div>
 
       <!-- 导航菜单 -->
