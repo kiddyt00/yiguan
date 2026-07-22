@@ -239,6 +239,9 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | 8 | **UnionID去重机制** | 数据库加`unionid`字段，`jscode2session`获取unionid，先查unionid再查openid |
 | 9 | 微信头像显示修复 | `wx.getUserInfo`无avatar时不覆盖数据库，`fillUserAvatar`补全admin列表 |
 | 10 | 上传小程序v1.0.2→v1.0.3 | 修复头像清空bug+用户管理优化 |
+| 11 | Web端导航栏显示微信头像 | 替换首字母圆点为头像图片 |
+| 12 | **账号合并最终修复** | 清理用户6/7/8/9，保留ops(ID10)，openid支持逗号分隔多值LIKE查询 |
+| 13 | `wechatCode` + `wechatOpenToken` unionid支持 | 网页扫码登录也按unionid去重 |
 
 #### 支付宝接入状态
 
