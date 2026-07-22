@@ -89,11 +89,14 @@ const phases=[
   {period:'2026-07-20~21',tag:'完成',tagClass:'tdone',dotClass:'ddone',title:'小程序全流程打通',subtitle:'14次 · 支付+管理后台',commits:14,pct:100,tasks:[
     {done:true,text:'小程序API地址更新11处'},{done:true,text:'miniprogram-ci上传工具'},{done:true,text:'miniapp-native+miniapp支付'},{done:true,text:'JSAPI缺少openid修复'},{done:true,text:'WX_APPID/WX_SECRET修复'},{done:true,text:'管理后台进度页'},
   ]},
+  {period:'2026-07-22',tag:'准备',tagClass:'tdone',dotClass:'ddone',title:'支付宝接入准备',subtitle:'RSA2密钥生成+进度页完善',commits:6,pct:100,tasks:[
+    {done:true,text:'支付宝RSA2密钥对生成（私钥+公钥）'},{done:true,text:'管理后台进度页完善（完整生命周期）'},{done:true,text:'SECRETS.md更新+gitignore保护密钥'},
+  ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
   {label:'🔴 急迫',color:'#c62828',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
-  {label:'🟡 待开发',color:'#d4a853',items:[{done:false,text:'支付宝扫码支付接入',note:'等商户资料'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
+  {label:'🟡 待开发',color:'#d4a853',items:[{done:false,text:'支付宝扫码支付接入',note:'商户号已确认+RSA2密钥已生成，等AppID+支付宝公钥'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
   {label:'🟢 优化项',color:'#667eea',items:[{done:false,text:'前端SSE流自动重连'},{done:false,text:'零停机部署'},{done:false,text:'订单管理页面'},{done:false,text:'数据库自动备份'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
