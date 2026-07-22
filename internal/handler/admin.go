@@ -63,8 +63,18 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	if users == nil {
 		users = []store.User{}
 	}
+	// 为每个用户补充配额信息
+	type userWithQuota struct {
+		store.User
+		RemainingQuota int `json:"remaining_quota"`
+	}
+	items := make([]userWithQuota, 0, len(users))
+	for _, u := range users {
+		q, _ := h.store.GetUserQuota(u.ID)
+		items = append(items, userWithQuota{User: u, RemainingQuota: q})
+	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"items": users,
+		"items": items,
 		"total": total,
 	})
 }
