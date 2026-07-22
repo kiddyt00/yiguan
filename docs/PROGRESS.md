@@ -235,6 +235,10 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | 4 | 进度页双栏布局 + 左右交替鱼骨 | 左侧时间线 + 右侧待办事项 |
 | 5 | SECRETS.md 更新 | 补充微信小程序 + 支付宝密钥信息 |
 | 6 | `.gitignore` 更新 | 添加 `*.pem` 保护支付宝密钥文件 |
+| 7 | 微信账号合并（用户6→8） | 历史记录/quota迁移，openid切换到小程序端，禁用重复账号 |
+| 8 | **UnionID去重机制** | 数据库加`unionid`字段，`jscode2session`获取unionid，先查unionid再查openid |
+| 9 | 微信头像显示修复 | `wx.getUserInfo`无avatar时不覆盖数据库，`fillUserAvatar`补全admin列表 |
+| 10 | 上传小程序v1.0.2→v1.0.3 | 修复头像清空bug+用户管理优化 |
 
 #### 支付宝接入状态
 
