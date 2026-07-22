@@ -29,7 +29,7 @@
           </template>
         </el-table-column>
         <el-table-column label="手机号" width="120">
-          <template #default="{row}"><span style="font-size:13px;color:#606266;font-family:monospace">{{ row.phone||'-' }}</span></template>
+          <template #default="{row}"><span style="font-size:13px;color:#606266;font-family:monospace">{{ row.phone&&!row.phone.startsWith('wx:')?row.phone:'-' }}</span></template>
         </el-table-column>
         <el-table-column label="微信ID" min-width="130">
           <template #default="{row}"><span style="font-size:12px;color:#909399;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">{{ row.openid||'-' }}</span></template>
