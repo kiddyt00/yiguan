@@ -49,10 +49,12 @@
             : (isDark ? 'border-stone-600 text-stone-400' : 'border-stone-200 text-stone-500')">
           💚 微信支付
         </button>
-        <button disabled
-          class="flex-1 py-3 rounded-xl font-medium border-2 opacity-40 cursor-not-allowed"
-          :class="isDark ? 'border-stone-600 text-stone-500' : 'border-stone-200 text-stone-400'">
-          💙 支付宝（即将上线）
+        <button @click="payMethod = 'alipay'"
+          class="flex-1 py-3 rounded-xl font-medium border-2 transition"
+          :class="payMethod === 'alipay'
+            ? 'border-blue-500 bg-blue-50 text-blue-700'
+            : (isDark ? 'border-stone-600 text-stone-400' : 'border-stone-200 text-stone-500')">
+          💙 支付宝
         </button>
       </div>
     </div>
@@ -64,10 +66,10 @@
       :class="loading
         ? 'bg-amber-500 text-white cursor-wait'
         : 'bg-amber-600 text-white hover:bg-amber-500 active:bg-amber-700'">
-      {{ loading ? '处理中...' : '微信支付 ' + (selectedProduct ? '¥' + price(selectedProduct.amount) : '') }}
+      {{ loading ? '处理中...' : (payMethod === 'wechat' ? '微信支付 ' : '支付宝 ') + (selectedProduct ? '¥' + price(selectedProduct.amount) : '') }}
     </button>
 
-    <!-- 二维码弹窗 -->
+    <!-- 微信二维码弹窗 -->
     <div v-if="showQR" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="closeQR">
       <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl">
         <div class="text-lg font-bold text-stone-800 mb-1">微信支付</div>
@@ -136,22 +138,47 @@ async function pay() {
   if (!selected.value) return
   loading.value = true
   try {
-    const data = await apiPostJSON('/api/orders/create', { product_id: selected.value })
-    const codeUrl = data.code_url || (data.order && data.order.code_url)
-    if (codeUrl) {
-      orderId.value = data.id || (data.order && data.order.id)
-      showQR.value = true
-      qrStatus.value = 'pending'
-      await nextTick()
-      drawQR(codeUrl)
-      startPoll()
+    if (payMethod.value === 'wechat') {
+      await payWechat()
     } else {
-      alert('创建订单失败')
+      await payAlipay()
     }
   } catch (e) {
     alert('网络错误: ' + e.message)
   } finally {
     loading.value = false
+  }
+}
+
+async function payWechat() {
+  const data = await apiPostJSON('/api/orders/create', { product_id: selected.value })
+  const codeUrl = data.code_url || (data.order && data.order.code_url)
+  if (codeUrl) {
+    orderId.value = data.id || (data.order && data.order.id)
+    showQR.value = true
+    qrStatus.value = 'pending'
+    await nextTick()
+    drawQR(codeUrl)
+    startPoll()
+  } else {
+    alert('创建订单失败')
+  }
+}
+
+async function payAlipay() {
+  const data = await apiPostJSON('/api/orders/alipay-create', { product_id: selected.value })
+  const payURL = data.pay_url || (data.order && data.order.pay_url)
+  if (payURL) {
+    // 打开支付宝收银台页面
+    window.open(payURL, '_blank')
+    // 保存订单号用于轮询
+    orderId.value = data.id || (data.order && data.order.id)
+    // 开始轮询订单状态
+    startAlipayPoll()
+  } else if (payURL === '' || payURL === undefined) {
+    alert('支付宝暂未配置')
+  } else {
+    alert('创建订单失败')
   }
 }
 
@@ -169,7 +196,14 @@ function startPoll() {
   const timer = setInterval(async () => {
     try {
       const data = await apiGetJSON('/api/orders/' + orderId.value)
-      if (data.status === 'paid') {
+      if (data.order) {
+        if (data.order.status === 'paid') {
+          clearInterval(timer)
+          qrStatus.value = 'paid'
+          const userData = await apiGetJSON('/api/user')
+          quota.value = userData.remaining_quota || 0
+        }
+      } else if (data.status === 'paid') {
         clearInterval(timer)
         qrStatus.value = 'paid'
         // 刷新quota和会员状态
@@ -182,8 +216,28 @@ function startPoll() {
       }
     } catch (e) {}
   }, 2000)
-  // 10分钟后停止轮询
   setTimeout(() => { clearInterval(timer); if (qrStatus.value === 'pending') qrStatus.value = 'expired' }, 600000)
+}
+
+function startAlipayPoll() {
+  const timer = setInterval(async () => {
+    try {
+      const data = await apiGetJSON('/api/orders/' + orderId.value)
+      let status = data.status
+      if (data.order) {
+        status = data.order.status
+      }
+      if (status === 'paid') {
+        clearInterval(timer)
+        qrStatus.value = 'paid'
+        const userData = await apiGetJSON('/api/user')
+        quota.value = userData.remaining_quota || 0
+        alert('✅ 支付成功！次数已到账')
+      }
+    } catch (e) {}
+  }, 3000)
+  // 30分钟后停止
+  setTimeout(() => { clearInterval(timer) }, 1800000)
 }
 
 function closeQR() {
