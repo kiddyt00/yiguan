@@ -232,6 +232,39 @@ func main() {
 	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
 	mux.Handle("POST /api/orders/notify", corsWrap(http.HandlerFunc(orderHandler.WechatNotify)))
 
+	// 支付宝支付
+	alipayAppID := os.Getenv("ALIPAY_APPID")
+	alipayMerchantID := os.Getenv("ALIPAY_MERCHANT_ID")
+	alipayNotifyURL := os.Getenv("ALIPAY_NOTIFY_URL")
+	if alipayNotifyURL == "" {
+		alipayNotifyURL = "https://zgjz.insightj.cn/api/orders/alipay-notify"
+	}
+	alipayReturnURL := os.Getenv("ALIPAY_RETURN_URL")
+	if alipayReturnURL == "" {
+		alipayReturnURL = "https://zgjz.insightj.cn/api/orders/alipay-return"
+	}
+	alipayPrivKeyPath := os.Getenv("ALIPAY_PRIVATE_KEY_PATH")
+	if alipayPrivKeyPath == "" {
+		alipayPrivKeyPath = "alipay/app_private_key.pem"
+	}
+	alipayPubKeyPath := os.Getenv("ALIPAY_PUBLIC_KEY_PATH")
+	if alipayPubKeyPath == "" {
+		alipayPubKeyPath = "alipay/alipay_public_key.pem"
+	}
+	if alipayAppID != "" {
+		alipayHandler, err := handler.NewAlipayHandler(st, alipayAppID, alipayMerchantID, alipayPrivKeyPath, alipayPubKeyPath, alipayNotifyURL, alipayReturnURL)
+		if err != nil {
+			log.Printf("支付宝处理器初始化失败: %v", err)
+		} else {
+			mux.Handle("POST /api/orders/alipay-create", authMW(corsWrap(http.HandlerFunc(alipayHandler.CreateAlipayOrder))))
+			mux.Handle("GET /api/orders/alipay-return", corsWrap(http.HandlerFunc(alipayHandler.AlipayReturn)))
+			mux.Handle("POST /api/orders/alipay-notify", corsWrap(http.HandlerFunc(alipayHandler.AlipayNotify)))
+			log.Printf("支付宝支付已配置: %s", alipayAppID)
+		}
+	} else {
+		log.Println("支付宝支付未配置（缺少 ALIPAY_APPID）")
+	}
+
 	// 中间件链：限流 → 日志 → 路由
 	rateLimitMW := middleware.RateLimit(loggingMiddleware(mux))
 

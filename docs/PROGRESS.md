@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-07-22
+> 最后更新：2026-07-29
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -223,6 +223,39 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 
 ---
 
+### 2026-07-29 — 支付宝扫码支付上线
+
+#### 完成事项
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | Alipay 支付后端 handler | RSA2 签名/验签，`alipay.trade.page.pay` 下单、异步通知回调、同步跳转 |
+| 2 | 路由注册 | `POST /api/orders/alipay-create`、`GET /api/orders/alipay-return`、`POST /api/orders/alipay-notify` |
+| 3 | 前端支付切换 | Recharge.vue 增加支付宝选项，打开支付宝收银台页面 + 轮询确认 |
+| 4 | Docker 配置 | 添加 ALIPAY_APPID / ALIPAY_MERCHANT_ID 等环境变量，挂载 alipay/ 密钥目录 |
+| 5 | 密钥文件保存 | 应用私钥、应用公钥、支付宝公钥已保存到 `yiguan/alipay/`（gitignored） |
+
+#### 支付宝接入状态
+
+| 资料 | 状态 |
+|---|---|
+| 商户号 `2088780753525097` | ✅ |
+| AppID `2021006175658278` | ✅ |
+| 应用私钥 | ✅ `alipay/app_private_key.pem` |
+| 应用公钥（已上传平台） | ✅ `alipay/app_public_key.pem` |
+| 支付宝公钥（验签用） | ✅ `alipay/alipay_public_key.pem` |
+
+#### 新增环境变量
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `ALIPAY_APPID` | — | 支付宝应用 ID |
+| `ALIPAY_MERCHANT_ID` | — | 商户号 |
+| `ALIPAY_NOTIFY_URL` | `https://zgjz.insightj.cn/api/orders/alipay-notify` | 异步通知 |
+| `ALIPAY_RETURN_URL` | `https://zgjz.insightj.cn/api/orders/alipay-return` | 同步跳转 |
+
+---
+
 ### 2026-07-22 — 支付宝接入准备 + 进度页面完善
 
 #### 完成事项
@@ -276,6 +309,9 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | GET | `/api/orders/{id}` | 查询订单详情 | Bearer Token |
 | GET | `/api/orders` | 订单列表 | Bearer Token |
 | POST | `/api/orders/notify` | 微信支付回调通知 | 否（微信服务器回调） |
+| POST | `/api/orders/alipay-create` | 支付宝下单 | Bearer Token |
+| GET | `/api/orders/alipay-return` | 支付宝同步跳转 | 否（支付宝回调） |
+| POST | `/api/orders/alipay-notify` | 支付宝异步通知 | 否（支付宝回调） |
 
 管理后台 API 见后端代码 `cmd/server/main.go`。
 
