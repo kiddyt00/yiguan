@@ -154,6 +154,22 @@ func buildAlipaySignStr(params map[string]string) string {
 	return buf.String()
 }
 
+// isMobile 通过 User-Agent 检测是否移动端浏览器
+func isMobile(r *http.Request) bool {
+	ua := strings.ToLower(r.UserAgent())
+	keywords := []string{
+		"mobile", "android", "iphone", "ipad", "ipod",
+		"windows phone", "blackberry", "opera mini",
+		"iemobile", "webos",
+	}
+	for _, kw := range keywords {
+		if strings.Contains(ua, kw) {
+			return true
+		}
+	}
+	return false
+}
+
 // CreateAlipayOrder 支付宝下单（POST /api/orders/alipay-create）
 func (h *AlipayHandler) CreateAlipayOrder(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIDKey).(int64)
@@ -172,8 +188,14 @@ func (h *AlipayHandler) CreateAlipayOrder(w http.ResponseWriter, r *http.Request
 
 	outTradeNo := generateOutTradeNo() // YG + timestamp + random
 
-	// 创建支付宝订单并将用户重定向到支付页面
-	payURL, err := h.buildAlipayPayURL(product, outTradeNo)
+	// 根据设备类型选择支付方式
+	var payURL string
+	var err error
+	if isMobile(r) {
+		payURL, err = h.buildAlipayWapPayURL(product, outTradeNo)
+	} else {
+		payURL, err = h.buildAlipayPayURL(product, outTradeNo)
+	}
 	if err != nil {
 		log.Printf("支付宝下单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "支付下单失败"})
@@ -200,11 +222,11 @@ func (h *AlipayHandler) CreateAlipayOrder(w http.ResponseWriter, r *http.Request
 func (h *AlipayHandler) buildAlipayPayURL(product *store.OrderProduct, outTradeNo string) (string, error) {
 	// biz_content
 	bizContent := map[string]interface{}{
-		"subject":        "易观-占卜次数",
-		"out_trade_no":   outTradeNo,
-		"total_amount":   fmt.Sprintf("%.2f", float64(product.Amount)/100),
-		"product_code":   "FAST_INSTANT_TRADE_PAY",
-		"body":           fmt.Sprintf("易观占卜 %d 次", product.Quota),
+		"subject":      "易观-占卜次数",
+		"out_trade_no": outTradeNo,
+		"total_amount": fmt.Sprintf("%.2f", float64(product.Amount)/100),
+		"product_code": "FAST_INSTANT_TRADE_PAY",
+		"body":         fmt.Sprintf("易观占卜 %d 次", product.Quota),
 	}
 	bizJSON, _ := json.Marshal(bizContent)
 
@@ -232,6 +254,46 @@ func (h *AlipayHandler) buildAlipayPayURL(product *store.OrderProduct, outTradeN
 	params["sign"] = sign
 
 	// 构造 URL（alipay.trade.page.pay 是表单跳转，返回 URL 让前端打开）
+	gateway := "https://openapi.alipay.com/gateway.do"
+	query := url.Values{}
+	for k, v := range params {
+		query.Set(k, v)
+	}
+	return gateway + "?" + query.Encode(), nil
+}
+
+// buildAlipayWapPayURL 构造支付宝手机网站支付 URL（alipay.trade.wap.pay）
+func (h *AlipayHandler) buildAlipayWapPayURL(product *store.OrderProduct, outTradeNo string) (string, error) {
+	bizContent := map[string]interface{}{
+		"subject":      "易观-占卜次数",
+		"out_trade_no": outTradeNo,
+		"total_amount": fmt.Sprintf("%.2f", float64(product.Amount)/100),
+		"product_code": "QUICK_WAP_PAY",
+		"body":         fmt.Sprintf("易观占卜 %d 次", product.Quota),
+	}
+	bizJSON, _ := json.Marshal(bizContent)
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	params := map[string]string{
+		"app_id":      h.appID,
+		"method":      "alipay.trade.wap.pay",
+		"format":      "JSON",
+		"charset":     "utf-8",
+		"sign_type":   "RSA2",
+		"timestamp":   timestamp,
+		"version":     "1.0",
+		"notify_url":  h.notifyURL,
+		"return_url":  h.returnURL,
+		"biz_content": string(bizJSON),
+	}
+
+	signStr := buildAlipaySignStr(params)
+	sign, err := rsaSign(signStr, h.privateKey)
+	if err != nil {
+		return "", fmt.Errorf("签名失败: %w", err)
+	}
+	params["sign"] = sign
+
 	gateway := "https://openapi.alipay.com/gateway.do"
 	query := url.Values{}
 	for k, v := range params {
@@ -270,8 +332,8 @@ func (h *AlipayHandler) AlipayReturn(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("支付宝同步回调: out_trade_no=%s, trade_no=%s", outTradeNo, tradeNo)
 
-	// 重定向到前端结果页
-	http.Redirect(w, r, "/?alipay_success="+outTradeNo, http.StatusFound)
+	// 重定向到前端充值页，由前端展示支付成功提示
+	http.Redirect(w, r, "/recharge?alipay_success="+outTradeNo, http.StatusFound)
 }
 
 // AlipayNotify 支付宝异步通知（POST /api/orders/alipay-notify）

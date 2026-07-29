@@ -9,6 +9,12 @@
       <span class="text-amber-700 font-medium">👑 会员有效 · {{ membership.days_left }}天后到期</span>
     </div>
 
+    <!-- 支付成功提示 -->
+    <div v-if="qrStatus === 'paid'"
+      class="mb-4 px-4 py-3 rounded-xl text-center font-bold text-green-700 bg-green-50 border border-green-200">
+      ✅ 支付成功！次数已到账
+    </div>
+
     <p class="text-sm text-center mb-6" :class="isDark ? 'text-stone-400' : 'text-stone-500'">
       <template v-if="membership.is_active">
         会员期内测算不限次数
@@ -99,8 +105,12 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { apiGetJSON, apiPostJSON } from '../utils/request'
+
+const route = useRoute()
+const router = useRouter()
 
 const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
@@ -135,6 +145,23 @@ onMounted(async () => {
     quota.value = userData.remaining_quota || 0
     if (membershipData) membership.value = membershipData
   } catch (e) {}
+
+  // 支付宝支付成功后跳回 — 显示成功提示
+  const alipaySuccess = route.query.alipay_success
+  if (alipaySuccess) {
+    qrStatus.value = 'paid'
+    // 清除 query 参数，刷新当前用户数据
+    await router.replace('/recharge')
+    // 再刷新一次用户数据
+    try {
+      const [ud, md] = await Promise.all([
+        apiGetJSON('/api/user'),
+        apiGetJSON('/api/user/membership').catch(() => null),
+      ])
+      quota.value = ud.remaining_quota || 0
+      if (md) membership.value = md
+    } catch (e) {}
+  }
 })
 
 async function pay() {
@@ -168,16 +195,21 @@ async function payWechat() {
   }
 }
 
+const isMobile = /Mobile|Android|iPhone|iPad|iPod|Windows Phone|webOS/i.test(navigator.userAgent)
+
 async function payAlipay() {
   const data = await apiPostJSON('/api/orders/alipay-create', { product_id: selected.value })
   const payURL = data.pay_url || (data.order && data.order.pay_url)
   if (payURL) {
-    // 打开支付宝收银台页面
-    window.open(payURL, '_blank')
-    // 保存订单号用于轮询
     orderId.value = data.id || (data.order && data.order.id)
-    // 开始轮询订单状态
-    startAlipayPoll()
+    if (isMobile) {
+      // 移动端：当前页面跳转（alipay.trade.wap.pay 需要当前窗口唤起支付宝 App）
+      window.location.href = payURL
+    } else {
+      // PC 端：新窗口打开（alipay.trade.page.pay）
+      window.open(payURL, '_blank')
+      startAlipayPoll()
+    }
   } else if (payURL === '' || payURL === undefined) {
     alert('支付宝暂未配置')
   } else {
