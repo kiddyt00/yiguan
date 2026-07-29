@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kiddyt00/yiguan/internal/middleware"
 	"github.com/kiddyt00/yiguan/internal/store"
@@ -114,6 +115,33 @@ func (h *UserHandler) BindWechat(w http.ResponseWriter, r *http.Request) {
 type wechatCodeResult struct {
 	OpenID  string
 	UnionID string
+}
+
+// GetMembership 获取当前会员状态（GET /api/user/membership）
+func (h *UserHandler) GetMembership(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int64)
+
+	m, err := h.store.GetActiveMembership(userID)
+	if err == store.ErrNotFound {
+		writeJSON(w, http.StatusOK, store.MembershipStatus{IsActive: false, DaysLeft: 0})
+		return
+	}
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "查询会员状态失败"})
+		return
+	}
+
+	daysLeft := int(m.EndTime.Sub(time.Now()).Hours() / 24)
+	if daysLeft < 0 {
+		daysLeft = 0
+	}
+
+	writeJSON(w, http.StatusOK, store.MembershipStatus{
+		IsActive:  true,
+		ProductID: m.ProductID,
+		EndTime:   m.EndTime,
+		DaysLeft:  daysLeft,
+	})
 }
 
 func exchangeWechatCode(appID, secret, code string) (*wechatCodeResult, error) {

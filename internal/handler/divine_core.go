@@ -63,13 +63,23 @@ func formatTossData(lines []int) string {
 
 func divineCore(w http.ResponseWriter, r *http.Request, st store.Store) *divineCoreResult {
 	userID:=r.Context().Value(middleware.UserIDKey).(int64)
-	remaining,err:=st.GetRemainingQuota(userID)
-	if err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"查询配额失败"});return nil}
-	if remaining<=0{writeJSON(w,http.StatusPaymentRequired,map[string]interface{}{"error":"次数不足","remaining_quota":0});return nil}
+
+	// 会员优先判定：有有效会员则直接放行
+	hasMember,memberErr:=st.HasActiveMembership(userID)
+	if memberErr!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"查询会员状态失败"});return nil}
+
+	if !hasMember{
+		// 非会员：按免费 quota 次数判定
+		remaining,err:=st.GetRemainingQuota(userID)
+		if err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"查询配额失败"});return nil}
+		if remaining<=0{writeJSON(w,http.StatusPaymentRequired,map[string]interface{}{"error":"次数不足","remaining_quota":0});return nil}
+		// 扣减一次 quota
+		if err:=st.ConsumeQuota(userID);err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"扣减配额失败"});return nil}
+	}
+
 	var req divineReq
 	if err:=json.NewDecoder(r.Body).Decode(&req);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请求格式错误"});return nil}
 	if req.Question==""{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请输入问题"});return nil}
-	if err:=st.ConsumeQuota(userID);err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"扣减配额失败"});return nil}
 	linesArr:=engine.CastSixLines()
 	lines:=linesArr[:]
 	primary,changing,positions,master:=engine.BuildHexagrams(linesArr)

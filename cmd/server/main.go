@@ -157,6 +157,7 @@ func main() {
 	mux.Handle("GET /api/user", authMW(corsWrap(http.HandlerFunc(uh.GetUser))))
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("POST /api/user/bind-wechat", authMW(corsWrap(http.HandlerFunc(uh.BindWechat))))
+	mux.Handle("GET /api/user/membership", authMW(corsWrap(http.HandlerFunc(uh.GetMembership))))
 	mux.Handle("GET /api/history/search", authMW(corsWrap(http.HandlerFunc(hh.SearchHistory))))
 	mux.Handle("GET /api/history/latest", authMW(corsWrap(http.HandlerFunc(hh.GetLatestHistory))))
 	mux.Handle("GET /api/history/recent", authMW(corsWrap(http.HandlerFunc(hh.GetRecentHistory))))

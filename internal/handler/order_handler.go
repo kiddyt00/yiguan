@@ -40,31 +40,23 @@ func NewOrderHandler(st store.Store, mchID, apiKey, appID, notifyURL string) *Or
 	}
 }
 
-// products 商品定义（与前端 Recharge.vue 一致）
+// products 商品定义（二期定价，与前端 Recharge.vue 一致）
 var products = map[string]*store.OrderProduct{
-	"test": {
-		ID:     "test",
-		Name:  "测试包",
-		Amount: 1,
-		Quota:  1,
+	"single": {
+		ID: "single", Name: "单次测算",
+		Amount: 990, Quota: 1, Duration: 0,
 	},
-	"trial": {
-		ID:     "trial",
-		Name:   "尝鲜包",
-		Amount: 500,
-		Quota:  10,
+	"monthly": {
+		ID: "monthly", Name: "月卡",
+		Amount: 2990, Quota: -1, Duration: 30,
 	},
-	"standard": {
-		ID:     "standard",
-		Name:   "标准包",
-		Amount: 2000,
-		Quota:  50,
+	"quarterly": {
+		ID: "quarterly", Name: "季卡",
+		Amount: 4990, Quota: -1, Duration: 90,
 	},
-	"unlimited": {
-		ID:     "unlimited",
-		Name:   "畅享包",
-		Amount: 6000,
-		Quota:  200,
+	"yearly": {
+		ID: "yearly", Name: "年卡",
+		Amount: 9900, Quota: -1, Duration: 365,
 	},
 }
 
@@ -333,10 +325,25 @@ func (h *OrderHandler) WechatNotify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 增加配额
-	for i := 0; i < order.Quota; i++ {
-		if err := h.store.AddQuota(order.UserID, "purchase"); err != nil {
-			log.Printf("添加配额失败 user_id=%d: %v", order.UserID, err)
+	// 根据商品类型开通权益
+	product := store.FindProduct(order.ProductID)
+	if product != nil && product.IsMembership() {
+		// 会员卡：创建会员记录
+		endTime := time.Now().AddDate(0, 0, product.Duration)
+		_, err := h.store.CreateMembership(order.UserID, order.ID, order.ProductID, endTime)
+		if err != nil {
+			log.Printf("创建会员失败 user_id=%d order=%d: %v", order.UserID, order.ID, err)
+		}
+	} else {
+		// 单次/次数包：增加配额
+		quotaCount := order.Quota
+		if quotaCount <= 0 {
+			quotaCount = 1
+		}
+		for i := 0; i < quotaCount; i++ {
+			if err := h.store.AddQuota(order.UserID, "purchase"); err != nil {
+				log.Printf("添加配额失败 user_id=%d: %v", order.UserID, err)
+			}
 		}
 	}
 
