@@ -27,19 +27,23 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	activeUsers, _ := h.store.GetActiveUserCount()
 	adWatchesToday, _ := h.store.GetTodayAdWatchCount()
 	totalAdWatches, _ := h.store.GetTotalAdWatchCount()
+	totalOrders, _ := h.store.CountAllOrders()
+	activeMemberships, _ := h.store.CountActiveMemberships()
 	dailyDivineTrend, _ := h.store.GetDailyDivineTrend()
 	if dailyDivineTrend == nil {
 		dailyDivineTrend = map[string]int64{}
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"total_users":        totalUsers,
-		"active_users":       activeUsers,
-		"today_divines":      todayDivines,
-		"total_divines":      totalDivines,
-		"ad_watches_today":   adWatchesToday,
-		"total_ads_watched":  totalAdWatches,
-		"daily_divine_trend": dailyDivineTrend,
+		"total_users":         totalUsers,
+		"active_users":        activeUsers,
+		"today_divines":       todayDivines,
+		"total_divines":       totalDivines,
+		"ad_watches_today":    adWatchesToday,
+		"total_ads_watched":   totalAdWatches,
+		"total_orders":        totalOrders,
+		"active_memberships":  activeMemberships,
+		"daily_divine_trend":  dailyDivineTrend,
 	})
 }
 
@@ -140,4 +144,82 @@ func (h *AdminHandler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
 		items = []store.History{}
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"items": items})
+}
+
+// ListOrders 管理员订单列表（GET /api/admin/orders）
+func (h *AdminHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit == 0 || limit > 100 {
+		limit = 50
+	}
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	orders, err := h.store.ListAllOrders(limit, offset)
+	if err != nil {
+		log.Printf("查询全部订单失败: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "查询失败"})
+		return
+	}
+	if orders == nil {
+		orders = []store.Order{}
+	}
+	total, _ := h.store.CountAllOrders()
+
+	// 为订单补充用户昵称
+	type orderWithUser struct {
+		store.Order
+		UserName string `json:"user_name"`
+	}
+	items := make([]orderWithUser, 0, len(orders))
+	for _, o := range orders {
+		u, err := h.store.GetUserByID(o.UserID)
+		uname := ""
+		if err == nil {
+			uname = u.Nickname
+		}
+		items = append(items, orderWithUser{Order: o, UserName: uname})
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"items": items,
+		"total": total,
+	})
+}
+
+// ListMemberships 管理员会员列表（GET /api/admin/memberships）
+func (h *AdminHandler) ListMemberships(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit == 0 || limit > 100 {
+		limit = 50
+	}
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	memberships, err := h.store.ListAllMemberships(limit, offset)
+	if err != nil {
+		log.Printf("查询全部会员失败: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "查询失败"})
+		return
+	}
+	if memberships == nil {
+		memberships = []store.Membership{}
+	}
+
+	// 补充用户信息
+	type membershipWithUser struct {
+		store.Membership
+		UserName string `json:"user_name"`
+	}
+	items := make([]membershipWithUser, 0, len(memberships))
+	for _, m := range memberships {
+		u, err := h.store.GetUserByID(m.UserID)
+		uname := ""
+		if err == nil {
+			uname = u.Nickname
+		}
+		items = append(items, membershipWithUser{Membership: m, UserName: uname})
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"items": items,
+	})
 }

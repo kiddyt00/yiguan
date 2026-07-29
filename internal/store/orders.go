@@ -55,6 +55,8 @@ type OrderStore interface {
 	GetOrder(id int64) (*Order, error)
 	GetOrderByOutTradeNo(outTradeNo string) (*Order, error)
 	ListOrders(userID int64, limit, offset int) ([]Order, error)
+	ListAllOrders(limit, offset int) ([]Order, error)
+	CountAllOrders() (int64, error)
 	MarkOrderPaid(id int64, prepayID string) error
 	UpdateCodeURL(id int64, codeURL string) error
 }

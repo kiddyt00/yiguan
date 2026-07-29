@@ -62,4 +62,7 @@ export const adminApi = {
   deleteAd: (id) => api(`/admin/ads/${id}`, { method: 'DELETE' }),
   toggleAd: (id, enabled) => api(`/admin/ads/${id}/toggle?enabled=${enabled}`, { method: 'POST' }),
   adStats: () => api('/admin/ads/stats'),
+
+  orders: (limit = 50, offset = 0) => api(`/admin/orders?limit=${limit}&offset=${offset}`),
+  memberships: (limit = 50, offset = 0) => api(`/admin/memberships?limit=${limit}&offset=${offset}`),
 }

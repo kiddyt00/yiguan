@@ -246,6 +246,10 @@ type MembershipStore interface {
 	TerminateMembership(membershipID int64) error
 	// ListMemberships 列出用户会员记录
 	ListMemberships(userID int64) ([]Membership, error)
+	// ListAllMemberships 管理员：列出全部会员记录
+	ListAllMemberships(limit, offset int) ([]Membership, error)
+	// CountActiveMemberships 统计当前有效会员数
+	CountActiveMemberships() (int, error)
 	// LogMembership 记录权益变动
 	LogMembership(userID int64, membershipID int64, action, detail string) error
 }

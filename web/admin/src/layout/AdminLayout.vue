@@ -41,6 +41,14 @@
           <el-icon><Notification /></el-icon>
           <span>广告管理</span>
         </el-menu-item>
+        <el-menu-item index="/orders">
+          <el-icon><Document /></el-icon>
+          <span>订单管理</span>
+        </el-menu-item>
+        <el-menu-item index="/memberships">
+          <el-icon><Crown /></el-icon>
+          <span>会员管理</span>
+        </el-menu-item>
         <el-menu-item index="/progress">
           <el-icon><List /></el-icon>
           <span>开发进度</span>
@@ -98,6 +106,8 @@ const titles = {
   '/models': '模型管理',
   '/ads': '广告管理',
   '/progress': '开发进度',
+  '/orders': '订单管理',
+  '/memberships': '会员管理',
 }
 const pageTitle = computed(() => titles[route.path] || '')
 

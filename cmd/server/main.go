@@ -186,6 +186,12 @@ func main() {
 	mux.Handle("GET /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.GetHistoryDetail))))
 	mux.Handle("DELETE /api/admin/hexagrams/{id}", adminMW(corsWrap(http.HandlerFunc(hh2.DeleteHistory))))
 
+	// 订单管理
+	mux.Handle("GET /api/admin/orders", adminMW(corsWrap(http.HandlerFunc(ah.ListOrders))))
+
+	// 会员管理
+	mux.Handle("GET /api/admin/memberships", adminMW(corsWrap(http.HandlerFunc(ah.ListMemberships))))
+
 	// 模型管理
 	mh := handler.NewModelHandler(st, func() { _ = llmRouter.Reload() })
 	mux.Handle("GET /api/admin/models", adminMW(corsWrap(http.HandlerFunc(mh.ListModels))))
