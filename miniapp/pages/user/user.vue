@@ -42,10 +42,10 @@
 import { api } from '../../utils/api.js'
 
 const products = [
-  { id: 'test', name: '测试包', quota: 1, amount: 1, price: '0.01', icon: '🧪' },
-  { id: 'trial', name: '尝鲜包', quota: 10, amount: 500, price: '5.00', icon: '🔮' },
-  { id: 'standard', name: '标准包', quota: 50, amount: 2000, price: '20.00', icon: '🌟' },
-  { id: 'unlimited', name: '畅享包', quota: 200, amount: 6000, price: '60.00', icon: '👑' },
+  { id: 'single',    name: '单次测算', quota: 1, amount: 990, price: '9.90', icon: '🔮', duration: 0 },
+  { id: 'monthly',   name: '月卡',     quota: -1, amount: 2990, price: '29.90', icon: '📅', duration: 30 },
+  { id: 'quarterly', name: '季卡',     quota: -1, amount: 4990, price: '49.90', icon: '🌿', duration: 90 },
+  { id: 'yearly',    name: '年卡',     quota: -1, amount: 9900, price: '99.00', icon: '👑', duration: 365 },
 ]
 
 export default {
