@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -31,11 +30,6 @@ func (h *InviteHandler) GetInviteCode(w http.ResponseWriter, r *http.Request) {
 		"invite_code": code,
 		"share_url":   "https://zgjz.insightj.cn?invite=" + code,
 	})
-}
-
-// BindInvite 注册时绑定邀请
-type bindInviteReq struct {
-	InviteCode string `json:"invite_code"`
 }
 
 // GetInviteProgress 获取拉新进度
