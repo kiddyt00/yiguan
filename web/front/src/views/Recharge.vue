@@ -86,9 +86,12 @@
       支付即代表同意《服务协议》，充值次数永久有效
     </p>
 
-    <div class="text-center mt-4">
-      <router-link to="/profile" class="text-xs underline" :class="isDark ? 'text-stone-400 hover:text-stone-300' : 'text-stone-500 hover:text-stone-600'">
-        ← 查看充值记录和个人信息
+    <div class="flex justify-center gap-6 mt-4 text-xs">
+      <router-link to="/profile" class="underline" :class="isDark ? 'text-stone-400 hover:text-stone-300' : 'text-stone-500 hover:text-stone-600'">
+        ← 个人信息
+      </router-link>
+      <router-link to="/profile#invite" class="underline" :class="isDark ? 'text-amber-400 hover:text-amber-300' : 'text-amber-600 hover:text-amber-500'">
+        📤 邀请好友赚次数
       </router-link>
     </div>
   </div>

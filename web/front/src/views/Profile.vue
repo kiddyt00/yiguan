@@ -33,14 +33,19 @@
     </div>
 
     <!-- 邀请好友 -->
-    <div class="rounded-2xl p-6" :class="isDark ? 'bg-stone-800/60' : 'bg-white border border-stone-100'">
-      <h3 class="text-sm font-bold mb-1" :class="isDark ? 'text-stone-200' : 'text-stone-700'">📤 邀请好友</h3>
-      <p class="text-xs mb-3" :class="isDark ? 'text-stone-400' : 'text-stone-400'">每邀请3位好友注册，其中1人完成测算，得1次免费测算</p>
+    <div class="rounded-2xl p-6" :class="isDark ? 'bg-stone-800/60' : 'bg-gradient-to-br from-amber-50 to-white border border-amber-100'">
+      <h3 class="text-sm font-bold mb-1" :class="isDark ? 'text-stone-200' : 'text-stone-700'">📤 邀请好友赚免费次数</h3>
+      <p class="text-xs mb-3" :class="isDark ? 'text-stone-400' : 'text-stone-500'">邀请3位好友注册，其中1人测算，你就获得<strong class="text-amber-600">1次免费测算</strong></p>
 
       <div v-if="inviteCode" class="space-y-3">
-        <div class="flex items-center gap-2 py-2 px-3 rounded-lg text-sm font-mono" :class="isDark ? 'bg-stone-700/40 text-stone-300' : 'bg-stone-50 text-stone-700'">
-          <span class="flex-1 truncate">{{ inviteCode }}</span>
-          <button @click="copyCode" class="text-xs px-2 py-1 rounded bg-amber-600 text-white hover:bg-amber-500">复制</button>
+        <button @click="copyCode"
+          class="w-full py-3 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2 bg-amber-600 text-white hover:bg-amber-500 active:bg-amber-700 shadow-lg shadow-amber-600/20">
+          📤 分享给好友
+        </button>
+
+        <div class="flex items-center gap-2 py-2 px-3 rounded-lg text-xs" :class="isDark ? 'bg-stone-700/40 text-stone-400' : 'bg-stone-100 text-stone-400'">
+          <span class="flex-1 truncate">邀请码: {{ inviteCode }}</span>
+          <button @click="copyCodeOnly" class="text-amber-600 hover:text-amber-500">复制</button>
         </div>
 
         <div class="flex gap-2 text-xs">
@@ -111,17 +116,26 @@ async function loadInvite() {
 }
 
 function copyCode() {
-  const shareUrl = `https://zgjz.insightj.cn?invite=${inviteCode.value}`
+  const code = inviteCode.value
+  const shareUrl = `https://zgjz.insightj.cn?invite=${code}`
+  const shareText = `☯ 我最近在用「观己斋」算卦，挺准的！来测测你的运势吧~\n\n点开就能用，不用下载：${shareUrl}`
+
   // 优先用 Web Share API（手机浏览器弹出原生分享）
   if (navigator.share) {
-    navigator.share({ title: '观己斋·周易占筮', text: '来算一卦吧，测运势、问前程', url: shareUrl })
+    navigator.share({ title: '观己斋·周易占筮', text: '来算一卦吧，测运势、问前程', url: shareUrl }).catch(() => {})
     return
   }
-  // 回退到复制链接
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    alert('邀请链接已复制，分享给好友即可')
+  // 回退到复制链接（带邀请语）
+  navigator.clipboard.writeText(shareText).then(() => {
+    alert('✅ 邀请语已复制，发送给好友即可')
   }).catch(() => {
-    alert('邀请码: ' + inviteCode.value)
+    alert('邀请码: ' + code)
+  })
+}
+
+function copyCodeOnly() {
+  navigator.clipboard.writeText(inviteCode.value).then(() => {
+    alert('邀请码已复制')
   })
 }
 
