@@ -112,6 +112,12 @@ async function loadInvite() {
 
 function copyCode() {
   const shareUrl = `https://zgjz.insightj.cn?invite=${inviteCode.value}`
+  // 优先用 Web Share API（手机浏览器弹出原生分享）
+  if (navigator.share) {
+    navigator.share({ title: '观己斋·周易占筮', text: '来算一卦吧，测运势、问前程', url: shareUrl })
+    return
+  }
+  // 回退到复制链接
   navigator.clipboard.writeText(shareUrl).then(() => {
     alert('邀请链接已复制，分享给好友即可')
   }).catch(() => {
