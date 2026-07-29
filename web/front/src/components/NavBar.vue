@@ -62,6 +62,11 @@
                 :class="isDark ? 'text-stone-200' : 'text-stone-700'">
                 <span>💎</span> 充值
               </router-link>
+              <router-link to="/profile#invite" @click="userOpen=false"
+                class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition hover:bg-amber-500/10"
+                :class="isDark ? 'text-amber-300' : 'text-amber-600'">
+                <span>📤</span> 邀请好友
+              </router-link>
               <div class="h-px mx-3" :class="isDark ? 'bg-stone-700' : 'bg-stone-200'"></div>
               <button @click="doLogout"
                 class="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm transition hover:bg-red-500/10"
