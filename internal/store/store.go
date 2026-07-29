@@ -104,6 +104,36 @@ type AdRecord struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
+// Membership 会员记录
+type Membership struct {
+	ID        int64     `json:"id"`
+	UserID    int64     `json:"user_id"`
+	OrderID   int64     `json:"order_id"`
+	ProductID string    `json:"product_id"` // monthly|quarterly|yearly
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	Status    string    `json:"status"` // active|terminated|refunded
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// MembershipStatus 当前会员状态（API 响应用）
+type MembershipStatus struct {
+	IsActive  bool      `json:"is_active"`
+	ProductID string    `json:"product_id,omitempty"`
+	EndTime   time.Time `json:"end_time,omitempty"`
+	DaysLeft  int       `json:"days_left"`
+}
+
+// MembershipLog 会员权益变动流水
+type MembershipLog struct {
+	ID           int64     `json:"id"`
+	UserID       int64     `json:"user_id"`
+	MembershipID int64     `json:"membership_id,omitempty"`
+	Action       string    `json:"action"`  // created|terminated|refunded|expired
+	Detail       string    `json:"detail"`  // 关联业务说明
+	CreatedAt    time.Time `json:"created_at"`
+}
+
 // AdStat 广告统计
 type AdStat struct {
 	AdID        int64  `json:"ad_id"`
@@ -204,6 +234,22 @@ type AdStore interface {
 	GetTotalAdWatchCount() (int64, error)
 }
 
+// MembershipStore 会员管理
+type MembershipStore interface {
+	// CreateMembership 创建会员记录（自动处理顺延）
+	CreateMembership(userID, orderID int64, productID string, endTime time.Time) (*Membership, error)
+	// GetActiveMembership 获取用户当前有效会员（取最晚到期的）
+	GetActiveMembership(userID int64) (*Membership, error)
+	// HasActiveMembership 检查用户是否有有效会员
+	HasActiveMembership(userID int64) (bool, error)
+	// TerminateMembership 终止会员（退款时用）
+	TerminateMembership(membershipID int64) error
+	// ListMemberships 列出用户会员记录
+	ListMemberships(userID int64) ([]Membership, error)
+	// LogMembership 记录权益变动
+	LogMembership(userID int64, membershipID int64, action, detail string) error
+}
+
 // Store 组合接口（向后兼容）
 type Store interface {
 	UserStore
@@ -213,5 +259,6 @@ type Store interface {
 	AdStore
 	AnalyticsStore
 	OrderStore
+	MembershipStore
 	Close() error
 }

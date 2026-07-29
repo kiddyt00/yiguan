@@ -19,18 +19,24 @@ type Order struct {
 
 // OrderProduct 套餐定义
 type OrderProduct struct {
-	ID     string
-	Name   string // 显示名
-	Quota  int    // 次数
-	Amount int    // 金额（分）
+	ID       string
+	Name     string // 显示名
+	Quota    int    // 次数（-1 = 不限次/会员卡）
+	Amount   int    // 金额（分）
+	Duration int    // 有效天数（0 = 长期有效/单次）
 }
 
-// 预定义套餐
+// 预定义商品（二期定价）
 var Products = []OrderProduct{
-	{ID: "test", Name: "测试包", Quota: 1, Amount: 1},          // ¥0.01（仅测试）
-	{ID: "trial", Name: "尝鲜包", Quota: 10, Amount: 500},    // ¥5
-	{ID: "standard", Name: "标准包", Quota: 50, Amount: 2000}, // ¥20
-	{ID: "unlimited", Name: "畅享包", Quota: 200, Amount: 6000}, // ¥60
+	{ID: "single", Name: "单次测算", Quota: 1, Amount: 990, Duration: 0},      // ¥9.9 / 1次
+	{ID: "monthly", Name: "月卡", Quota: -1, Amount: 2990, Duration: 30},     // ¥29.9 / 30天不限次
+	{ID: "quarterly", Name: "季卡", Quota: -1, Amount: 4990, Duration: 90},   // ¥49.9 / 90天不限次
+	{ID: "yearly", Name: "年卡", Quota: -1, Amount: 9900, Duration: 365},     // ¥99 / 365天不限次
+}
+
+// IsMembership 判断是否是会员卡商品
+func (p *OrderProduct) IsMembership() bool {
+	return p.Duration > 0
 }
 
 // FindProduct 按 ID 查找套餐

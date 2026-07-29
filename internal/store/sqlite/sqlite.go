@@ -144,6 +144,32 @@ func migrate(db *sql.DB) error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_orders_out_trade_no ON orders(out_trade_no)`,
+		// v2: memberships
+		`CREATE TABLE IF NOT EXISTS memberships (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			order_id INTEGER NOT NULL,
+			product_id TEXT NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME NOT NULL,
+			status TEXT DEFAULT 'active',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id),
+			FOREIGN KEY (order_id) REFERENCES orders(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_memberships_user_id ON memberships(user_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_memberships_status ON memberships(status)`,
+		// v2: membership_logs
+		`CREATE TABLE IF NOT EXISTS membership_logs (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			membership_id INTEGER,
+			action TEXT NOT NULL,
+			detail TEXT DEFAULT '',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_membership_logs_user_id ON membership_logs(user_id)`,
 	}
 	for _, s := range schemas {
 		if _, err := db.Exec(s); err != nil {
