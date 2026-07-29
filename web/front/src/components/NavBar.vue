@@ -62,11 +62,11 @@
                 :class="isDark ? 'text-stone-200' : 'text-stone-700'">
                 <span>💎</span> 充值
               </router-link>
-              <router-link to="/profile#invite" @click="userOpen=false"
-                class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition hover:bg-amber-500/10"
+              <button @click="shareInvite"
+                class="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm transition hover:bg-amber-500/10"
                 :class="isDark ? 'text-amber-300' : 'text-amber-600'">
                 <span>📤</span> 邀请好友
-              </router-link>
+              </button>
               <div class="h-px mx-3" :class="isDark ? 'bg-stone-700' : 'bg-stone-200'"></div>
               <button @click="doLogout"
                 class="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm transition hover:bg-red-500/10"
@@ -121,6 +121,27 @@ onMounted(async () => {
     } catch {}
   }
 })
+
+async function shareInvite() {
+  userOpen.value = false
+  try {
+    const res = await fetch('/api/invite/code', {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    const code = data.invite_code || ''
+    const shareUrl = `https://zgjz.insightj.cn?invite=${code}`
+    const shareText = `☯ 我最近在用「观己斋」算卦，挺准的！来测测你的运势吧~\n\n点开就能用，不用下载：${shareUrl}`
+
+    if (navigator.share) {
+      navigator.share({ title: '观己斋·周易占筮', text: '来算一卦吧，测运势、问前程', url: shareUrl }).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(shareText)
+      alert('✅ 邀请语已复制，发送给好友即可')
+    }
+  } catch {}
+}
 
 function doLogout() {
   auth.logout()
