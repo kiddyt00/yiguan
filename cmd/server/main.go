@@ -244,6 +244,11 @@ func main() {
 	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
 	mux.Handle("POST /api/orders/notify", corsWrap(http.HandlerFunc(orderHandler.WechatNotify)))
 
+	// 退款
+	refundHandler := handler.NewRefundHandler(st)
+	mux.Handle("POST /api/orders/{id}/refund", authMW(corsWrap(http.HandlerFunc(refundHandler.RequestRefund))))
+	mux.Handle("GET /api/orders/refunds", authMW(corsWrap(http.HandlerFunc(refundHandler.ListRefunds))))
+
 	// 支付宝支付
 	alipayAppID := os.Getenv("ALIPAY_APPID")
 	alipayMerchantID := os.Getenv("ALIPAY_MERCHANT_ID")

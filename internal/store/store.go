@@ -134,6 +134,31 @@ type Invitation struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
+// Refund 退款记录
+type Refund struct {
+	ID         int64      `json:"id"`
+	UserID     int64      `json:"user_id"`
+	OrderID    int64      `json:"order_id"`
+	Amount     int        `json:"amount"`
+	Reason     string     `json:"reason"`
+	Status     string     `json:"status"` // pending|approved|rejected|completed
+	PaidAt     *time.Time `json:"paid_at,omitempty"`
+	RefundedAt *time.Time `json:"refunded_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+}
+
+// RefundStore 退款管理
+type RefundStore interface {
+	CreateRefund(userID, orderID int64, reason string) (*Refund, error)
+	GetRefund(id int64) (*Refund, error)
+	GetRefundByOrder(orderID int64) (*Refund, error)
+	ListRefunds(userID int64) ([]Refund, error)
+	ListAllRefunds() ([]Refund, error)
+	ApproveRefund(id int64) error
+	CompleteRefund(id int64) error
+	RejectRefund(id int64, reason string) error
+}
+
 // InviteProgress 拉新进度
 type InviteProgress struct {
 	RegisteredCount int `json:"registered_count"`
@@ -299,5 +324,6 @@ type Store interface {
 	OrderStore
 	MembershipStore
 	InviteStore
+	RefundStore
 	Close() error
 }

@@ -185,6 +185,22 @@ func migrate(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_invitations_inviter ON invitations(inviter_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_invitations_invitee ON invitations(invitee_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_invitations_code ON invitations(invite_code)`,
+		// v2: refunds
+		`CREATE TABLE IF NOT EXISTS refunds (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			order_id INTEGER NOT NULL,
+			amount INTEGER NOT NULL,
+			reason TEXT DEFAULT '',
+			status TEXT DEFAULT 'pending',
+			paid_at DATETIME,
+			refunded_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id),
+			FOREIGN KEY (order_id) REFERENCES orders(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_refunds_user_id ON refunds(user_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_refunds_order_id ON refunds(order_id)`,
 	}
 	for _, s := range schemas {
 		if _, err := db.Exec(s); err != nil {
