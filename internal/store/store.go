@@ -124,6 +124,24 @@ type MembershipStatus struct {
 	DaysLeft  int       `json:"days_left"`
 }
 
+// Invitation 邀请关系
+type Invitation struct {
+	ID         int64     `json:"id"`
+	InviterID  int64     `json:"inviter_id"`
+	InviteeID  int64     `json:"invitee_id"`
+	InviteCode string    `json:"invite_code"`
+	Status     string    `json:"status"` // registered|divined|rewarded
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// InviteProgress 拉新进度
+type InviteProgress struct {
+	RegisteredCount int `json:"registered_count"`
+	DivinedCount    int `json:"divined_count"`
+	RewardRound     int `json:"reward_round"`
+	PendingReward   bool `json:"pending_reward"`
+}
+
 // MembershipLog 会员权益变动流水
 type MembershipLog struct {
 	ID           int64     `json:"id"`
@@ -234,6 +252,22 @@ type AdStore interface {
 	GetTotalAdWatchCount() (int64, error)
 }
 
+// InviteStore 拉新裂变
+type InviteStore interface {
+	// GenerateInviteCode 生成/获取用户邀请码
+	GenerateInviteCode(userID int64) (string, error)
+	// BindInvitation 注册时绑定邀请关系（通过邀请码）
+	BindInvitation(inviteeID int64, inviteCode string) error
+	// MarkInviteeDivined 被邀请人完成测算后标记
+	MarkInviteeDivined(userID int64) error
+	// RewardInviterIfEligible 被邀请人测算后,检查邀请人奖励条件
+	RewardInviterIfEligible(inviteeID int64) error
+	// GetInviteProgress 获取邀请人拉新进度
+	GetInviteProgress(userID int64) (*InviteProgress, error)
+	// CheckAndReward 检查并发放奖励（返回是否发放了奖励）
+	CheckAndReward(userID int64) (bool, error)
+}
+
 // MembershipStore 会员管理
 type MembershipStore interface {
 	// CreateMembership 创建会员记录（自动处理顺延）
@@ -264,5 +298,6 @@ type Store interface {
 	AnalyticsStore
 	OrderStore
 	MembershipStore
+	InviteStore
 	Close() error
 }

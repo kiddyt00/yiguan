@@ -173,6 +173,12 @@ func main() {
 	streamHandler := handler.NewDivineStreamHandler(st, llmRouter)
 	mux.Handle("POST /api/divine/stream", authMW(corsWrap(streamHandler)))
 
+	// 拉新裂变
+	inviteHandler := handler.NewInviteHandler(st)
+	mux.Handle("GET /api/invite/code", authMW(corsWrap(http.HandlerFunc(inviteHandler.GetInviteCode))))
+	mux.Handle("GET /api/invite/progress", authMW(corsWrap(http.HandlerFunc(inviteHandler.GetInviteProgress))))
+	mux.Handle("POST /api/invite/claim", authMW(corsWrap(http.HandlerFunc(inviteHandler.ClaimReward))))
+
 	// 后台管理
 	mux.Handle("GET /api/admin/dashboard", adminMW(corsWrap(http.HandlerFunc(ah.Dashboard))))
 	mux.Handle("GET /api/admin/users", adminMW(corsWrap(http.HandlerFunc(ah.ListUsers))))

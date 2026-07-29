@@ -170,6 +170,21 @@ func migrate(db *sql.DB) error {
 			FOREIGN KEY (user_id) REFERENCES users(id)
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_membership_logs_user_id ON membership_logs(user_id)`,
+		// v2: referrals
+		`CREATE TABLE IF NOT EXISTS invitations (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			inviter_id INTEGER NOT NULL,
+			invitee_id INTEGER NOT NULL,
+			invite_code TEXT NOT NULL,
+			status TEXT DEFAULT 'registered',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (inviter_id) REFERENCES users(id),
+			FOREIGN KEY (invitee_id) REFERENCES users(id),
+			UNIQUE(invitee_id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_invitations_inviter ON invitations(inviter_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_invitations_invitee ON invitations(invitee_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_invitations_code ON invitations(invite_code)`,
 	}
 	for _, s := range schemas {
 		if _, err := db.Exec(s); err != nil {
@@ -196,6 +211,7 @@ func migrate(db *sql.DB) error {
 		{"history", "toss_data", "TEXT", "''"},
 		{"history", "master_yao", "INTEGER", "0"},
 		{"users", "unionid", "TEXT", "''"},
+		{"users", "invite_code", "TEXT", "''"},
 	}
 	for _, m := range migrations {
 		var n int
