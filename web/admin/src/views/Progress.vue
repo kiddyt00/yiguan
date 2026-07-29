@@ -91,14 +91,16 @@ const phases=[
   ]},
   {period:'2026-07-22',tag:'完善',tagClass:'tdone',dotClass:'ddone',title:'账号体系+头像+用户管理大修',subtitle:'多轮修复 · 去重/合并/头像',commits:20,pct:100,tasks:[
     {done:true,text:'支付宝RSA2密钥对生成'},{done:true,text:'进度页完整生命周期+鱼骨图'},{done:true,text:'用户管理新设计（紧凑列+弹性表）'},{done:true,text:'全局表头不换行CSS'},{done:true,text:'卦象表格改用el-table'},{done:true,text:'微信头像保存+展示（admin+小程序+Web导航栏）'},{done:true,text:'UnionID去重机制+账号合并'},{done:true,text:'清除重复微信用户+逗号分隔openid'},
-
+  ]},
+  {period:'2026-07-29',tag:'二期',tagClass:'tdone',dotClass:'ddone',title:'v2.2 二期定价 + 会员系统 + 支付宝',subtitle:'新定价上线',commits:12,pct:100,tasks:[
+    {done:true,text:'memberships表+会员模型/SQLite实现'},{done:true,text:'商品重定义：single/monthly/quarterly/yearly'},{done:true,text:'支付回调适配会员卡创建（顺延叠加）'},{done:true,text:'测算权限改为会员优先再判quota'},{done:true,text:'GET /api/user/membership 会员状态API'},{done:true,text:'前端Recharge.vue新定价UI+grid重构'},{done:true,text:'支付宝扫码支付接入（alipay.trade.page.pay）'},{done:true,text:'miniapp/miniapp-native商品同步更新'},
   ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
   {label:'🔴 急迫',color:'#c62828',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
-  {label:'🟡 待开发',color:'#d4a853',items:[{done:false,text:'支付宝扫码支付接入',note:'商户号已确认+RSA2密钥已生成，等AppID+支付宝公钥'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
-  {label:'🟢 优化项',color:'#667eea',items:[{done:false,text:'前端SSE流自动重连'},{done:false,text:'零停机部署'},{done:false,text:'订单管理页面'},{done:false,text:'数据库自动备份'}]},
+  {label:'🟡 待开发',color:'#d4a853',items:[{done:true,text:'支付宝扫码支付接入',note:'✅ 已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
+  {label:'🟢 优化项',color:'#667eea',items:[{done:false,text:'订单管理页面'},{done:false,text:'会员管理页面（管理后台）'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
 const todo=todos[0].items.filter(t=>!t.done).length+todos[1].items.filter(t=>!t.done).length
