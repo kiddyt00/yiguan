@@ -2,21 +2,32 @@ const api = require('../../utils/api.js')
 const API = 'https://zgjz.insightj.cn/api'
 
 const products = [
-  { id: 'test', name: '测试包', quota: 1, amount: 1, price: '0.01', icon: '🧪' },
-  { id: 'trial', name: '尝鲜包', quota: 10, amount: 500, price: '5.00', icon: '🔮' },
-  { id: 'standard', name: '标准包', quota: 50, amount: 2000, price: '20.00', icon: '🌟' },
-  { id: 'unlimited', name: '畅享包', quota: 200, amount: 6000, price: '60.00', icon: '👑' },
+  { id: 'single',    name: '单次测算', quota: 1, amount: 990, price: '9.90', icon: '🔮', duration: 0 },
+  { id: 'monthly',   name: '月卡',     quota: -1, amount: 2990, price: '29.90', icon: '📅', duration: 30 },
+  { id: 'quarterly', name: '季卡',     quota: -1, amount: 4990, price: '49.90', icon: '🌿', duration: 90 },
+  { id: 'yearly',    name: '年卡',     quota: -1, amount: 9900, price: '99.00', icon: '👑', duration: 365 },
 ]
 
 Page({
   data: { profile: {}, form: { nickname: '', address: '' }, binding: false, bindError: '', bindSuccess: false,
-    products, selected: '', payLoading: false },
+    products, selected: '', payLoading: false, membership: {} },
   onShow() { this.loadProfile() },
   onNick(e) { this.setData({ 'form.nickname': e.detail.value }) },
   onAddr(e) { this.setData({ 'form.address': e.detail.value }) },
   loadProfile() {
-    api.profile().then(d => {
-      this.setData({ profile: d.user || d, 'form.nickname': d.nickname || '', 'form.address': d.address || '' })
+    Promise.all([
+      api.profile(),
+      new Promise(resolve => {
+        wx.request({
+          url: API + '/user/membership',
+          method: 'GET',
+          header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+          success: r => resolve(r.data || {}),
+          fail: () => resolve({})
+        })
+      })
+    ]).then(([d, m]) => {
+      this.setData({ profile: d.user || d, 'form.nickname': d.nickname || '', 'form.address': d.address || '', membership: m })
     }).catch(e => wx.showToast({ title: e.message, icon: 'none' }))
   },
   save() {

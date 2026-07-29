@@ -1,25 +1,41 @@
 <template>
   <div class="max-w-2xl mx-auto">
     <h3 class="text-xl font-bold mb-2 text-center" :class="isDark ? 'text-stone-100' : 'text-stone-800'">
-      💎 充值占卜次数
+      💎 充值
     </h3>
+
+    <!-- 会员状态 -->
+    <div v-if="membership.is_active" class="text-center mb-4 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200">
+      <span class="text-amber-700 font-medium">👑 会员有效 · {{ membership.days_left }}天后到期</span>
+    </div>
+
     <p class="text-sm text-center mb-6" :class="isDark ? 'text-stone-400' : 'text-stone-500'">
-      当前剩余：<span class="font-bold text-amber-600">{{ quota }}</span> 次
+      <template v-if="membership.is_active">
+        会员期内测算不限次数
+      </template>
+      <template v-else>
+        当前剩余：<span class="font-bold text-amber-600">{{ quota }}</span> 次
+      </template>
     </p>
 
     <!-- 套餐选择 -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="grid grid-cols-2 gap-3 mb-6">
       <div v-for="p in products" :key="p.id"
-        class="border-2 rounded-xl p-4 text-center cursor-pointer transition-all duration-200"
+        class="border-2 rounded-xl p-4 text-center cursor-pointer transition-all duration-200 relative"
         :class="selected === p.id
           ? 'border-amber-500 bg-amber-50 shadow-md scale-105'
           : (isDark ? 'border-stone-700 hover:border-amber-600' : 'border-stone-200 hover:border-amber-400')"
         @click="select(p.id)">
+        <div v-if="p.badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{ p.badge }}</div>
         <div class="text-2xl mb-1">{{ p.icon }}</div>
-        <div class="font-bold text-lg" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ p.name }}</div>
+        <div class="font-bold" :class="isDark ? 'text-stone-100' : 'text-stone-800'">{{ p.name }}</div>
         <div class="text-2xl font-bold text-amber-600 my-1">{{ price(p.amount) }}<span class="text-sm font-normal">元</span></div>
-        <div class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">{{ p.quota }} 次</div>
-        <div class="text-xs mt-1" :class="isDark ? 'text-stone-500' : 'text-stone-400'">≈ {{ (p.amount / p.quota).toFixed(1) }}分/次</div>
+        <div v-if="p.duration > 0" class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">
+          {{ p.duration }}天不限次
+        </div>
+        <div v-else class="text-sm" :class="isDark ? 'text-stone-400' : 'text-stone-500'">
+          {{ p.quota }} 次
+        </div>
       </div>
     </div>
 
@@ -87,10 +103,10 @@ const auth = useAuthStore()
 function price(amount) { return (amount / 100).toFixed(amount < 100 ? 2 : 0) }
 
 const products = [
-  { id: 'test', name: '测试包', quota: 1, amount: 1, icon: '🧪' },
-  { id: 'trial', name: '尝鲜包', quota: 10, amount: 500, icon: '🔮' },
-  { id: 'standard', name: '标准包', quota: 50, amount: 2000, icon: '🌟' },
-  { id: 'unlimited', name: '畅享包', quota: 200, amount: 6000, icon: '👑' },
+  { id: 'single',    name: '单次测算',   quota: 1,   amount: 990,   duration: 0,   icon: '🔮' },
+  { id: 'monthly',   name: '月卡',       quota: -1,  amount: 2990,  duration: 30,  icon: '📅' },
+  { id: 'quarterly', name: '季卡',       quota: -1,  amount: 4990,  duration: 90,  icon: '🌿' },
+  { id: 'yearly',    name: '年卡',       quota: -1,  amount: 9900,  duration: 365, icon: '👑', badge: '最超值' },
 ]
 
 const selected = ref('')
@@ -100,14 +116,19 @@ const showQR = ref(false)
 const qrStatus = ref('')
 const orderId = ref(0)
 const quota = ref(0)
+const membership = ref({ is_active: false, days_left: 0 })
 const selectedProduct = computed(() => products.find(p => p.id === selected.value))
 
 function select(id) { selected.value = id }
 
 onMounted(async () => {
   try {
-    const userData = await apiGetJSON('/api/user')
+    const [userData, membershipData] = await Promise.all([
+      apiGetJSON('/api/user'),
+      apiGetJSON('/api/user/membership').catch(() => null),
+    ])
     quota.value = userData.remaining_quota || 0
+    if (membershipData) membership.value = membershipData
   } catch (e) {}
 })
 
@@ -151,10 +172,13 @@ function startPoll() {
       if (data.status === 'paid') {
         clearInterval(timer)
         qrStatus.value = 'paid'
-        // 刷新quota和订单记录
-        const userData = await apiGetJSON('/api/user')
-        quota.value = userData.remaining_quota || 0
-
+        // 刷新quota和会员状态
+        const [ud, md] = await Promise.all([
+          apiGetJSON('/api/user'),
+          apiGetJSON('/api/user/membership').catch(() => null),
+        ])
+        quota.value = ud.remaining_quota || 0
+        if (md) membership.value = md
       }
     } catch (e) {}
   }, 2000)
