@@ -100,7 +100,7 @@ import { apiGetJSON, apiPostJSON } from '../utils/request'
 const props = defineProps({ isDark: Boolean })
 const auth = useAuthStore()
 
-function price(amount) { return (amount / 100).toFixed(amount < 100 ? 2 : 0) }
+function price(amount) { return (amount / 100).toFixed(2) }
 
 const products = [
   { id: 'single',    name: '单次测算',   quota: 1,   amount: 990,   duration: 0,   icon: '🔮' },
