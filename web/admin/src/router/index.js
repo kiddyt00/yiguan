@@ -21,6 +21,8 @@ const router = createRouter({
         { path: 'models', component: () => import('../views/Models.vue') },
         { path: 'ads', component: () => import('../views/Ads.vue') },
         { path: 'progress', component: () => import('../views/Progress.vue') },
+        { path: 'orders', component: () => import('../views/Orders.vue') },
+        { path: 'memberships', component: () => import('../views/Memberships.vue') },
       ],
     },
   ],

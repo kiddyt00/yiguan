@@ -135,6 +135,38 @@ func (s *Store) getMembershipByID(id int64) (*store.Membership, error) {
 	return m, nil
 }
 
+// ListAllMemberships 管理员：列出全部会员记录
+func (s *Store) ListAllMemberships(limit, offset int) ([]store.Membership, error) {
+	rows, err := s.db.Query(
+		`SELECT id, user_id, order_id, product_id, start_time, end_time, status, created_at
+		 FROM memberships ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []store.Membership
+	for rows.Next() {
+		var m store.Membership
+		if err := rows.Scan(&m.ID, &m.UserID, &m.OrderID, &m.ProductID, &m.StartTime, &m.EndTime, &m.Status, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		list = append(list, m)
+	}
+	return list, rows.Err()
+}
+
+// CountActiveMemberships 统计当前有效会员数
+func (s *Store) CountActiveMemberships() (int, error) {
+	var count int
+	err := s.db.QueryRow(
+		"SELECT COUNT(*) FROM memberships WHERE status = 'active' AND end_time > datetime('now')",
+	).Scan(&count)
+	return count, err
+}
+
 // GetMembershipByOrderID 按 order_id 查会员（退款时用）
 func (s *Store) GetMembershipByOrderID(orderID int64) (*store.Membership, error) {
 	m := &store.Membership{}

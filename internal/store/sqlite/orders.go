@@ -119,3 +119,41 @@ func (s *Store) UpdateCodeURL(id int64, codeURL string) error {
 	)
 	return err
 }
+
+// ListAllOrders 管理员：列出全部订单
+func (s *Store) ListAllOrders(limit, offset int) ([]store.Order, error) {
+	rows, err := s.db.Query(
+		`SELECT id, user_id, amount, quota, COALESCE(product_id,''), status,
+		        COALESCE(out_trade_no,''), COALESCE(prepay_id,''), COALESCE(code_url,''),
+		        paid_at, created_at
+		 FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []store.Order
+	for rows.Next() {
+		var o store.Order
+		var paidAt sql.NullTime
+		if err := rows.Scan(&o.ID, &o.UserID, &o.Amount, &o.Quota, &o.ProductID,
+			&o.Status, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
+			&paidAt, &o.CreatedAt); err != nil {
+			return nil, err
+		}
+		if paidAt.Valid {
+			o.PaidAt = &paidAt.Time
+		}
+		list = append(list, o)
+	}
+	return list, rows.Err()
+}
+
+// CountAllOrders 统计全部订单数
+func (s *Store) CountAllOrders() (int64, error) {
+	var count int64
+	err := s.db.QueryRow("SELECT COUNT(*) FROM orders").Scan(&count)
+	return count, err
+}
