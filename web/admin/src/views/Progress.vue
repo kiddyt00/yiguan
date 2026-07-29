@@ -95,6 +95,9 @@ const phases=[
   {period:'2026-07-29',tag:'二期',tagClass:'tdone',dotClass:'ddone',title:'v2.2 二期定价 + 会员系统 + 支付宝',subtitle:'新定价上线',commits:12,pct:100,tasks:[
     {done:true,text:'memberships表+会员模型/SQLite实现'},{done:true,text:'商品重定义：single/monthly/quarterly/yearly'},{done:true,text:'支付回调适配会员卡创建（顺延叠加）'},{done:true,text:'测算权限改为会员优先再判quota'},{done:true,text:'GET /api/user/membership 会员状态API'},{done:true,text:'前端Recharge.vue新定价UI+grid重构'},{done:true,text:'支付宝扫码支付接入（alipay.trade.page.pay）'},{done:true,text:'miniapp/miniapp-native商品同步更新'},
   ]},
+  {period:'2026-07-29',tag:'管理',tagClass:'tdone',dotClass:'ddone',title:'v2.3 管理后台 + 拉新裂变',subtitle:'订单/会员/邀请',commits:12,pct:100,tasks:[
+    {done:true,text:'管理后台订单列表+会员列表页面'},{done:true,text:'Dashboard增加订单/会员统计'},{done:true,text:'邀请码生成+绑定+进度追踪'},{done:true,text:'奖励发放逻辑（3注册+1测算=1次）'},{done:true,text:'前端Profile邀请入口（Web+小程序）'},{done:true,text:'Web端Web Share API + 导航栏入口'},{done:true,text:'小程序微信原生分享卡片'},
+  ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[

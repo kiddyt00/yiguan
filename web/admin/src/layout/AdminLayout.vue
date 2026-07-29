@@ -57,7 +57,7 @@
 
       <!-- 底部版本 -->
       <div class="text-center py-3 text-xs" style="color: rgba(212, 168, 83, 0.25); letter-spacing: 1px;">
-        v2.2
+        v2.3
       </div>
     </el-aside>
 
