@@ -305,6 +305,8 @@ type MembershipStore interface {
 	TerminateMembership(membershipID int64) error
 	// ListMemberships 列出用户会员记录
 	ListMemberships(userID int64) ([]Membership, error)
+	// GetMembershipByOrderID 按订单查会员
+	GetMembershipByOrderID(orderID int64) (*Membership, error)
 	// ListAllMemberships 管理员：列出全部会员记录
 	ListAllMemberships(limit, offset int) ([]Membership, error)
 	// CountActiveMemberships 统计当前有效会员数
