@@ -34,6 +34,21 @@
       <button class="btn-primary" style="width:100%;" @tap="save">保存</button>
     </view>
 
+    <!-- 邀请好友 -->
+    <view class="card">
+      <view style="font-size:28rpx;font-weight:600;margin-bottom:4rpx;">📤 邀请好友</view>
+      <text style="font-size:24rpx;color:#9E8C7A;display:block;margin-bottom:12rpx;">每邀请3位好友注册，其中1人测算，得1次免费测算</text>
+      <view v-if="inviteCode" style="text-align:center;">
+        <button class="btn-primary" style="width:100%;font-size:26rpx;" @tap="shareInvite">📤 邀请好友</button>
+        <view style="display:flex;gap:12rpx;margin-top:12rpx;font-size:22rpx;color:#9E8C7A;text-align:center;">
+          <view style="flex:1;"><view style="font-size:30rpx;font-weight:700;color:#5D4037;">{{inviteProgress.registered_count}}</view>已注册</view>
+          <view style="flex:1;"><view style="font-size:30rpx;font-weight:700;color:#5D4037;">{{inviteProgress.divined_count}}</view>已测算</view>
+          <view style="flex:1;"><view style="font-size:30rpx;font-weight:700;color:#5D4037;">{{inviteProgress.reward_round}}</view>已奖励</view>
+        </view>
+      </view>
+      <view v-else style="text-align:center;color:#9E8C7A;padding:12rpx 0;">加载中...</view>
+    </view>
+
     <button class="btn-secondary mt-3" style="width:100%;" @tap="logout">退出登录</button>
   </view>
 </template>
@@ -50,15 +65,29 @@ const products = [
 
 export default {
   data() {
-    return { profile: {}, form: { nickname: '', address: '' }, products, selected: '', payLoading: false }
+    return { profile: {}, form: { nickname: '', address: '' }, products, selected: '', payLoading: false,
+      inviteCode: '', inviteProgress: {} }
   },
   onShow() { this.loadProfile() },
+  onShareAppMessage() {
+    return {
+      title: '📤 来观己斋算一卦吧，测运势、问前程',
+      path: '/pages/index/index?invite=' + (this.inviteCode || ''),
+      imageUrl: '/static/logo_icon.svg'
+    }
+  },
   methods: {
     async loadProfile() {
       try {
-        const data = await api.profile()
+        const [data, inviteData, progressData] = await Promise.all([
+          api.profile(),
+          uni.request({ url: '/api/invite/code', method: 'GET', header: { Authorization: 'Bearer ' + uni.getStorageSync('token') } }).then(r => r.data || {}).catch(() => ({})),
+          uni.request({ url: '/api/invite/progress', method: 'GET', header: { Authorization: 'Bearer ' + uni.getStorageSync('token') } }).then(r => r.data || {}).catch(() => ({})),
+        ])
         this.profile = data
         this.form = { nickname: data.nickname || '', address: data.address || '' }
+        this.inviteCode = inviteData.invite_code || ''
+        this.inviteProgress = progressData || {}
       } catch (e) { uni.showToast({ title: e.message, icon: 'none' }) }
     },
     async save() {
@@ -98,6 +127,9 @@ export default {
       } catch (e) {
         uni.showToast({ title: e.message || '下单失败', icon: 'none' })
       } finally { this.payLoading = false }
+    },
+    shareInvite() {
+      uni.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
     },
     logout() {
       uni.removeStorageSync('token')

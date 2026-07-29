@@ -10,24 +10,35 @@ const products = [
 
 Page({
   data: { profile: {}, form: { nickname: '', address: '' }, binding: false, bindError: '', bindSuccess: false,
-    products, selected: '', payLoading: false, membership: {} },
+    products, selected: '', payLoading: false, membership: {}, inviteCode: '', inviteProgress: {} },
   onShow() { this.loadProfile() },
   onNick(e) { this.setData({ 'form.nickname': e.detail.value }) },
   onAddr(e) { this.setData({ 'form.address': e.detail.value }) },
+  // 设置分享内容
+  onShareAppMessage() {
+    const code = this.data.inviteCode
+    return {
+      title: '📤 来观己斋算一卦吧，测运势、问前程',
+      path: '/pages/index/index?invite=' + (code || ''),
+      imageUrl: '/images/logo_icon.svg'
+    }
+  },
   loadProfile() {
+    const token = wx.getStorageSync('token')
+    const authHeader = { 'Authorization': 'Bearer ' + token }
     Promise.all([
       api.profile(),
       new Promise(resolve => {
-        wx.request({
-          url: API + '/user/membership',
-          method: 'GET',
-          header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
-          success: r => resolve(r.data || {}),
-          fail: () => resolve({})
-        })
-      })
-    ]).then(([d, m]) => {
-      this.setData({ profile: d.user || d, 'form.nickname': d.nickname || '', 'form.address': d.address || '', membership: m })
+        wx.request({ url: API + '/user/membership', header: authHeader, success: r => resolve(r.data || {}), fail: () => resolve({}) })
+      }),
+      new Promise(resolve => {
+        wx.request({ url: API + '/invite/code', header: authHeader, success: r => resolve(r.data || {}), fail: () => resolve({}) })
+      }),
+      new Promise(resolve => {
+        wx.request({ url: API + '/invite/progress', header: authHeader, success: r => resolve(r.data || {}), fail: () => resolve({}) })
+      }),
+    ]).then(([d, m, c, p]) => {
+      this.setData({ profile: d.user || d, 'form.nickname': d.nickname || '', 'form.address': d.address || '', membership: m, inviteCode: c.invite_code || '', inviteProgress: p || {} })
     }).catch(e => wx.showToast({ title: e.message, icon: 'none' }))
   },
   save() {
@@ -90,6 +101,13 @@ Page({
     }).catch(e => {
       wx.showToast({ title: e.message || '下单失败', icon: 'none' })
       this.setData({ payLoading: false })
+    })
+  },
+  shareInvite() {
+    // 触发右上角原生分享菜单
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
     })
   },
   logout() {
