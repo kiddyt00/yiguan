@@ -78,6 +78,12 @@ func (h *DivineHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Lang:           getLang(r),
 	})
 
+	// 被邀请人完成测算 -> 检查邀请人是否有奖励
+	isMember, _ := h.store.HasActiveMembership(result.UserID)
+	if !isMember {
+		h.store.RewardInviterIfEligible(result.UserID)
+	}
+
 	remaining, _ := h.store.GetRemainingQuota(result.UserID)
 	writeJSON(w, http.StatusOK, divineResp{
 		Primary:        result.Primary,

@@ -67,9 +67,10 @@ func (h *AuthHandler) ServeMux() *http.ServeMux {
 }
 
 type registerReq struct {
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
-	Nickname string `json:"nickname"`
+	Phone      string `json:"phone"`
+	Password   string `json:"password"`
+	Nickname   string `json:"nickname"`
+	InviteCode string `json:"invite_code"`
 }
 
 type loginReq struct {
@@ -109,6 +110,11 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < 3; i++ {
 		h.store.AddQuota(user.ID, "free")
+	}
+
+	// 绑定邀请关系
+	if req.InviteCode != "" {
+		h.store.BindInvitation(user.ID, req.InviteCode)
 	}
 
 	fillUserAvatar(user)
