@@ -9,6 +9,7 @@ const routes = [
   { path: '/result', name: 'Result', component: () => import('../views/Result.vue'), meta: { auth: true } },
   { path: '/ads', name: 'AdCenter', component: () => import('../views/AdCenter.vue'), meta: { auth: true } },
   { path: '/recharge', name: 'Recharge', component: () => import('../views/Recharge.vue'), meta: { auth: true } },
+  { path: '/orders', name: 'UserOrders', component: () => import('../views/UserOrders.vue'), meta: { auth: true } },
   { path: '/wx-callback', name: 'WxCallback', component: () => import('../views/WxCallback.vue') },
 ]
 

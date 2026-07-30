@@ -5,9 +5,15 @@
       <div class="text-xs font-medium tracking-widest uppercase" :class="isDark ? 'text-stone-400' : 'text-stone-400'">剩余次数</div>
       <div class="mt-2 text-6xl font-extrabold" :class="quota > 0 ? 'text-amber-600' : 'text-red-400'">{{ quota }}</div>
       <div class="mt-1 text-xs" :class="isDark ? 'text-stone-500' : 'text-stone-400'">次</div>
-      <router-link to="/recharge" class="inline-flex items-center gap-1.5 mt-4 px-6 py-2.5 rounded-xl text-sm font-medium transition bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/20">
-        💎 充值
-      </router-link>
+      <div class="flex items-center justify-center gap-3 mt-4">
+        <router-link to="/recharge" class="px-6 py-2.5 rounded-xl text-sm font-medium transition bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/20">
+          💎 充值
+        </router-link>
+        <router-link to="/orders" class="px-4 py-2.5 rounded-xl text-sm font-medium transition border"
+          :class="isDark ? 'border-stone-600 text-stone-300 hover:bg-stone-700' : 'border-stone-200 text-stone-500 hover:bg-stone-50'">
+          📄 记录
+        </router-link>
+      </div>
     </div>
 
     <!-- 个人信息 -->
