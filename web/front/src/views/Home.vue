@@ -50,23 +50,6 @@
       </div>
     </div>
 
-    <!-- 免责声明 -->
-    <div class="mt-12 mx-auto max-w-2xl rounded-xl p-4 text-center text-xs leading-relaxed"
-      :class="isDark ? 'bg-stone-800/40 text-stone-500 border border-stone-700' : 'bg-amber-50/60 text-stone-500 border border-amber-100'">
-      本站旨在推广中国传统文化，所有内容基于《周易》公开文献整理，结果仅供学习交流。<br>
-      请理性看待结果，人生抉择请结合自身实际情况，如遇重大问题，请咨询相关专业人士。
-    </div>
-
-    <!-- 底部链接 -->
-    <footer class="mt-6 pt-6 border-t text-center space-x-4 text-xs"
-      :class="isDark ? 'border-stone-700 text-stone-500' : 'border-stone-200 text-stone-400'">
-      <a href="/about.html" class="hover:text-amber-500 transition">关于我们</a>
-      <a href="/contact.html" class="hover:text-amber-500 transition">联系我们</a>
-      <a href="/terms.html" class="hover:text-amber-500 transition">服务协议</a>
-      <a href="/privacy.html" class="hover:text-amber-500 transition">隐私政策</a>
-      <div class="mt-2">© 2026 北京丰弥科技有限公司 All Rights Reserved.</div>
-      <div class="mt-1"><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow" class="hover:text-amber-500 transition">京ICP备2026035156号-1</a></div>
-    </footer>
   </div>
 </template>
 
