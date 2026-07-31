@@ -50,8 +50,15 @@
       </div>
     </div>
 
+    <!-- 免责声明 -->
+    <div class="mt-12 mx-auto max-w-2xl rounded-xl p-4 text-center text-xs leading-relaxed"
+      :class="isDark ? 'bg-stone-800/40 text-stone-500 border border-stone-700' : 'bg-amber-50/60 text-stone-500 border border-amber-100'">
+      本站旨在推广中国传统文化，所有内容基于《周易》公开文献整理，结果仅供学习交流。<br>
+      请理性看待结果，人生抉择请结合自身实际情况，如遇重大问题，请咨询相关专业人士。
+    </div>
+
     <!-- 底部链接 -->
-    <footer class="mt-12 pt-6 border-t text-center space-x-4 text-xs"
+    <footer class="mt-6 pt-6 border-t text-center space-x-4 text-xs"
       :class="isDark ? 'border-stone-700 text-stone-500' : 'border-stone-200 text-stone-400'">
       <a href="/about.html" class="hover:text-amber-500 transition">关于我们</a>
       <a href="/contact.html" class="hover:text-amber-500 transition">联系我们</a>
