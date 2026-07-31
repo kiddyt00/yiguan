@@ -128,10 +128,11 @@ func rsaVerify(data, sign string, pubKey *rsa.PublicKey) error {
 
 // buildAlipaySignStr 按支付宝规则构建待签名字符串
 // 参数按 key 排序，格式: key1=value1&key2=value2
+// 注意：支付宝签名/验签必须排除 sign 和 sign_type
 func buildAlipaySignStr(params map[string]string) string {
 	keys := make([]string, 0, len(params))
 	for k := range params {
-		if k == "sign" {
+		if k == "sign" || k == "sign_type" {
 			continue
 		}
 		keys = append(keys, k)
@@ -318,6 +319,8 @@ func (h *AlipayHandler) AlipayReturn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "缺少签名参数", http.StatusBadRequest)
 		return
 	}
+	// Go 的 url.Query() 会把字面 + 解码成空格，但 base64 签名里 + 是有效字符，需恢复
+	sign = strings.ReplaceAll(sign, " ", "+")
 
 	signStr := buildAlipaySignStr(params)
 	if err := rsaVerify(signStr, sign, h.alipayPubKey); err != nil {
