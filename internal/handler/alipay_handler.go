@@ -192,11 +192,13 @@ func (h *AlipayHandler) CreateAlipayOrder(w http.ResponseWriter, r *http.Request
 	// 根据设备类型选择支付方式
 	var payURL string
 	var err error
-	if isMobile(r) {
+	mobile := isMobile(r)
+	if mobile {
 		payURL, err = h.buildAlipayWapPayURL(product, outTradeNo)
 	} else {
 		payURL, err = h.buildAlipayPayURL(product, outTradeNo)
 	}
+	log.Printf("支付宝下单: order=%s is_mobile=%v ua=%s", outTradeNo, mobile, r.UserAgent())
 	if err != nil {
 		log.Printf("支付宝下单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "支付下单失败"})
