@@ -128,11 +128,15 @@ func rsaVerify(data, sign string, pubKey *rsa.PublicKey) error {
 
 // buildAlipaySignStr 按支付宝规则构建待签名字符串
 // 参数按 key 排序，格式: key1=value1&key2=value2
-// 注意：支付宝签名/验签必须排除 sign 和 sign_type
-func buildAlipaySignStr(params map[string]string) string {
+// includeSignType=true 用于下单签名（网关要求包含 sign_type）
+// includeSignType=false 用于回调验签（支付宝回调签名规则排除 sign_type）
+func buildAlipaySignStr(params map[string]string, includeSignType bool) string {
 	keys := make([]string, 0, len(params))
 	for k := range params {
-		if k == "sign" || k == "sign_type" {
+		if k == "sign" {
+			continue
+		}
+		if !includeSignType && k == "sign_type" {
 			continue
 		}
 		keys = append(keys, k)
@@ -249,7 +253,7 @@ func (h *AlipayHandler) buildAlipayPayURL(product *store.OrderProduct, outTradeN
 	}
 
 	// 签名
-	signStr := buildAlipaySignStr(params)
+	signStr := buildAlipaySignStr(params, true)
 	sign, err := rsaSign(signStr, h.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("签名失败: %w", err)
@@ -290,7 +294,7 @@ func (h *AlipayHandler) buildAlipayWapPayURL(product *store.OrderProduct, outTra
 		"biz_content": string(bizJSON),
 	}
 
-	signStr := buildAlipaySignStr(params)
+	signStr := buildAlipaySignStr(params, true)
 	sign, err := rsaSign(signStr, h.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("签名失败: %w", err)
@@ -324,7 +328,7 @@ func (h *AlipayHandler) AlipayReturn(w http.ResponseWriter, r *http.Request) {
 	// Go 的 url.Query() 会把字面 + 解码成空格，但 base64 签名里 + 是有效字符，需恢复
 	sign = strings.ReplaceAll(sign, " ", "+")
 
-	signStr := buildAlipaySignStr(params)
+	signStr := buildAlipaySignStr(params, false)
 	if err := rsaVerify(signStr, sign, h.alipayPubKey); err != nil {
 		log.Printf("支付宝同步回调验签失败: %v", err)
 		http.Error(w, "验签失败", http.StatusBadRequest)
@@ -372,7 +376,7 @@ func (h *AlipayHandler) AlipayNotify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signStr := buildAlipaySignStr(params)
+	signStr := buildAlipaySignStr(params, false)
 	if err := rsaVerify(signStr, sign, h.alipayPubKey); err != nil {
 		log.Printf("支付宝异步通知验签失败: %v", err)
 		writeAlipayResponse(w, false, "验签失败")
