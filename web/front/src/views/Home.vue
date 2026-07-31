@@ -49,6 +49,16 @@
         </div>
       </div>
     </div>
+
+    <!-- 底部链接 -->
+    <footer class="mt-12 pt-6 border-t text-center space-x-4 text-xs"
+      :class="isDark ? 'border-stone-700 text-stone-500' : 'border-stone-200 text-stone-400'">
+      <a href="/about.html" class="hover:text-amber-500 transition">关于我们</a>
+      <a href="/contact.html" class="hover:text-amber-500 transition">联系我们</a>
+      <a href="/terms.html" class="hover:text-amber-500 transition">服务协议</a>
+      <a href="/privacy.html" class="hover:text-amber-500 transition">隐私政策</a>
+      <div class="mt-2">© 2026 观己斋 · 易观 Yi Guan</div>
+    </footer>
   </div>
 </template>
 
