@@ -125,6 +125,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -170,7 +171,7 @@ function yaoDescLines(yaoDesc, yaoPositions) {
 }
 
 function renderMD(text) {
-  return marked.parse(text || '')
+  return DOMPurify.sanitize(marked.parse(text || ''))
 }
 
 function getDisplayText(h) {

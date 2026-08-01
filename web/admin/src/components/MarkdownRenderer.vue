@@ -4,6 +4,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import DOMPurify from 'dompurify'
 
 const props = defineProps({ content: { type: String, default: '' } })
 
@@ -44,7 +45,7 @@ const rendered = computed(() => {
   // 修复嵌套 p
   html = html.replace('</p><p><p>', '</p><p>').replace('</p></p>', '</p>')
 
-  return html
+  return DOMPurify.sanitize(html)
 })
 </script>
 

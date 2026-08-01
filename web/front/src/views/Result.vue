@@ -62,6 +62,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useI18n } from 'vue-i18n'
 import Hexagram from '../components/Hexagram.vue'
 import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/request'
@@ -85,7 +86,7 @@ function filterText(text) {
 }
 
 marked.setOptions({ breaks: true, gfm: true })
-const renderedMarkdown = computed(() => marked.parse(filterText(data.value?.interpretation || '')))
+const renderedMarkdown = computed(() => DOMPurify.sanitize(marked.parse(filterText(data.value?.interpretation || ''))))
 
 const hexagramLines = computed(() => {
   if (!data.value) return []

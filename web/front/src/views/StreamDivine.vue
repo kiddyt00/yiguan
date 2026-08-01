@@ -210,6 +210,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useI18n } from 'vue-i18n'
 import { useTranslation } from '../composables/useTranslation'
 import CoinAnimation from '../components/CoinAnimation.vue'
@@ -291,7 +292,7 @@ const hexLines = computed(() => {
 
 const renderedAI = computed(() => {
   if (!aiText.value) return ''
-  let html = marked.parse(filterText(aiText.value))
+  let html = DOMPurify.sanitize(marked.parse(filterText(aiText.value)))
   if (phase.value === 'interpretation') html += '<span class="animate-pulse">▊</span>'
   return html
 })
@@ -309,7 +310,7 @@ const displayedInterpretation = computed(() => {
 
 const renderedTranslation = computed(() => {
   if (!displayedInterpretation.value) return ''
-  let html = marked.parse(displayedInterpretation.value)
+  let html = DOMPurify.sanitize(marked.parse(displayedInterpretation.value))
   if (phase.value === 'interpretation' && !translationText.value) html += '<span class="animate-pulse">▊</span>'
   return html
 })
@@ -363,7 +364,7 @@ function buildHexHTML(g, dk) {
 async function saveAsImage() {
   var t=filterText(aiText.value); if(!t)return
   var hx=buildHexHTML(guaResult.value,document.documentElement.classList.contains('light')?false:true)
-  var md=marked.parse(t), dk=document.documentElement.classList.contains('light')?false:true
+  var md=DOMPurify.sanitize(marked.parse(t)), dk=document.documentElement.classList.contains('light')?false:true
   try{var u=await capOff(hx+md,questionRef.value,dk);var a=document.createElement('a');a.download='观己斋-结果.png';a.href=u;a.click()}catch(e){console.error(e)}
 }
 
@@ -394,7 +395,7 @@ async function captureResult() {
   var text = filterText(aiText.value)
   if (!text) return
   var hexHtml = buildHexHTML(guaResult.value, document.documentElement.classList.contains('light') ? false : true)
-  var md = marked.parse(text)
+  var md = DOMPurify.sanitize(marked.parse(text))
   var dark = document.documentElement.classList.contains('light') ? false : true
   try { resultImage.value = await captureOffscreen(hexHtml + md, questionRef.value, dark) }
   catch (e) { console.error(e) }
