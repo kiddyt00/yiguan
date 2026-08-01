@@ -26,18 +26,24 @@ func (s *Store) AddQuota(userID int64, quotaType string) error {
 }
 
 // ConsumeQuota 扣减一次配额（FIFO：最早的未使用配额）
+// 使用单条原子 UPDATE（子查询选中 + 条件更新），防止并发请求重复消耗同一配额
 func (s *Store) ConsumeQuota(userID int64) error {
-	// 找出最早的一条未使用配额
-	var id int64
-	err := s.db.QueryRow(
-		"SELECT id FROM quotas WHERE user_id = ? AND used_at IS NULL ORDER BY created_at ASC LIMIT 1",
-		userID,
-	).Scan(&id)
+	now := time.Now()
+	res, err := s.db.Exec(
+		`UPDATE quotas SET used_at = ?
+		 WHERE id = (SELECT id FROM quotas WHERE user_id = ? AND used_at IS NULL ORDER BY created_at ASC LIMIT 1)
+		   AND used_at IS NULL`,
+		now, userID,
+	)
 	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
 		return store.ErrQuotaExhausted
 	}
-
-	now := time.Now()
-	_, err = s.db.Exec("UPDATE quotas SET used_at = ? WHERE id = ?", now, id)
-	return err
+	return nil
 }

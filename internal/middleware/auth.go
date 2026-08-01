@@ -53,7 +53,7 @@ func extractBearer(r *http.Request) string {
 func parseJWT(tokenStr, secret string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
-	})
+	}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithExpirationRequired())
 	if err != nil || !token.Valid {
 		return nil, err
 	}

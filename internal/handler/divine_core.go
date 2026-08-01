@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/kiddyt00/yiguan/internal/engine"
 	"github.com/kiddyt00/yiguan/internal/middleware"
@@ -64,6 +66,14 @@ func formatTossData(lines []int) string {
 func divineCore(w http.ResponseWriter, r *http.Request, st store.Store) *divineCoreResult {
 	userID:=r.Context().Value(middleware.UserIDKey).(int64)
 
+	// 先解析并校验请求参数（避免无效请求浪费配额）
+	var req divineReq
+	if err:=json.NewDecoder(r.Body).Decode(&req);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请求格式错误"});return nil}
+	req.Question=strings.TrimSpace(req.Question)
+	if req.Question==""{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请输入问题"});return nil}
+	if utf8.RuneCountInString(req.Question)>500{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"问题过长，请控制在500字以内"});return nil}
+	if strings.ContainsAny(req.Question,"<>"){writeJSON(w,http.StatusBadRequest,map[string]string{"error":"问题包含不支持的字符"});return nil}
+
 	// 会员优先判定：有有效会员则直接放行
 	hasMember,memberErr:=st.HasActiveMembership(userID)
 	if memberErr!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"查询会员状态失败"});return nil}
@@ -73,13 +83,10 @@ func divineCore(w http.ResponseWriter, r *http.Request, st store.Store) *divineC
 		remaining,err:=st.GetRemainingQuota(userID)
 		if err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"查询配额失败"});return nil}
 		if remaining<=0{writeJSON(w,http.StatusPaymentRequired,map[string]interface{}{"error":"次数不足","remaining_quota":0});return nil}
-		// 扣减一次 quota
+		// 扣减一次 quota（原子操作，防并发双花）
 		if err:=st.ConsumeQuota(userID);err!=nil{writeJSON(w,http.StatusInternalServerError,map[string]string{"error":"扣减配额失败"});return nil}
 	}
 
-	var req divineReq
-	if err:=json.NewDecoder(r.Body).Decode(&req);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请求格式错误"});return nil}
-	if req.Question==""{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"请输入问题"});return nil}
 	linesArr:=engine.CastSixLines()
 	lines:=linesArr[:]
 	primary,changing,positions,master:=engine.BuildHexagrams(linesArr)

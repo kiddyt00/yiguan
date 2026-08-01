@@ -201,6 +201,9 @@ func migrate(db *sql.DB) error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_refunds_user_id ON refunds(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_refunds_order_id ON refunds(order_id)`,
+		// 清理重复退款申请（保留最早一条），再建唯一索引防并发重复申请
+		`DELETE FROM refunds WHERE id NOT IN (SELECT MIN(id) FROM refunds GROUP BY order_id)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_refunds_order_unique ON refunds(order_id)`,
 	}
 	for _, s := range schemas {
 		if _, err := db.Exec(s); err != nil {
@@ -228,6 +231,8 @@ func migrate(db *sql.DB) error {
 		{"history", "master_yao", "INTEGER", "0"},
 		{"users", "unionid", "TEXT", "''"},
 		{"users", "invite_code", "TEXT", "''"},
+		{"quotas", "order_id", "INTEGER", "0"},
+		{"orders", "channel", "TEXT", "''"},
 	}
 	for _, m := range migrations {
 		var n int

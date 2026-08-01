@@ -42,7 +42,7 @@ func loadConfig(path string) *Config {
 		log.Fatalf("读取配置失败: %v", err)
 	}
 	cfg := &Config{
-		JWTSecret: "yiguan-dev-secret",
+		JWTSecret: "",
 		DBPath:    "yiguan.db",
 	}
 	if err := yaml.Unmarshal(data, cfg); err != nil {
@@ -79,6 +79,11 @@ func main() {
 	}
 	if pwd := os.Getenv("ADMIN_PASSWORD"); pwd != "" {
 		cfg.Admin.Password = pwd
+	}
+
+	// 安全要求：JWT 密钥未配置时拒绝启动（fail-closed，防止默认弱密钥上线）
+	if cfg.JWTSecret == "" {
+		log.Fatalf("JWT_SECRET 未配置，拒绝启动（安全要求）")
 	}
 
 	// 数据库
@@ -143,7 +148,7 @@ func main() {
 		authHandler.SetWechatOpenConfig(appID, os.Getenv("WX_OPEN_SECRET"))
 		log.Printf("微信开放平台扫码登录已配置: %s", appID)
 	}
-	mux.Handle("/api/auth/", corsWrap(authHandler.ServeMux()))
+	mux.Handle("/api/auth/", corsWrap(middleware.RateLimitWithLimit(authHandler.ServeMux(), 10)))
 
 	uh := handler.NewUserHandler(st)
 	if appID := os.Getenv("WX_APPID"); appID != "" {
@@ -166,8 +171,8 @@ func main() {
 
 	// 翻译 AI 解读（利用已有 llmRouter）
 	th := handler.NewTranslateHandler(st, llmRouter)
-	mux.Handle("GET /api/history/{id}/translate", authMW(corsWrap(th)))
-	mux.Handle("POST /api/history/{id}/translate", authMW(corsWrap(th)))
+	mux.Handle("GET /api/history/{id}/translate", authMW(corsWrap(middleware.RateLimitWithLimit(th, 15))))
+	mux.Handle("POST /api/history/{id}/translate", authMW(corsWrap(middleware.RateLimitWithLimit(th, 15))))
 
 	// SSE 流式起卦
 	streamHandler := handler.NewDivineStreamHandler(st, llmRouter)
@@ -246,8 +251,13 @@ func main() {
 
 	// 退款
 	refundHandler := handler.NewRefundHandler(st)
+	refundHandler.SetChannels(nil, orderHandler)
 	mux.Handle("POST /api/orders/{id}/refund", authMW(corsWrap(http.HandlerFunc(refundHandler.RequestRefund))))
 	mux.Handle("GET /api/orders/refunds", authMW(corsWrap(http.HandlerFunc(refundHandler.ListRefunds))))
+	// 退款管理（管理后台审批）
+	mux.Handle("GET /api/admin/refunds", adminMW(corsWrap(http.HandlerFunc(refundHandler.AdminListRefunds))))
+	mux.Handle("POST /api/admin/refunds/{id}/approve", adminMW(corsWrap(http.HandlerFunc(refundHandler.AdminApproveRefund))))
+	mux.Handle("POST /api/admin/refunds/{id}/reject", adminMW(corsWrap(http.HandlerFunc(refundHandler.AdminRejectRefund))))
 
 	// 支付宝支付
 	alipayAppID := os.Getenv("ALIPAY_APPID")
@@ -276,6 +286,7 @@ func main() {
 			mux.Handle("POST /api/orders/alipay-create", authMW(corsWrap(http.HandlerFunc(alipayHandler.CreateAlipayOrder))))
 			mux.Handle("GET /api/orders/alipay-return", corsWrap(http.HandlerFunc(alipayHandler.AlipayReturn)))
 			mux.Handle("POST /api/orders/alipay-notify", corsWrap(http.HandlerFunc(alipayHandler.AlipayNotify)))
+			refundHandler.SetChannels(alipayHandler, orderHandler)
 			log.Printf("支付宝支付已配置: %s", alipayAppID)
 		}
 	} else {

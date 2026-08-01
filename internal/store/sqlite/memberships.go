@@ -7,8 +7,8 @@ import (
 	"github.com/kiddyt00/yiguan/internal/store"
 )
 
-// CreateMembership 创建会员记录（自动顺延叠加）
-func (s *Store) CreateMembership(userID, orderID int64, productID string, endTime time.Time) (*store.Membership, error) {
+// CreateMembership 创建会员记录（自动顺延叠加：endTime 基于顺延后的 startTime 计算）
+func (s *Store) CreateMembership(userID, orderID int64, productID string, durationDays int) (*store.Membership, error) {
 	// 顺延逻辑：取当前有效会员最晚到期时间作为 start_time
 	active, err := s.GetActiveMembership(userID)
 	if err != nil && err != store.ErrNotFound {
@@ -19,6 +19,7 @@ func (s *Store) CreateMembership(userID, orderID int64, productID string, endTim
 	if active != nil && active.EndTime.After(startTime) {
 		startTime = active.EndTime
 	}
+	endTime := startTime.AddDate(0, 0, durationDays)
 
 	result, err := s.db.Exec(
 		`INSERT INTO memberships (user_id, order_id, product_id, start_time, end_time, status)

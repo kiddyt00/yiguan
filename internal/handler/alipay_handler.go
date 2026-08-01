@@ -209,7 +209,7 @@ func (h *AlipayHandler) CreateAlipayOrder(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	order, err := h.store.CreateOrder(userID, product, outTradeNo, payURL)
+	order, err := h.store.CreateOrder(userID, product, outTradeNo, payURL, "alipay")
 	if err != nil {
 		log.Printf("创建订单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建订单失败"})
@@ -402,24 +402,21 @@ func (h *AlipayHandler) AlipayNotify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if order.Status == "paid" {
-		// 已支付，避免重复处理
-		writeAlipayResponse(w, true, "success")
-		return
-	}
-
-	// 标记支付
-	if err := h.store.MarkOrderPaid(order.ID, tradeNo); err != nil {
-		log.Printf("标记订单支付失败 id=%d: %v", order.ID, err)
-		writeAlipayResponse(w, false, "更新订单失败")
-		return
-	}
-
-	// 增加配额
-	for i := 0; i < order.Quota; i++ {
-		if err := h.store.AddQuota(order.UserID, "purchase"); err != nil {
-			log.Printf("添加配额失败 user_id=%d: %v", order.UserID, err)
+	// 金额校验（纵深防御）
+	if amt := params["total_amount"]; amt != "" {
+		want := fmt.Sprintf("%.2f", float64(order.Amount)/100.0)
+		if amt != want {
+			log.Printf("支付宝回调金额不匹配 out_trade_no=%s 期望=%s 实际=%s", outTradeNo, want, amt)
+			writeAlipayResponse(w, false, "金额不匹配")
+			return
 		}
+	}
+
+	// 原子完成：标记支付 + 发放权益（含会员商品，幂等，重复回调不会重复发放）
+	if err := h.store.GrantOrderBenefits(order.ID, tradeNo); err != nil {
+		log.Printf("处理支付宝回调失败 order_id=%d: %v", order.ID, err)
+		writeAlipayResponse(w, false, "处理失败")
+		return
 	}
 
 	log.Printf("支付宝支付成功: out_trade_no=%s, trade_no=%s, amount=%d", outTradeNo, tradeNo, order.Amount)
@@ -434,4 +431,116 @@ func writeAlipayResponse(w http.ResponseWriter, success bool, msg string) {
 	} else {
 		w.Write([]byte("failure"))
 	}
+}
+
+
+// Refund 支付宝原路退款（alipay.trade.refund）
+func (h *AlipayHandler) Refund(outTradeNo string, amountFen int) error {
+	bizContent := map[string]interface{}{
+		"out_trade_no":  outTradeNo,
+		"refund_amount": fmt.Sprintf("%.2f", float64(amountFen)/100),
+	}
+	bizJSON, _ := json.Marshal(bizContent)
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	params := map[string]string{
+		"app_id":      h.appID,
+		"method":      "alipay.trade.refund",
+		"format":      "JSON",
+		"charset":     "utf-8",
+		"sign_type":   "RSA2",
+		"timestamp":   timestamp,
+		"version":     "1.0",
+		"biz_content": string(bizJSON),
+	}
+
+	signStr := buildAlipaySignStr(params, true)
+	sign, err := rsaSign(signStr, h.privateKey)
+	if err != nil {
+		return fmt.Errorf("退款签名失败: %w", err)
+	}
+	params["sign"] = sign
+
+	form := url.Values{}
+	for k, v := range params {
+		form.Set(k, v)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm("https://openapi.alipay.com/gateway.do", form)
+	if err != nil {
+		return fmt.Errorf("请求支付宝退款失败: %w", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取支付宝退款响应失败: %w", err)
+	}
+
+	// 验签响应（防止中间人篡改）
+	if err := verifyAlipayRefundResponse(body, h.alipayPubKey); err != nil {
+		return err
+	}
+
+	var result struct {
+		AlipayTradeRefundResponse struct {
+			Code   string `json:"code"`
+			Msg    string `json:"msg"`
+			SubMsg string `json:"sub_msg"`
+		} `json:"alipay_trade_refund_response"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return fmt.Errorf("解析支付宝退款响应失败: %w", err)
+	}
+	if result.AlipayTradeRefundResponse.Code != "10000" {
+		return fmt.Errorf("支付宝退款失败: code=%s msg=%s sub_msg=%s",
+			result.AlipayTradeRefundResponse.Code,
+			result.AlipayTradeRefundResponse.Msg,
+			result.AlipayTradeRefundResponse.SubMsg)
+	}
+	log.Printf("支付宝退款成功: out_trade_no=%s amount=%d", outTradeNo, amountFen)
+	return nil
+}
+
+// verifyAlipayRefundResponse 校验支付宝退款响应签名
+func verifyAlipayRefundResponse(body []byte, pubKey *rsa.PublicKey) error {
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(body, &m); err != nil {
+		return fmt.Errorf("解析响应失败: %w", err)
+	}
+	signBytes, ok := m["sign"]
+	if !ok {
+		return fmt.Errorf("响应缺少签名")
+	}
+	var sign string
+	_ = json.Unmarshal(signBytes, &sign)
+
+	respBytes, ok := m["alipay_trade_refund_response"]
+	if !ok {
+		return fmt.Errorf("响应缺少业务数据")
+	}
+	var respObj map[string]string
+	if err := json.Unmarshal(respBytes, &respObj); err != nil {
+		return fmt.Errorf("解析业务数据失败: %w", err)
+	}
+
+	keys := make([]string, 0, len(respObj))
+	for k := range respObj {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var buf strings.Builder
+	for i, k := range keys {
+		v := respObj[k]
+		if v == "" {
+			continue
+		}
+		if i > 0 {
+			buf.WriteByte('&')
+		}
+		buf.WriteString(k)
+		buf.WriteByte('=')
+		buf.WriteString(v)
+	}
+	return rsaVerify(buf.String(), sign, pubKey)
 }

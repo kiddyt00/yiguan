@@ -9,6 +9,7 @@ type Order struct {
 	Amount      int        `json:"amount"`       // 金额（分）
 	Quota       int        `json:"quota"`        // 购买次数
 	ProductID   string     `json:"product_id"`   // 套餐标识
+	Channel     string     `json:"channel"`      // 支付渠道 wxpay/alipay
 	Status      string     `json:"status"`       // pending/paid/failed/refunded
 	OutTradeNo  string     `json:"out_trade_no"` // 商户订单号
 	PrepayID    string     `json:"-"`
@@ -51,12 +52,19 @@ func FindProduct(id string) *OrderProduct {
 
 // OrderStore 订单操作
 type OrderStore interface {
-	CreateOrder(userID int64, product *OrderProduct, outTradeNo, codeURL string) (*Order, error)
+	CreateOrder(userID int64, product *OrderProduct, outTradeNo, codeURL, channel string) (*Order, error)
 	GetOrder(id int64) (*Order, error)
 	GetOrderByOutTradeNo(outTradeNo string) (*Order, error)
 	ListOrders(userID int64, limit, offset int) ([]Order, error)
 	ListAllOrders(limit, offset int) ([]Order, error)
 	CountAllOrders() (int64, error)
-	MarkOrderPaid(id int64, prepayID string) error
+	// MarkOrderPaid 原子标记订单已支付（pending → paid），返回是否真正更新
+	MarkOrderPaid(id int64, prepayID string) (bool, error)
+	// GrantOrderBenefits 事务内标记支付 + 发放权益（幂等）
+	GrantOrderBenefits(orderID int64, prepayID string) error
+	// SetOrderRefunded 标记订单已退款（退款完成后调用）
+	SetOrderRefunded(orderID int64) error
+	// RecycleQuotaByOrder 回收订单未使用的购买配额（退款时调用）
+	RecycleQuotaByOrder(orderID int64) error
 	UpdateCodeURL(id int64, codeURL string) error
 }

@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"math/big"
 	"net/http"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,7 +94,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := h.store.CreateOrder(userID, product, outTradeNo, codeURL)
+	order, err := h.store.CreateOrder(userID, product, outTradeNo, codeURL, "wxpay")
 	if err != nil {
 		log.Printf("创建订单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建订单失败"})
@@ -141,7 +145,7 @@ func (h *OrderHandler) CreateJSAPIOrder(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	order, err := h.store.CreateOrder(userID, product, outTradeNo, "")
+	order, err := h.store.CreateOrder(userID, product, outTradeNo, "", "wxpay")
 	if err != nil {
 		log.Printf("创建订单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "创建订单失败"})
@@ -304,7 +308,7 @@ func (h *OrderHandler) WechatNotify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	outTradeNo := params["out_trade_no"]
-	prepayID := params["prepay_id"]
+	prepayID := params["transaction_id"] // 微信回调字段是 transaction_id（微信交易单号）
 
 	order, err := h.store.GetOrderByOutTradeNo(outTradeNo)
 	if err != nil {
@@ -313,38 +317,18 @@ func (h *OrderHandler) WechatNotify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if order.Status == "paid" {
-		// 已支付，避免重复处理
-		writeWechatResponse(w, "SUCCESS", "OK")
+	// 金额校验（纵深防御：防未来下单逻辑引入客户端金额参数）
+	if fee := params["total_fee"]; fee != "" && fmt.Sprintf("%d", order.Amount) != fee {
+		log.Printf("微信回调金额不匹配 out_trade_no=%s 期望=%d 实际=%s", outTradeNo, order.Amount, fee)
+		writeWechatResponse(w, "FAIL", "金额不匹配")
 		return
 	}
 
-	if err := h.store.MarkOrderPaid(order.ID, prepayID); err != nil {
-		log.Printf("标记订单支付失败 id=%d: %v", order.ID, err)
-		writeWechatResponse(w, "FAIL", "更新订单失败")
+	// 原子完成：标记支付 + 发放权益（GrantOrderBenefits 幂等，重复回调不会重复发放）
+	if err := h.store.GrantOrderBenefits(order.ID, prepayID); err != nil {
+		log.Printf("处理支付回调失败 order_id=%d: %v", order.ID, err)
+		writeWechatResponse(w, "FAIL", "处理失败")
 		return
-	}
-
-	// 根据商品类型开通权益
-	product := store.FindProduct(order.ProductID)
-	if product != nil && product.IsMembership() {
-		// 会员卡：创建会员记录
-		endTime := time.Now().AddDate(0, 0, product.Duration)
-		_, err := h.store.CreateMembership(order.UserID, order.ID, order.ProductID, endTime)
-		if err != nil {
-			log.Printf("创建会员失败 user_id=%d order=%d: %v", order.UserID, order.ID, err)
-		}
-	} else {
-		// 单次/次数包：增加配额
-		quotaCount := order.Quota
-		if quotaCount <= 0 {
-			quotaCount = 1
-		}
-		for i := 0; i < quotaCount; i++ {
-			if err := h.store.AddQuota(order.UserID, "purchase"); err != nil {
-				log.Printf("添加配额失败 user_id=%d: %v", order.UserID, err)
-			}
-		}
 	}
 
 	writeWechatResponse(w, "SUCCESS", "OK")
@@ -519,4 +503,85 @@ func writeWechatResponse(w http.ResponseWriter, returnCode, returnMsg string) {
 		ReturnMsg:  returnMsg,
 	}
 	xml.NewEncoder(w).Encode(resp)
+}
+
+
+// Refund 微信 v2 原路退款（secapi/pay/refund，需要商户证书双向 TLS）
+// 未配置证书（WX_PAY_REFUND_CERT / WX_PAY_REFUND_KEY）时返回明确错误，提示人工处理
+func (h *OrderHandler) Refund(outTradeNo string, amountFen int) error {
+	certPath := os.Getenv("WX_PAY_REFUND_CERT")
+	keyPath := os.Getenv("WX_PAY_REFUND_KEY")
+	if certPath == "" || keyPath == "" {
+		return errors.New("微信退款未配置商户证书（WX_PAY_REFUND_CERT/WX_PAY_REFUND_KEY），需人工线下退款")
+	}
+
+	nonceStr := randStr(16)
+	outRefundNo := "REF" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	params := map[string]string{
+		"appid":         h.appID,
+		"mch_id":        h.mchID,
+		"nonce_str":     nonceStr,
+		"out_trade_no":  outTradeNo,
+		"out_refund_no": outRefundNo,
+		"total_fee":     strconv.Itoa(amountFen),
+		"refund_fee":    strconv.Itoa(amountFen),
+	}
+	sign := wechatSign(params, h.apiKey)
+	params["sign"] = sign
+
+	xmlBody := buildWechatXML(params)
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		return fmt.Errorf("加载微信退款证书失败: %w", err)
+	}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{Certificates: []tls.Certificate{cert}},
+		},
+	}
+	resp, err := client.Post("https://api.mch.weixin.qq.com/secapi/pay/refund", "text/xml", bytes.NewReader([]byte(xmlBody)))
+	if err != nil {
+		return fmt.Errorf("请求微信退款失败: %w", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取微信退款响应失败: %w", err)
+	}
+
+	// 验签响应
+	respParams, err := parseWechatXML(body)
+	if err != nil {
+		return fmt.Errorf("解析微信退款响应失败: %w", err)
+	}
+	respSign := respParams["sign"]
+	if respSign == "" {
+		return fmt.Errorf("微信退款响应缺少签名")
+	}
+	expected := wechatSign(respParams, h.apiKey)
+	if !strings.EqualFold(respSign, expected) {
+		return fmt.Errorf("微信退款响应验签失败")
+	}
+
+	if respParams["return_code"] != "SUCCESS" {
+		return fmt.Errorf("微信退款通信失败: %s", respParams["return_msg"])
+	}
+	if respParams["result_code"] != "SUCCESS" {
+		return fmt.Errorf("微信退款失败: %s", respParams["err_code_des"])
+	}
+	log.Printf("微信退款成功: out_trade_no=%s out_refund_no=%s amount=%d", outTradeNo, outRefundNo, amountFen)
+	return nil
+}
+
+// buildWechatXML 从 map 构建微信支付 XML（CDATA 包裹）
+func buildWechatXML(params map[string]string) string {
+	var buf strings.Builder
+	buf.WriteString("<xml>")
+	for k, v := range params {
+		buf.WriteString("<" + k + "><![CDATA[" + v + "]]></" + k + ">")
+	}
+	buf.WriteString("</xml>")
+	return buf.String()
 }

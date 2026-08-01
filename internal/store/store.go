@@ -295,8 +295,8 @@ type InviteStore interface {
 
 // MembershipStore 会员管理
 type MembershipStore interface {
-	// CreateMembership 创建会员记录（自动处理顺延）
-	CreateMembership(userID, orderID int64, productID string, endTime time.Time) (*Membership, error)
+	// CreateMembership 创建会员记录（自动顺延叠加：endTime 基于顺延后的 startTime）
+	CreateMembership(userID, orderID int64, productID string, durationDays int) (*Membership, error)
 	// GetActiveMembership 获取用户当前有效会员（取最晚到期的）
 	GetActiveMembership(userID int64) (*Membership, error)
 	// HasActiveMembership 检查用户是否有有效会员
