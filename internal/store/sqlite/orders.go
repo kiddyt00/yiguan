@@ -33,7 +33,7 @@ func (s *Store) GetOrder(id int64) (*store.Order, error) {
 		        paid_at, created_at
 		 FROM orders WHERE id = ?`, id,
 	).Scan(&o.ID, &o.UserID, &o.Amount, &o.Quota, &o.ProductID,
-		&o.Status, &o.Channel, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
+		&o.Channel, &o.Status, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
 		&paidAt, &o.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
@@ -57,7 +57,7 @@ func (s *Store) GetOrderByOutTradeNo(outTradeNo string) (*store.Order, error) {
 		        paid_at, created_at
 		 FROM orders WHERE out_trade_no = ?`, outTradeNo,
 	).Scan(&o.ID, &o.UserID, &o.Amount, &o.Quota, &o.ProductID,
-		&o.Status, &o.Channel, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
+		&o.Channel, &o.Status, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
 		&paidAt, &o.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
@@ -90,7 +90,7 @@ func (s *Store) ListOrders(userID int64, limit, offset int) ([]store.Order, erro
 		var o store.Order
 		var paidAt sql.NullTime
 		if err := rows.Scan(&o.ID, &o.UserID, &o.Amount, &o.Quota, &o.ProductID,
-			&o.Status, &o.Channel, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
+			&o.Channel, &o.Status, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
 			&paidAt, &o.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -267,7 +267,7 @@ func (s *Store) ListAllOrders(limit, offset int) ([]store.Order, error) {
 		var o store.Order
 		var paidAt sql.NullTime
 		if err := rows.Scan(&o.ID, &o.UserID, &o.Amount, &o.Quota, &o.ProductID,
-			&o.Status, &o.Channel, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
+			&o.Channel, &o.Status, &o.OutTradeNo, &o.PrepayID, &o.CodeURL,
 			&paidAt, &o.CreatedAt); err != nil {
 			return nil, err
 		}
