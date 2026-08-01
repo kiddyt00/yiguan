@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-07-29
+> 最后更新：2026-08-01
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -288,6 +288,63 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 
 ---
 
+### 2026-07-30 — 支付宝手机网站支付 + 用户订单页
+
+#### 完成事项
+
+| # | 事项 | 文件 | 说明 |
+|---|---|---|---|
+| 1 | 支付宝手机网站支付（wap） | `alipay_handler.go`、`Recharge.vue` | `alipay.trade.wap.pay`（QUICK_WAP_PAY），复用 `POST /api/orders/alipay-create`，handler 内按场景区分 wap/扫码 |
+| 2 | 用户订单记录页 | `UserOrders.vue` | 订单列表页，展示待支付/已支付等状态 |
+| 3 | 退款入口 | 订单页 + `refund_handler.go` | 24h 资格校验 + 退款申请（`POST /api/orders/{id}/refund`） |
+
+---
+
+### 2026-07-31 — 合规页面 + 支付宝验签修复
+
+#### 完成事项
+
+| # | 事项 | 文件 | 说明 |
+|---|---|---|---|
+| 1 | 关于我们/联系我们/服务协议/隐私政策静态页 | `web/front/src/views/` | 4 个静态页 + 首页 footer 入口 |
+| 2 | 备案号 | 首页 footer | 京ICP备2026035156号-1，链接工信部系统 |
+| 3 | 免责声明/版权/footer 全局统一 | 前端所有页面 | 导航 + 免责声明 + 版权 + 备案号 |
+| 4 | 支付宝验签修复 | `alipay_handler.go` | 签名串排除 `sign_type`；同步回调 `+` 号恢复为空格 |
+| 5 | 支付宝签名规则区分 | `alipay_handler.go` | 下单含 `sign_type`，回调排除 |
+| 6 | 设备判定调试日志 | `alipay_handler.go` | 记录支付宝下单设备判定 |
+
+---
+
+### 2026-08-01 — 全链路评审 + 资金安全加固 + 退款闭环
+
+#### 完成事项
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | **全链路评审** | 5 个独立评审员并行只读审查（UI/UX/后端/安全/产品）+ 生产线上验证 → `docs/REVIEW-2026-08-01.md` |
+| 2 | 资金链路安全加固 | 回调幂等、支付宝会员零权益修复、会员续费叠加修复、配额原子化、JWT fail-closed、限流修复 |
+| 3 | 退款闭环 | 渠道原路退款（微信/支付宝）+ 管理后台审批页（`Refunds.vue`）+ 驳回 |
+| 4 | LLM 渲染 XSS 消毒 | 前端引入 DOMPurify，`History`/`Result`/`StreamDivine` 渲染消毒 |
+| 5 | 订单查询字段错位修复 | `sqlite/orders.go` Scan 字段错位（status/channel 互换）+ 新增单测 |
+
+#### 全链路评审结论（`docs/REVIEW-2026-08-01.md`）
+
+| 评审员 | 领域 | 评分 | 一句话结论 |
+|---|---|---|---|
+| 🎨 UI | 视觉/品牌/响应式 | 6.5/10 | 深色玄学调性契合，浅色模式多处失效、品牌三端三色 |
+| 🧭 UX | 用户流程/交互 | 6.0/10 | 骨架完整防重到位，401 语义、裂变闭环、SSE 断线三处断裂 |
+| ⚙️ 后端 | 架构/代码质量 | 5.0/10 | 结构清晰、LLM 容错链好，资金链路多处竞态 |
+| 🔒 安全 | 认证/支付/密钥 | 4.5/10 | 验签/参数化 SQL 扎实，密钥入 git 历史、限流架构性失效 |
+| 💼 产品 | 商业模型 | 4.5/10 | 定价结构合理，6 个变现闭环硬断裂 |
+
+**综合结论：** 骨架完整、方向正确，但资金与增长链路存在硬断裂，暂不适合大规模投放。
+
+**评审问题修复状态：**
+- ✅ 已修复：A1 支付宝会员零权益、A2 回调并发竞态、A3 退款空壳、A4 会员续费叠加、A5 配额原子化、B2 docker-compose 密钥变量化、B3 JWT fail-closed、B4 LLM 渲染 XSS、B5 限流器、B7 回调金额校验
+- ⏳ 待处理：B1 git 历史密钥重写 + 全量密钥轮换、B6 短信假实现；阶段 2/3 计划详见评审报告
+
+---
+
 ## 四、API 概览（用户端）
 
 | 方法 | 路径 | 说明 | 鉴权 |
@@ -312,6 +369,11 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 | POST | `/api/orders/alipay-create` | 支付宝下单 | Bearer Token |
 | GET | `/api/orders/alipay-return` | 支付宝同步跳转 | 否（支付宝回调） |
 | POST | `/api/orders/alipay-notify` | 支付宝异步通知 | 否（支付宝回调） |
+| POST | `/api/orders/{id}/refund` | 申请退款（24h 资格校验） | Bearer Token |
+| GET | `/api/orders/refunds` | 我的退款记录 | Bearer Token |
+| GET | `/api/admin/refunds` | 退款申请列表 | Admin |
+| POST | `/api/admin/refunds/{id}/approve` | 批准退款（渠道原路退款） | Admin |
+| POST | `/api/admin/refunds/{id}/reject` | 驳回退款 | Admin |
 
 管理后台 API 见后端代码 `cmd/server/main.go`。
 
@@ -321,12 +383,16 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 
 ### ⚠️ 急迫事项
 - [ ] **SSL 证书续期** — `zgjz.insightj.cn` 证书 2026-09-14 到期（acme.sh 自动续期，无需手动）
-- [ ] **短信服务接入** — 当前验证码仅打印日志，未接入真实短信服务
-- [ ] **支付宝扫码支付接入** — 后端下单 + 回调通知 + 前端支付切换
-  - 商户号：`2088780753525097` ✅
-  - 应用私钥：已生成 ✅
-  - 待获取：AppID + 支付宝公钥（用户在开放平台操作中）
+- [ ] **git 历史密钥清理（评审 B1）** — 早期提交明文泄露生产密钥（SSH 密码、微信/支付宝/LLM/JWT），需 `git filter-repo` 重写历史 + 全量密钥轮换
+- [ ] **短信服务接入（评审 B6）** — 当前验证码仅打印日志（弱随机 + 明文日志），需真实短信 + 尝试次数锁定 + crypto/rand
+- [x] ~~支付宝接入~~ ✅ 已上线：扫码（`alipay.trade.page.pay`）+ 手机网站（`alipay.trade.wap.pay`）+ 回调验签
+- [x] ~~退款系统~~ ✅ 已上线：用户申请 + 渠道原路退款 + 后台审批
 - [x] ~~小程序对接微信支付~~ ✅ 已完成（miniapp-native + miniapp 双端）
+
+### 评审阶段计划（详见 docs/REVIEW-2026-08-01.md）
+- **阶段 1（本周）资金/安全** — 已修复 A1-A5、B2-B5、B7；剩余 B1（密钥重写）、B6（短信）
+- **阶段 2（两周）业务闭环** — 邀请裂变闭环、真实短信、会员放行、401 语义、SSE 重连、广告防伪、分页/外键/超时
+- **阶段 3（后续）体验精细化** — 双主题修复、移动端支付体验、AI 成本计量、补单测、后台运营面
 
 ### ✅ 安全加固
 - [x] ~~修复 5 处 err.Error() 泄露~~ ✅ 已统一替换为通用提示
@@ -348,8 +414,8 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 ### 给下一个 Agent 的交接信息
 
 ```
-当前最新 commit: 84e1693 (2026-07-20)
-当前分支: main
+当前最新 commit: fff526d (2026-08-01)
+当前分支: v2（main 落后，v2 为当前工作分支）
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git
 生产服务器: 凭据在 1Password
@@ -358,8 +424,11 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 微信扫码登录: ✅（wxLogin.js 官方 SDK）
 微信支付（Web 扫码）: ✅ 已上线
 微信支付（小程序 JSAPI）: ✅ 已上线（miniapp-native + miniapp 双端）
-支付宝扫码支付: ⏳ 规划中，待资料齐全后开发
-微信小程序已配置: ❌
+支付宝扫码支付: ✅ 已上线（alipay.trade.page.pay）
+支付宝手机网站支付: ✅ 已上线（alipay.trade.wap.pay）
+退款系统: ✅ 已上线（渠道原路退款 + 后台审批）
+全链路评审: ✅ 已完成（docs/REVIEW-2026-08-01.md，资金/安全问题已修复大半）
+微信小程序已配置: ✅
 ```
 
 ---
