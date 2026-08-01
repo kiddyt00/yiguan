@@ -65,4 +65,9 @@ export const adminApi = {
 
   orders: (limit = 50, offset = 0) => api(`/admin/orders?limit=${limit}&offset=${offset}`),
   memberships: (limit = 50, offset = 0) => api(`/admin/memberships?limit=${limit}&offset=${offset}`),
+
+  refunds: () => api('/admin/refunds'),
+  approveRefund: (id) => api(`/admin/refunds/${id}/approve`, { method: 'POST' }),
+  rejectRefund: (id, reason) => api(`/admin/refunds/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
 }
+

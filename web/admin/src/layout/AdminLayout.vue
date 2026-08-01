@@ -45,6 +45,10 @@
           <el-icon><Document /></el-icon>
           <span>订单管理</span>
         </el-menu-item>
+<el-menu-item index="/refunds">
+          <el-icon><el-icon><svg viewBox="0 0 1024 1024" width="16" height="16"><path fill="currentColor" d="M512 64a448 448 0 1 0 0 896 448 448 0 0 0 0-896zm0 832a384 384 0 1 1 0-768 384 384 0 0 1 0 768zm-32-608v256h160a32 32 0 1 0 0-64h-96V288a32 32 0 1 0-64 0z"/></svg></el-icon></el-icon>
+          <span>退款管理</span>
+        </el-menu-item>
         <el-menu-item index="/memberships">
           <el-icon><Crown /></el-icon>
           <span>会员管理</span>
@@ -107,6 +111,7 @@ const titles = {
   '/ads': '广告管理',
   '/progress': '开发进度',
   '/orders': '订单管理',
+  '/refunds': '退款管理',
   '/memberships': '会员管理',
 }
 const pageTitle = computed(() => titles[route.path] || '')
