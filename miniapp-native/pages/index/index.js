@@ -2,7 +2,7 @@ const api = require('../../utils/api.js')
 const API = 'https://zgjz.insightj.cn/api'
 
 Page({
-  data: { question:'', loading:false, showMaster:false, quota:-1, hasToken:false, nickname:'',
+  data: { question:'', loading:false, showMaster:false, quota:-1, isMember:false, hasToken:false, nickname:'',
     // 登录表单
     loginTabs:['短信登录','密码登录'],activeTab:'短信登录',
     phone:'', code:'', wxLoading:false, smsLoading:false, sendCountdown:0,
@@ -20,11 +20,11 @@ Page({
   onInput(e){this.setData({question:e.detail.value})},
 
   loadQuota(){
-    api.profile().then(d=>this.setData({quota:d.remaining_quota??-1,nickname:d.nickname||''})).catch(()=>{})
+    api.profile().then(d=>this.setData({quota:d.remaining_quota??-1,nickname:d.nickname||'',isMember:!!(d.membership&&d.membership.is_active)})).catch(()=>{})
   },
   startDivine(){
     if(!this.data.question||!this.data.hasToken)return
-    if(this.data.quota<=0){wx.showToast({title:'次数已用完',icon:'none'});return}
+    if(!this.data.isMember&&this.data.quota<=0){wx.showToast({title:'次数已用完',icon:'none'});return}
     this.setData({loading:true})
     getApp().globalData.question=this.data.question
     wx.navigateTo({url:'/pages/result/result',complete:()=>this.setData({loading:false})})

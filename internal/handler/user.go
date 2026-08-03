@@ -32,6 +32,18 @@ type updateUserReq struct {
 	Avatar   string `json:"avatar"`
 }
 
+// membershipStatus 返回用户当前会员状态（is_active + days_left）
+func (h *UserHandler) membershipStatus(userID int64) map[string]interface{} {
+	m, err := h.store.GetActiveMembership(userID)
+	isActive := false
+	daysLeft := 0
+	if err == nil && m.EndTime.After(time.Now()) {
+		isActive = true
+		daysLeft = int(m.EndTime.Sub(time.Now()).Hours() / 24)
+	}
+	return map[string]interface{}{"is_active": isActive, "days_left": daysLeft}
+}
+
 type bindWechatReq struct {
 	Code string `json:"code"`
 }
@@ -49,6 +61,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"user":            user,
 		"remaining_quota": remaining,
+		"membership":      h.membershipStatus(userID),
 	})
 }
 
@@ -73,6 +86,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"user":            user,
 		"remaining_quota": remaining,
+		"membership":      h.membershipStatus(userID),
 	})
 }
 

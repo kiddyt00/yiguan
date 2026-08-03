@@ -51,6 +51,7 @@
 
   "quota.remaining": "余 {n} 次",
   "quota.depleted": "次数已用完",
+  "quota.member_unlimited": "会员无限次起卦",
   "quota.recharge": "充值 ¥{price} 获得 {n} 次",
   "quota.watch_ad": "观看广告获得 1 次",
   "quota.share": "转发 2 个微信好友获得 1 次",

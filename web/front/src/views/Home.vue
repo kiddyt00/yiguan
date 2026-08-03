@@ -22,11 +22,15 @@
 
       <div v-else class="mt-6 text-center">
         <div class="flex items-center justify-center gap-3">
-          <button @click="startDivination" :disabled="!question.trim() || loading || remainingQuota <= 0"
+          <button @click="startDivination" :disabled="!question.trim() || loading || (!isMember && remainingQuota <= 0)"
             class="px-10 py-3 rounded-lg font-medium text-lg transition disabled:opacity-40 bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/30">
             {{ loading ? t('home.divine.loading') : t('home.divine.btn') }}
           </button>
-          <span v-if="remainingQuota >= 0" class="text-xs"
+          <span v-if="isMember" class="text-xs"
+            :class="isDark ? 'text-amber-400' : 'text-amber-700'">
+            👑 {{ t('quota.member_unlimited') }}
+          </span>
+          <span v-else-if="remainingQuota >= 0" class="text-xs"
             :class="remainingQuota > 0 ? (isDark ? 'text-amber-400' : 'text-amber-700') : (isDark ? 'text-red-400' : 'text-red-600')">
             {{ remainingQuota > 0 ? t('quota.remaining', { n: remainingQuota }) : t('quota.depleted') }}
           </span>
@@ -37,8 +41,8 @@
           </router-link>
         </div>
 
-        <!-- 次数已用完提示 -->
-        <div v-if="remainingQuota === 0" class="mt-4 p-4 rounded-lg text-sm space-y-2"
+        <!-- 次数已用完提示（会员不展示） -->
+        <div v-if="remainingQuota === 0 && !isMember" class="mt-4 p-4 rounded-lg text-sm space-y-2"
           :class="isDark ? 'bg-slate-800/60 text-stone-300' : 'bg-stone-100 text-stone-600'">
           <p class="font-medium">{{ t('quota.depleted') }}</p>
           <router-link to="/recharge" class="block w-full py-2 rounded-lg transition text-amber-400 hover:text-amber-300 text-xs font-medium border border-amber-500/30 hover:bg-amber-500/10">
@@ -68,12 +72,14 @@ const router = useRouter()
 const question = ref('')
 const loading = ref(false)
 const remainingQuota = ref(-1)
+const isMember = ref(false)
 
 onMounted(async () => {
   if (auth.isLoggedIn()) {
     try {
       const data = await apiGetJSON('/api/user')
       remainingQuota.value = data.remaining_quota
+      isMember.value = !!(data.membership && data.membership.is_active)
     } catch {}
   }
 })

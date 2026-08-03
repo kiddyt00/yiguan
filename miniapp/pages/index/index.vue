@@ -9,7 +9,8 @@
 
     <!-- 登录/配额状态 -->
     <view v-if="isLoggedIn" class="text-center mb-3">
-      <text v-if="quota >= 0" style="font-size: 26rpx;"
+      <text v-if="isMember" style="font-size: 26rpx; color: #f59e0b;">👑 会员无限次提问</text>
+      <text v-else-if="quota >= 0" style="font-size: 26rpx;"
         :class="quota > 0 ? 'text-muted' : ''"
         :style="quota <= 0 ? 'color:#C62828;' : ''">
         {{ quota > 0 ? '剩余 ' + quota + ' 次提问' : '次数已用完' }}
@@ -32,7 +33,7 @@
       />
       <view class="flex gap-2 mt-3">
         <button class="btn-secondary" style="flex:1;" @tap="goHistory">历史记录</button>
-        <button class="btn-primary" style="flex:2;" :disabled="!question || quota <= 0" @tap="startDivine">
+        <button class="btn-primary" style="flex:2;" :disabled="!question || (!isMember && quota <= 0)" @tap="startDivine">
           {{ loading ? '起卦中...' : '开始提问' }}
         </button>
       </view>
@@ -66,7 +67,7 @@
 import { api } from '../../utils/api.js'
 export default {
   data() {
-    return { question: '', loading: false, showMaster: false, quota: -1, isLoggedIn: false }
+    return { question: '', loading: false, showMaster: false, quota: -1, isLoggedIn: false, isMember: false }
   },
   onShow() {
     this.isLoggedIn = !!uni.getStorageSync('token')
@@ -83,6 +84,7 @@ export default {
       try {
         const data = await api.profile()
         this.quota = data.remaining_quota ?? -1
+        this.isMember = !!(data.membership && data.membership.is_active)
       } catch { this.quota = -1 }
     },
     startDivine() {
@@ -92,7 +94,7 @@ export default {
         uni.navigateTo({ url: '/pages/login/login' })
         return
       }
-      if (this.quota <= 0) {
+      if (!this.isMember && this.quota <= 0) {
         uni.showToast({ title: '次数已用完，请先获取次数', icon: 'none' })
         return
       }

@@ -51,6 +51,7 @@
 
   "quota.remaining": "{n} remaining",
   "quota.depleted": "No readings remaining",
+  "quota.member_unlimited": "Unlimited readings for members",
   "quota.recharge": "Top up ¥{price} for {n} readings",
   "quota.watch_ad": "Watch an ad for 1 reading",
   "quota.share": "Share with 2 WeChat friends for 1 reading",
