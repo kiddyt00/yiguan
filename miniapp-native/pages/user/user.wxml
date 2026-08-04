@@ -24,6 +24,12 @@
     </button>
   </view>
 
+  <!-- 我的订单 -->
+  <view class="card" style="display:flex;justify-content:space-between;align-items:center;" bindtap="goOrders">
+    <view style="font-size:28rpx;font-weight:600;">🧾 我的订单</view>
+    <text style="color:#9E8C7A;font-size:26rpx;">查看 ›</text>
+  </view>
+
   <view class="card">
     <view style="font-size:28rpx;font-weight:600;margin-bottom:16rpx;">编辑资料</view>
     <input value="{{form.nickname}}" bindinput="onNick" placeholder="昵称" class="input-field" style="margin-bottom:16rpx;" />

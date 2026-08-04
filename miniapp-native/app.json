@@ -4,6 +4,7 @@
     "pages/login/login",
     "pages/result/result",
     "pages/user/user",
+    "pages/orders/orders",
     "pages/history/history",
     "pages/ads/ads",
     "pages/about/about"

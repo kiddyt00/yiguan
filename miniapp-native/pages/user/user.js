@@ -110,6 +110,7 @@ Page({
       menus: ['shareAppMessage', 'shareTimeline']
     })
   },
+  goOrders() { wx.navigateTo({ url: "/pages/orders/orders" }) },
   logout() {
     wx.showModal({ title: '确认退出', content: '确定要退出登录吗？', success: (r) => { if (r.confirm) { wx.removeStorageSync('token'); wx.reLaunch({ url: '/pages/index/index' })} } })
   }
