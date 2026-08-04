@@ -14,7 +14,7 @@ Page({
   get sendDisabled(){return this.data.sendCountdown>0||this.data.phone.length!==11},
   get sendText(){return this.data.sendCountdown>0?this.data.sendCountdown+'s':'获取验证码'},
 
-  onAgree(e){this.setData({agreed:e.detail.value})},
+  toggleAgree(){this.setData({agreed:!this.data.agreed})},
 
   switchTab(e){this.setData({activeTab:e.currentTarget.dataset.tab})},
 
