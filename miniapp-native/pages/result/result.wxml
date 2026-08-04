@@ -96,7 +96,8 @@
     </view>
 
     <view wx:if="{{showInterpret}}" class="card">
-      <view style="font-size:30rpx;font-weight:600;margin-bottom:16rpx;">🤖 解</view>
+      <view style="font-size:30rpx;font-weight:600;margin-bottom:12rpx;">🤖 解</view>
+      <view style="font-size:20rpx;color:#9E8C7A;background:#F1ECE2;border-radius:8rpx;padding:8rpx 16rpx;margin-bottom:12rpx;">🤖 AI 生成内容，仅供学习参考</view>
       <view wx:if="{{needsTranslateBanner}}" class="trans-banner">
         <text style="font-size:22rpx;color:#8B4513;">{{needsTranslateLabel}}</text>
         <button bindtap="doTranslate" class="trans-btn">{{isTranslating ? '...' : '翻译为 English →'}}</button>

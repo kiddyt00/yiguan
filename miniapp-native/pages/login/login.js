@@ -8,10 +8,13 @@ Page({
     // 短信
     phone:'', code:'', loading:false, wxLoading:false, sendCountdown:0,
     // 密码
-    pwdPhone:'', password:'', nickname:'', pwdLoading:false, pwdError:'', isRegister:false
+    pwdPhone:'', password:'', nickname:'', pwdLoading:false, pwdError:'', isRegister:false,
+    agreed:false
   },
   get sendDisabled(){return this.data.sendCountdown>0||this.data.phone.length!==11},
   get sendText(){return this.data.sendCountdown>0?this.data.sendCountdown+'s':'获取验证码'},
+
+  onAgree(e){this.setData({agreed:e.detail.value})},
 
   switchTab(e){this.setData({activeTab:e.currentTarget.dataset.tab})},
 
@@ -22,6 +25,7 @@ Page({
   onNick(e){this.setData({nickname:e.detail.value})},
 
   wechatLogin(){
+    if(!this.data.agreed){wx.showToast({title:'请先阅读并同意《用户协议》和《隐私政策》',icon:'none'});return}
     this.setData({wxLoading:true})
     wx.login({
       success:(lr)=>{
@@ -63,6 +67,7 @@ Page({
   },
 
   smsLogin(){
+    if(!this.data.agreed){wx.showToast({title:'请先阅读并同意《用户协议》和《隐私政策》',icon:'none'});return}
     if(!this.data.phone||!this.data.code){wx.showToast({title:'请输入手机号和验证码',icon:'none'});return}
     this.setData({loading:true})
     wx.request({
@@ -83,6 +88,7 @@ Page({
   toggleMode(){this.setData({isRegister:!this.data.isRegister,pwdError:''})},
 
   pwdSubmit(){
+    if(!this.data.agreed){wx.showToast({title:'请先阅读并同意《用户协议》和《隐私政策》',icon:'none'});return}
     const{pwdPhone,password,nickname,isRegister}=this.data
     if(pwdPhone.length!==11){this.setData({pwdError:'请输入正确的手机号'});return}
     if(password.length<6){this.setData({pwdError:'密码至少6位'});return}
