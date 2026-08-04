@@ -46,9 +46,11 @@
     <text class="text-muted" style="display:block;margin-top:8rpx;">授权后自动创建账号，无需注册</text>
   </view>
 
-  <view style="display:flex;align-items:center;justify-content:center;font-size:22rpx;color:#9E8C7A;margin-top:24rpx;" bindtap="toggleAgree">
-    <checkbox value="agreed" checked="{{agreed}}" color="#D4A853" style="transform:scale(0.7);"/>
-    <text style="margin-left:8rpx;">我已阅读并同意</text>
+  <view style="display:flex;align-items:center;justify-content:center;font-size:22rpx;color:#9E8C7A;margin-top:24rpx;padding:10rpx 0;" bindtap="toggleAgree">
+    <view style="width:32rpx;height:32rpx;border-radius:50%;border:2rpx solid {{agreed?'#D4A853':'#C8BFB4'}};background:{{agreed?'#D4A853':'#FFF'}};display:flex;align-items:center;justify-content:center;margin-right:8rpx;box-sizing:border-box;">
+      <text wx:if="{{agreed}}" style="color:#FFF;font-size:20rpx;line-height:1;">✓</text>
+    </view>
+    <text>我已阅读并同意</text>
     <text style="color:#8B4513;" catchtap="goAgreement">《用户协议》</text>
     <text>和</text>
     <text style="color:#8B4513;" catchtap="goPrivacy">《隐私政策》</text>
