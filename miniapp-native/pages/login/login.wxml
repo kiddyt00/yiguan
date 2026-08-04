@@ -21,7 +21,7 @@
   <view wx:if="{{activeTab==='密码登录'}}">
     <view class="card" style="margin-bottom:0;">
       <input type="number" value="{{pwdPhone}}" bindinput="onPwdPhone" placeholder="手机号" maxlength="11" class="input-field" style="margin-bottom:24rpx;" />
-      <input type="text" ***REMOVED*** value="{{password}}" bindinput="onPassword" placeholder="密码" class="input-field" style="margin-bottom:32rpx;" />
+      <input type="text" password value="{{password}}" bindinput="onPassword" placeholder="密码" class="input-field" style="margin-bottom:32rpx;" />
       <view wx:if="{{isRegister}}">
         <input value="{{nickname}}" bindinput="onNick" placeholder="昵称（选填）" class="input-field" style="margin-bottom:24rpx;" />
       </view>
