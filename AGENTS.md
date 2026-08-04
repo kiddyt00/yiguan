@@ -55,8 +55,7 @@ User → https://zgjz.insightj.cn (Host Nginx SSL)
 | `internal/qianwen/` | Alibaba DashScope / Qianwen API client |
 | `web/front/` | User-facing SPA |
 | `web/admin/` | Admin panel SPA |
-| `miniapp/` | UniApp WeChat miniprogram (Vue 3) |
-| `miniapp-native/` | Native WeChat miniprogram |
+| `miniapp-native/` | Native WeChat miniprogram (production) |
 | `deploy/` | Nginx configs, entrypoint script |
 | `docs/PROGRESS.md` | Development timeline, environment info, handoff notes |
 | `docs/superpowers/` | Historical design docs and plans |

@@ -12,7 +12,7 @@
 | 数据库 | SQLite (modernc.org/sqlite) | 纯 Go 实现，零 CGO 依赖 |
 | 前端 | Vue 3 + Vite + Pinia | SPA，Tailwind CSS v4 中国风主题 |
 | 管理后台 | Vue 3 + Vite | 独立构建，管理员专用 |
-| 小程序 | UniApp (Vue 3) | 微信小程序端 |
+| 小程序 | 原生微信小程序 | 微信小程序端（线上正式版） |
 | AI | 多模型兼容 | 千问 / DeepSeek / 任意 OpenAI 兼容接口 |
 | 部署 | Docker Compose | 前后端分离容器，Nginx 反代 |
 
@@ -99,10 +99,10 @@ yiguan/
 ├── web/
 │   ├── front/                  # 用户端 Vue 3 SPA
 │   └── admin/                  # 管理后台 Vue 3 SPA
-├── miniapp/                    # UniApp 微信小程序
-│   ├── pages/                  # 8 个页面（首页/起卦/登录/个人/历史/广告/关于/密码登录）
-│   ├── utils/                  # API 封装、配置、Markdown 渲染
-│   └── static/                 # 静态资源
+├── miniapp-native/              # 原生微信小程序（线上正式版）
+│   ├── pages/                  # 7 个页面（首页/起卦/登录/个人/历史/广告/关于）
+│   ├── utils/                  # API 封装、配置
+│   └── images/                 # 静态资源
 ├── test/                       # E2E 测试
 ├── deploy/                     # 部署配置（nginx、二进制）
 ├── config.yaml                 # 本地开发配置
@@ -163,7 +163,7 @@ yiguan/
 
 ## 微信小程序
 
-小程序端使用 UniApp 开发，支持以下功能：
+小程序端为原生微信小程序（线上正式版，代码在 `miniapp-native/`），支持以下功能：
 
 - **微信一键登录** — 调用 wx.login + 后端 code2session
 - **短信验证码登录** — 手机号+验证码
@@ -173,7 +173,7 @@ yiguan/
 - **广告解锁** — 看 30s 广告获取 1 次起卦（每日限 3 次）
 - **分享** — 支持转发好友 / 朋友圈
 
-使用 HBuilder X 打开 `miniapp/` 目录，运行到微信开发者工具即可调试。
+使用微信开发者工具打开 `miniapp-native/` 目录即可调试；线上发布用 `make upload-miniapp VERSION=x.y.z DESC="描述"`（详见 Makefile）。
 
 **小程序 AppID:** `wx9e87b7216be83619`
 
