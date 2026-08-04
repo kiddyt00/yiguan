@@ -118,7 +118,10 @@
     </view>
   </view>
 
-  <view wx:if="{{error}}" class="card text-center" style="color:#C62828;">{{error}}</view>
+  <view wx:if="{{error}}" class="card text-center" style="color:#C62828;">
+    <view>{{error}}</view>
+    <button class="btn-primary mt-3" style="width:60%;" bindtap="retry">重试</button>
+  </view>
 
   <view wx:if="{{showMaster}}" class="card text-center mt-3">
     <text style="font-size:30rpx;font-weight:600;">周易大师 · 一对一深度交流</text>

@@ -52,7 +52,7 @@ Page({
     else{this.setData({mode:'new',phase:'coins',questionRef:q});this.syncDerived();this.startStream()}
   },
   onUnload(){if(this.data.dotsTimer)clearInterval(this.data.dotsTimer)},
-  onShareAppMessage(){return{title:'我在观己斋占了一卦「'+this.data.hexagram.primary+'」→「'+this.data.hexagram.changing+'」',path:'/pages/index/index'}},
+  onShareAppMessage(){const hid=this.data.historyId||this.data.currentHistoryId;return{title:'我在观己斋占了一卦「'+this.data.hexagram.primary+'」→「'+this.data.hexagram.changing+'」',path:'/pages/index/index'+(hid?('?historyId='+hid):'')}},
   startStream(){
     const q=this.data.questionRef
     if(!q){this.setData({error:'问题为空',phase:'error'});this.syncDerived();return}
@@ -60,7 +60,8 @@ Page({
     const token=wx.getStorageSync('token')
     const rt=wx.request({url:API+'/divine/stream',method:'POST',
       header:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      data:{question:q},enableChunked:true,responseType:'text'})
+      data:{question:q},enableChunked:true,responseType:'text',
+      fail:()=>{clearInterval(this.data.dotsTimer);this.setData({error:'网络异常，解卦中断',phase:'error'});this.syncDerived()}})
     this.data.sseBuffer='';this.data.rawAiText=''
     rt.onChunkReceived(r=>{
       let ch=''
@@ -97,7 +98,7 @@ Page({
         this.setData({rawAiText:nt,aiText:filterText(nt)});this.syncDerived()
       }else if(e==='status'){this.setData({statusMsg:d.msg||''})}
       else if(e==='done'){api.profile().then(p=>{this.setData({remainingQuota:p.remaining_quota??-1,phase:'done',historyLang:'zh'});this.syncDerived()}).catch(()=>{this.setData({phase:'done'});this.syncDerived()})}
-      else if(e==='error'){this.setData({error:d.error,phase:'done'});this.syncDerived()}
+      else if(e==='error'){clearInterval(this.data.dotsTimer);this.setData({error:d.error||'解卦失败',phase:'error'});this.syncDerived()}
     }catch(e){}
   },
   loadHistory(id){
@@ -121,6 +122,11 @@ Page({
     fail:()=>{this.setData({translateError:'网络错误',isTranslating:false})}})
   },
   toggleMaster(){this.setData({showMaster:!this.data.showMaster})},
+  retry(){
+    this.setData({error:'',phase:'coins',dots:''})
+    if(this.data.mode==='new'){this.startStream()}
+    else if(this.data.historyId){this.loadHistory(this.data.historyId)}
+  },
   goHome(){wx.reLaunch({url:'/pages/index/index'})},
   goHistory(){wx.navigateTo({url:'/pages/history/history'})},
 })

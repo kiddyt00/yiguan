@@ -3,6 +3,10 @@ const api = require('../../utils/api.js')
 Page({
   data: { question:'', loading:false, showMaster:false, quota:-1, isMember:false, hasToken:false, nickname:'' },
 
+  onLoad(options){
+    if (options && options.invite) wx.setStorageSync('invite', options.invite)
+    if (options && options.historyId) wx.redirectTo({ url: '/pages/result/result?historyId=' + options.historyId })
+  },
   onShow(){
     const token = wx.getStorageSync('token')
     this.setData({hasToken: !!token})
@@ -16,6 +20,7 @@ Page({
     api.profile().then(d=>this.setData({quota:d.remaining_quota??-1,nickname:d.nickname||'',isMember:!!(d.membership&&d.membership.is_active)})).catch(()=>{})
   },
   startDivine(){
+    if(this.data.loading)return
     if(!this.data.question||!this.data.hasToken)return
     if(!this.data.isMember&&this.data.quota<=0){wx.showToast({title:'次数已用完',icon:'none'});return}
     this.setData({loading:true})

@@ -35,7 +35,7 @@ function request(path, options = {}) {
 }
 
 module.exports = {
-  register: (phone, password) => request('/auth/register', { method: 'POST', data: { phone, password, nickname: '易友' } }),
+  register: (phone, password, invite_code) => request('/auth/register', { method: 'POST', data: { phone, password, nickname: '易友', invite_code: invite_code || '' } }),
   login: (phone, password) => request('/auth/login', { method: 'POST', data: { phone, password } }),
   profile: () => request('/user'),
   updateProfile: (data) => request('/user', { method: 'PUT', data }),

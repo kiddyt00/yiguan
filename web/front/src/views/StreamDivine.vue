@@ -171,11 +171,25 @@
               :class="isDark ? 'text-stone-400 hover:text-stone-200 border border-stone-600' : 'text-stone-500 hover:text-stone-700 border border-stone-300'">
               📷 保存为图片
             </button>
+            <button @click="shareResult" class="mt-3 block mx-auto px-6 py-2 rounded-lg text-xs font-medium transition"
+              :class="isDark ? 'text-stone-400 hover:text-stone-200 border border-stone-600' : 'text-stone-500 hover:text-stone-700 border border-stone-300'">
+              📤 分享本次卦象
+            </button>
           </div>
         </div>
 
         <!-- 错误 -->
-        <div v-if="error" class="text-center text-red-400 py-4">{{ error }}</div>
+        <div v-if="error" class="text-center py-4">
+          <div class="text-red-400">{{ error }}</div>
+          <div class="flex justify-center gap-3 mt-4 flex-wrap">
+            <button @click="router.push('/recharge')" class="px-4 py-2 rounded-lg text-sm font-medium transition"
+              :class="isDark ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'">💎 去充值</button>
+            <button @click="router.push('/ads')" class="px-4 py-2 rounded-lg text-sm font-medium transition"
+              :class="isDark ? 'bg-stone-700 text-stone-200 hover:bg-stone-600' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'">📺 看广告领次数</button>
+            <button @click="retryDivine" class="px-4 py-2 rounded-lg text-sm font-medium transition border"
+              :class="isDark ? 'border-stone-600 text-stone-300 hover:border-stone-400' : 'border-stone-300 text-stone-600 hover:border-stone-400'">🔄 重试</button>
+          </div>
+        </div>
 
         <!-- 大师入口 -->
         <div class="mt-4 pt-4 border-t" :class="isDark ? 'border-stone-700' : 'border-stone-200'">
@@ -207,7 +221,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -222,6 +236,7 @@ import { apiGet, apiPost, apiGetJSON, apiPostJSON, apiPut } from '../utils/reque
 defineProps({ isDark: Boolean })
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { t, locale } = useI18n()
 const { needsTranslation, getTranslation, generateTranslation, targetLang } = useTranslation()
@@ -344,6 +359,33 @@ function stopDots() {
 
 function goHome() {
   router.push('/')
+}
+
+// 错误重试: 新起卦重新拉流, 历史模式重新加载
+function retryDivine() {
+  error.value = ''
+  if (mode.value === 'new') {
+    phase.value = 'coins'
+    startStream()
+  } else {
+    loadLatestFromDB()
+  }
+}
+
+// 分享本次卦象: 复制带 historyId 的直达链接
+function shareResult() {
+  const id = currentHistoryId.value
+  const primary = guaResult.value.primary?.name || ''
+  const changing = guaResult.value.changing?.name || ''
+  if (!id) { alert('暂无可分享的卦象'); return }
+  const url = window.location.origin + '/stream?historyId=' + id
+  const text = '我在观己斋占了一卦「' + primary + '」→「' + changing + '」,点击查看: '
+  const full = text + url
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(full).then(() => alert('分享内容已复制,粘贴发送给好友即可:\n\n' + full)).catch(() => { window.prompt('复制分享链接:', full) })
+  } else {
+    window.prompt('复制分享链接:', full)
+  }
 }
 
 function el(t,a){ return '<'+t+(a?' '+a:'')+'>' }
@@ -608,7 +650,19 @@ async function startStream() {
 }
 
 onMounted(async () => {
-  if (mode.value === 'db') {
+  const hid = route.query.historyId
+  if (hid) {
+    mode.value = 'db'
+    try {
+      const res = await apiGet('/api/history?limit=100')
+      if (res.ok) {
+        const data = await res.json()
+        const h = (data.items || []).find(i => String(i.id) === String(hid))
+        if (h) populateFromHistory(h)
+        else { error.value = '记录不存在或已删除'; phase.value = 'error' }
+      } else { error.value = '加载失败'; phase.value = 'error' }
+    } catch (e) { error.value = '网络错误: ' + e.message; phase.value = 'error' }
+  } else if (mode.value === 'db') {
     await loadLatestFromDB()
   } else {
     startStream()

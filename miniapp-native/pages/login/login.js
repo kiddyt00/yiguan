@@ -87,7 +87,7 @@ Page({
     if(pwdPhone.length!==11){this.setData({pwdError:'请输入正确的手机号'});return}
     if(password.length<6){this.setData({pwdError:'密码至少6位'});return}
     this.setData({pwdLoading:true,pwdError:''})
-    const p=isRegister?api.register(pwdPhone,password):api.login(pwdPhone,password)
+    const inv=wx.getStorageSync('invite')||'';const p=isRegister?api.register(pwdPhone,password,inv):api.login(pwdPhone,password)
     p.then(data=>{
       wx.setStorageSync('token',data.token)
       wx.showToast({title:isRegister?'注册成功':'登录成功'})
