@@ -7,7 +7,9 @@
     "pages/orders/orders",
     "pages/history/history",
     "pages/ads/ads",
-    "pages/about/about"
+    "pages/about/about",
+    "pages/privacy/privacy",
+    "pages/agreement/agreement"
   ],
   "window": {
     "navigationBarTitleText": "观己斋",

@@ -45,4 +45,10 @@
     </button>
     <text class="text-muted" style="display:block;margin-top:8rpx;">授权后自动创建账号，无需注册</text>
   </view>
+
+  <view style="text-align:center;font-size:22rpx;color:#9E8C7A;margin-top:24rpx;line-height:1.8;">
+    登录即代表同意
+    <text style="color:#8B4513;" bindtap="goAgreement">《用户协议》</text>和
+    <text style="color:#8B4513;" bindtap="goPrivacy">《隐私政策》</text>
+  </view>
 </view>

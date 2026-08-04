@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="card" style="line-height:2;">
+    <view style="font-size:34rpx;font-weight:700;text-align:center;margin-bottom:16rpx;">用户协议</view>
+    <text style="font-size:22rpx;color:#9E8C7A;display:block;text-align:center;margin-bottom:24rpx;">更新日期:2026年8月4日 · 生效日期:2026年8月4日</text>
+
+    <text style="font-size:28rpx;color:#5D4037;display:block;">欢迎使用「观己斋」。在使用本小程序前,请您仔细阅读并充分理解本协议的全部内容。您点击"同意"或开始使用本服务,即视为您已阅读并同意本协议。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">一、服务说明</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">1. 本小程序以中国传统文化《周易》为基础,提供铜钱起卦演示与 AI 文化解读服务;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">2. 所有解读内容基于《周易》等公开文献整理,由 AI 技术辅助生成,仅供学习交流与自我启发;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">3. 本服务不提供任何形式的算命、占卜预测服务,不构成任何决策建议。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">二、账号与权益</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">1. 您需注册账号并使用,注册即获得一定次数的免费体验机会;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">2. 次数与会员权益可通过购买或参与活动获得,具体规则以页面展示为准;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">3. 会员权益按购买套餐的期限生效,到期后自动失效;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">4. 请妥善保管您的账号信息,因账号保管不善造成的损失由您自行承担。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">三、支付与退款</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">1. 本服务通过微信支付等方式完成付费,支付金额以页面展示为准;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">2. 虚拟商品服务一经购买并使用,原则上不支持退款;如因平台原因导致服务无法正常提供,可联系客服协商处理;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">3. 如有订单问题,可前往"我的订单"页面查看订单状态。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">四、用户行为规范</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">您承诺不使用本服务从事任何违法违规活动,不利用本服务发布违法、违规、侵权内容,不干扰、破坏本服务的正常运行。违反者,我们有权暂停或终止向您提供服务。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">五、免责声明</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">1. 本小程序旨在推广中国传统文化,所有内容基于《周易》公开文献整理,结果仅供学习交流;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">2. AI 生成内容不构成任何形式的预测、建议或承诺,请理性看待结果,人生重大抉择请结合自身实际情况,必要时咨询相关专业人士;</text>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">3. 因不可抗力、网络故障、第三方服务中断等导致的服务异常,我们将在合理时间内尽力修复,但不承担由此造成的间接损失。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">六、知识产权</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">本小程序的界面设计、文字内容、标识等知识产权归我们所有。未经书面许可,您不得复制、修改、传播或用于商业用途。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">七、协议的变更与终止</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">我们可能适时修订本协议,修订后将在本页面公布。若您继续使用本服务,即视为接受修订后的协议。</text>
+
+    <view class="sec" style="font-size:30rpx;font-weight:700;color:#3D3226;margin-top:28rpx;margin-bottom:8rpx;">八、联系我们</view>
+    <text style="font-size:26rpx;color:#5D4037;display:block;">如您对本协议有任何疑问,可通过邮箱 support@insightj.cn 与我们联系。</text>
+  </view>
+</view>

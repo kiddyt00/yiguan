@@ -94,5 +94,7 @@ Page({
       setTimeout(()=>wx.reLaunch({url:'/pages/index/index'}),800)
     }).catch(e=>this.setData({pwdError:e.message}))
     .finally(()=>this.setData({pwdLoading:false}))
-  }
+  },
+  goAgreement() { wx.navigateTo({ url: "/pages/agreement/agreement" }) },
+  goPrivacy() { wx.navigateTo({ url: "/pages/privacy/privacy" }) }
 })
