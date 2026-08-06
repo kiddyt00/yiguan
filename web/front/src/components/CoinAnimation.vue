@@ -81,27 +81,39 @@ const statusText = computed(() => {
 const prefersReducedMotion = typeof window !== 'undefined' &&
   !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// 铜钱抛掷动画 —— 适配 SSE 每爻 800ms 窗口
-function playToss() {
+// 待机:铜钱柔和悬浮(缓慢上下浮动 + 轻微旋转),模拟"静待揭晓"
+function playIdle() {
   const els = coinEls.value
-  if (!els || !els.length) return
-  if (prefersReducedMotion) return
+  if (!els || !els.length || prefersReducedMotion) return
   gsap.killTweensOf(els)
-  // 抛起 + 3D 翻转(三枚错开)
-  gsap.fromTo(els, { y: 0, rotationX: 0, rotationY: 0, scale: 1 }, {
-    y: -70, rotationX: 540, rotationY: 180, scale: 1.06,
-    duration: 0.4, ease: 'power2.out', stagger: 0.12, overwrite: true
-  })
-  // 落地弹跳
-  gsap.fromTo(els, { y: -70, scale: 1.06 }, {
-    y: 0, scale: 1,
-    duration: 0.4, ease: 'bounce.out', stagger: 0.12, delay: 0.4, overwrite: true
+  gsap.fromTo(els, { y: 0, rotation: 0 }, {
+    y: '+=13', rotation: 5,
+    duration: 1.3, ease: 'sine.inOut',
+    yoyo: true, repeat: -1,
+    stagger: { each: 0.35, from: 'start' }
   })
 }
 
-// 新一爻到来 → 抛掷
-watch(() => props.currentThrow, () => { nextTick(playToss) })
+// 揭晓:落地瞬间轻微放大 + 光晕闪亮(克制点睛)
+function playReveal() {
+  const els = coinEls.value
+  if (!els || !els.length || prefersReducedMotion) return
+  gsap.killTweensOf(els)
+  gsap.fromTo(els, { scale: 1, filter: 'brightness(1)' }, {
+    scale: 1.1, filter: 'brightness(1.4)',
+    duration: 0.16, ease: 'power2.out', stagger: 0.06,
+    yoyo: true, repeat: 1, overwrite: true
+  })
+}
 
-onMounted(() => { nextTick(playToss) })
+// SSE 时序:isAnimating=true → 悬浮待机;false 且已有结果 → 揭晓点睛
+watch(() => props.isAnimating, (v) => {
+  nextTick(() => {
+    if (v) playIdle()
+    else if (props.coinValues.some(x => x)) playReveal()
+  })
+})
+
+onMounted(() => { nextTick(() => { if (props.isAnimating) playIdle() }) })
 onUnmounted(() => { if (coinEls.value.length) gsap.killTweensOf(coinEls.value) })
 </script>
