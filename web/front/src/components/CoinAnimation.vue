@@ -168,17 +168,15 @@ function settleCoins() {
     const from = currentAngles[i]
     let to = target
     if (to === from) to = from + 360 // 同面也要翻一整圈,保证每爻都有翻转动作
-    // 完整翻转: 抛起翻转 + 回落(0.75s),翻转过程全程可见
+    // 完整翻转: 抛起翻转 + 回落 + 点睛(全部并入 timeline,不互相打断)
     const tl = gsap.timeline({ delay: i * 0.08 })
     tl.fromTo(el, { rotateY: from, y: 0 }, { rotateY: to, y: -26, duration: 0.45, ease: 'power2.out' })
       .to(el, { y: 0, duration: 0.3, ease: 'sine.inOut' })
+      .fromTo(el, { scale: 1, filter: 'brightness(1)' }, {
+        scale: 1.08, filter: 'brightness(1.35)',
+        duration: 0.18, ease: 'power2.out', yoyo: true, repeat: 1
+      }, '-=0.12')
     tl.eventCallback('onComplete', () => { currentAngles[i] = to % 360 })
-  })
-  // 点睛:轻微放大 + 亮度
-  gsap.fromTo(els, { scale: 1, filter: 'brightness(1)' }, {
-    scale: 1.08, filter: 'brightness(1.35)',
-    duration: 0.18, ease: 'power2.out', stagger: 0.08,
-    yoyo: true, repeat: 1, delay: 0.6, overwrite: true
   })
 }
 
