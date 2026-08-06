@@ -9,22 +9,45 @@
     <div class="flex justify-center gap-6 mb-8">
       <div v-for="(v, i) in coinValues" :key="i" class="coin3d">
         <div ref="coinEls" class="coin-inner" :aria-label="coinLabels[i]">
-          <!-- 正面: 易 -->
+          <!-- 正面: 观易知变(古币) -->
           <div class="coin-face">
-            <svg viewBox="0 0 100 100" width="80" height="80">
-              <circle cx="50" cy="50" r="47" fill="#d4a853" stroke="#8a6320" stroke-width="3"/>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#b08a3e" stroke-width="2" stroke-dasharray="4 4"/>
-              <rect x="39" y="39" width="22" height="22" rx="4" fill="#4a3410"/>
-              <text x="50" y="58" font-size="20" text-anchor="middle" fill="#f5d98c" font-weight="bold" font-family="serif">易</text>
+            <svg viewBox="0 0 120 120" width="84" height="84" style="display:block;">
+              <circle cx="60" cy="60" r="57" fill="#6b4c16"/>
+              <circle cx="60" cy="58" r="53" fill="#b8913e"/>
+              <circle cx="60" cy="55" r="50" fill="#d9b05a"/>
+              <ellipse cx="60" cy="40" rx="28" ry="13" fill="rgba(255,242,205,0.4)"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#8a6320" stroke-width="1.5"/>
+              <g fill="#6b4c16" font-size="14" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
+                <text x="60" y="26">观</text>
+                <text x="95" y="65">易</text>
+                <text x="60" y="104">知</text>
+                <text x="25" y="65">变</text>
+              </g>
+              <rect x="42" y="42" width="36" height="36" rx="7" fill="#3a2808"/>
+              <rect x="44.5" y="44.5" width="31" height="31" rx="6" fill="none" stroke="#7a5a1c" stroke-width="2.5"/>
+              <circle cx="26" cy="84" r="5" fill="rgba(82,110,72,0.35)"/>
+              <circle cx="93" cy="28" r="3.5" fill="rgba(82,110,72,0.28)"/>
+              <circle cx="90" cy="88" r="4" fill="rgba(82,110,72,0.22)"/>
             </svg>
           </div>
-          <!-- 背面: 观 -->
+          <!-- 背面: 见心明境(古币) -->
           <div class="coin-face coin-back">
-            <svg viewBox="0 0 100 100" width="80" height="80">
-              <circle cx="50" cy="50" r="47" fill="#c89b45" stroke="#7a5a1c" stroke-width="3"/>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#a8843a" stroke-width="2" stroke-dasharray="4 4"/>
-              <rect x="39" y="39" width="22" height="22" rx="4" fill="#3a2808"/>
-              <text x="50" y="58" font-size="20" text-anchor="middle" fill="#f5d98c" font-weight="bold" font-family="serif">观</text>
+            <svg viewBox="0 0 120 120" width="84" height="84" style="display:block;">
+              <circle cx="60" cy="60" r="57" fill="#5c4010"/>
+              <circle cx="60" cy="58" r="53" fill="#a07c30"/>
+              <circle cx="60" cy="55" r="50" fill="#c39a48"/>
+              <ellipse cx="60" cy="40" rx="28" ry="13" fill="rgba(255,236,195,0.35)"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#7a5a1c" stroke-width="1.5"/>
+              <g fill="#5c4010" font-size="14" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
+                <text x="60" y="26">见</text>
+                <text x="95" y="65">心</text>
+                <text x="60" y="104">明</text>
+                <text x="25" y="65">境</text>
+              </g>
+              <rect x="42" y="42" width="36" height="36" rx="7" fill="#2c1e06"/>
+              <rect x="44.5" y="44.5" width="31" height="31" rx="6" fill="none" stroke="#6b4c16" stroke-width="2.5"/>
+              <circle cx="30" cy="82" r="4.5" fill="rgba(82,110,72,0.3)"/>
+              <circle cx="92" cy="34" r="3" fill="rgba(82,110,72,0.25)"/>
             </svg>
           </div>
         </div>
