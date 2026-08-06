@@ -81,16 +81,15 @@ const statusText = computed(() => {
 const prefersReducedMotion = typeof window !== 'undefined' &&
   !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// 待机:铜钱柔和悬浮(缓慢上下浮动 + 轻微旋转),模拟"静待揭晓"
-function playIdle() {
+// 每爻轻柔翻转:铜钱轻转一圈 + 微微上浮,慢起慢落(sine),不剧烈
+function playTurn() {
   const els = coinEls.value
   if (!els || !els.length || prefersReducedMotion) return
   gsap.killTweensOf(els)
-  gsap.fromTo(els, { y: 0, rotation: 0 }, {
-    y: '+=13', rotation: 5,
-    duration: 1.3, ease: 'sine.inOut',
-    yoyo: true, repeat: -1,
-    stagger: { each: 0.35, from: 'start' }
+  gsap.fromTo(els, { y: 0, rotationY: 0 }, {
+    y: -22, rotationY: 360,
+    duration: 0.8, ease: 'sine.inOut', stagger: 0.1, overwrite: true,
+    onComplete: () => { gsap.set(els, { rotationY: 0 }) }
   })
 }
 
@@ -106,14 +105,12 @@ function playReveal() {
   })
 }
 
-// SSE 时序:isAnimating=true → 悬浮待机;false 且已有结果 → 揭晓点睛
+// 新一爻 → 轻柔翻转;结果揭晓(isAnimating 变 false 且已有值)→ 点睛
+watch(() => props.currentThrow, () => { nextTick(playTurn) })
 watch(() => props.isAnimating, (v) => {
-  nextTick(() => {
-    if (v) playIdle()
-    else if (props.coinValues.some(x => x)) playReveal()
-  })
+  nextTick(() => { if (!v && props.coinValues.some(x => x)) playReveal() })
 })
 
-onMounted(() => { nextTick(() => { if (props.isAnimating) playIdle() }) })
+onMounted(() => { nextTick(() => { if (props.isAnimating) playTurn() }) })
 onUnmounted(() => { if (coinEls.value.length) gsap.killTweensOf(coinEls.value) })
 </script>
