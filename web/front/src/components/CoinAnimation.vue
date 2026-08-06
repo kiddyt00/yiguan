@@ -87,7 +87,7 @@ function playTurn() {
   if (!els || !els.length || prefersReducedMotion) return
   gsap.killTweensOf(els)
   gsap.fromTo(els, { y: 0, rotationY: 0 }, {
-    y: -22, rotationY: 360,
+    y: -22, rotationY: 180,
     duration: 0.8, ease: 'sine.inOut', stagger: 0.1, overwrite: true,
     onComplete: () => { gsap.set(els, { rotationY: 0 }) }
   })
