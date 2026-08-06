@@ -760,6 +760,37 @@ async function startStream() {
   }
 }
 
+
+// ===== 解卦"写经"动画 =====
+const prefersReducedMotion = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const lastParaCount = ref(0)
+
+// 流式输出:新段落行首淡入(写经感,仅实时起卦)
+watch(displayedInterpretation, () => {
+  nextTick(() => {
+    const area = interpretArea.value
+    if (!area) return
+    const paras = area.querySelectorAll('p, h1, h2, h3, h4, blockquote, ul, ol, pre')
+    const count = paras.length
+    if (mode.value === 'new' && count > lastParaCount.value && !prefersReducedMotion) {
+      const newEls = Array.from(paras).slice(lastParaCount.value)
+      gsap.fromTo(newEls, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.06 })
+    }
+    lastParaCount.value = count
+  })
+})
+
+// 解读完成:整块"落定"
+watch(phase, (v) => {
+  if (v === 'done') {
+    nextTick(() => {
+      const area = interpretArea.value
+      if (!area || prefersReducedMotion) return
+      gsap.fromTo(area, { opacity: 0.985, scale: 0.995 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' })
+    })
+  }
+})
+
 onMounted(async () => {
   const hid = route.query.historyId
   if (hid) {
