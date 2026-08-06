@@ -67,6 +67,7 @@ const props = defineProps({
 })
 
 const coinEls = ref([])
+const currentAngles = [0, 0, 0] // 每枚铜钱当前朝向(0=正面 / 180=背面)
 
 const yaoNames = computed(() => [t('yao.1'), t('yao.2'), t('yao.3'), t('yao.4'), t('yao.5'), t('yao.6')])
 const yaoName = computed(() => yaoNames.value[props.currentThrow - 1] || '')
@@ -120,7 +121,13 @@ function settleCoins() {
   gsap.killTweensOf(els)
   els.forEach((el, i) => {
     const target = props.coinValues[i] === 3 ? 180 : 0
-    gsap.to(el, { rotateY: target, duration: 0.6, ease: 'power2.inOut', delay: i * 0.08 })
+    const from = currentAngles[i]
+    let to = target
+    if (to === from) to = from + 360 // 同面也要翻一整圈,保证每爻都有翻转动作
+    gsap.fromTo(el, { rotateY: from }, {
+      rotateY: to, duration: 0.6, ease: 'power2.inOut', delay: i * 0.08,
+      onComplete: () => { currentAngles[i] = to % 360 }
+    })
   })
   // 点睛:轻微放大 + 亮度
   gsap.fromTo(els, { scale: 1, filter: 'brightness(1)' }, {
