@@ -483,19 +483,56 @@ function populateFromHistory(h) {
   historyLang.value = h.lang || 'zh'
 
   guaResult.value = {
-    primary: { name: h.primary_gua, gua_ci: '', symbol: '', yao_desc: h.yao_positions || '' },
-    changing: { name: h.changing_gua, gua_ci: '', symbol: '' },
+    primary: { name: h.primary_gua, gua_ci: '', symbol: GUA_SYMBOLS[h.primary_gua] || '', yao_desc: h.yao_positions || '' },
+    changing: { name: h.changing_gua, gua_ci: '', symbol: GUA_SYMBOLS[h.changing_gua] || '' },
     yaoPositions: parseYaoPositions(h.yao_positions),
     masterYao: findMasterYao(h.yao_positions),
   }
+
+  // 历史记录补全逐爻抛掷列表(与实时结果一致)
+  try {
+    const td = h.toss_data ? JSON.parse(h.toss_data) : []
+    if (Array.isArray(td) && td.length > 0) {
+      tossResults.value = td.map(t => ({
+        throw: t.throw,
+        label: t.label,
+        result: t.result,
+        sum: t.sum,
+        coins: (t.coin_values || []).map(v => v === 3 ? 'front' : 'back'),
+        yang: !!t.yang,
+      }))
+    }
+  } catch (e) { /* toss_data 解析失败则保持空 */ }
 
   aiText.value = h.interpretation || ''
   phase.value = 'done'
 }
 
 // 从 yao_positions 字符串解析爻位信息 (格式如 "101100,3" 或 JSON)
+// 中文爻名 → 0-based 位置
+const YAO_POS_MAP = { '初爻': 0, '二爻': 1, '三爻': 2, '四爻': 3, '五爻': 4, '上爻': 5 }
+
+// 64 卦名称 → 卦符
+const GUA_SYMBOLS = {
+  '乾为天':'䷀','坤为地':'䷁','水雷屯':'䷂','山水蒙':'䷃','水天需':'䷄','天水讼':'䷅','地水师':'䷆','水地比':'䷇',
+  '风天小畜':'䷈','天泽履':'䷉','地天泰':'䷊','天地否':'䷋','天火同人':'䷌','火天大有':'䷍','地山谦':'䷎','雷地豫':'䷏',
+  '泽雷随':'䷐','山风蛊':'䷑','地泽临':'䷒','风地观':'䷓','火雷噬嗑':'䷔','山火贲':'䷕','山地剥':'䷖','地雷复':'䷗',
+  '天雷无妄':'䷘','山天大畜':'䷙','山雷颐':'䷚','泽风大过':'䷛','坎为水':'䷜','离为火':'䷝','泽山咸':'䷞','雷风恒':'䷟',
+  '天山遁':'䷠','雷天大壮':'䷡','火地晋':'䷢','地火明夷':'䷣','风火家人':'䷤','火泽睽':'䷥','水山蹇':'䷦','雷水解':'䷧',
+  '山泽损':'䷨','风雷益':'䷩','泽天夬':'䷪','天风姤':'䷫','泽地萃':'䷬','地风升':'䷭','泽水困':'䷮','水风井':'䷯',
+  '泽火革':'䷰','火风鼎':'䷱','震为雷':'䷲','艮为山':'䷳','风山渐':'䷴','雷泽归妹':'䷵','雷火丰':'䷶','火山旅':'䷷',
+  '巽为风':'䷸','兑为泽':'䷹','风水涣':'䷺','水泽节':'䷻','风泽中孚':'䷼','雷山小过':'䷽','水火既济':'䷾','火水未济':'䷿'
+}
+
 function parseYaoPositions(yaoDesc) {
   if (!yaoDesc) return []
+  // 中文格式: "初爻、五爻（主变爻：五爻）"
+  const cn = yaoDesc.match(/[初一二三四五上]爻/g)
+  if (cn && cn.length > 0) {
+    const mm = yaoDesc.match(/主变爻[：:]([初一二三四五上]爻)/)
+    const mp = mm ? YAO_POS_MAP[mm[1]] : null
+    return cn.map(n => ({ position: YAO_POS_MAP[n], is_master: mp === YAO_POS_MAP[n] }))
+  }
   try {
     // 尝试 JSON 解析
     const parsed = JSON.parse(yaoDesc)
@@ -524,6 +561,8 @@ function parseYaoPositions(yaoDesc) {
 
 function findMasterYao(yaoDesc) {
   if (!yaoDesc) return null
+  const mm = yaoDesc.match(/主变爻[：:]([初一二三四五上]爻)/)
+  if (mm) return YAO_POS_MAP[mm[1]] ?? null
   try {
     const parsed = JSON.parse(yaoDesc)
     if (Array.isArray(parsed)) {
