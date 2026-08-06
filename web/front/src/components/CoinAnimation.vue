@@ -11,43 +11,64 @@
         <div ref="coinEls" class="coin-inner" :aria-label="coinLabels[i]">
           <!-- 正面: 观易知变(古币) -->
           <div class="coin-face">
-            <svg viewBox="0 0 120 120" width="84" height="84" style="display:block;">
-              <circle cx="60" cy="60" r="57" fill="#6b4c16"/>
-              <circle cx="60" cy="58" r="53" fill="#b8913e"/>
-              <circle cx="60" cy="55" r="50" fill="#d9b05a"/>
-              <ellipse cx="60" cy="40" rx="28" ry="13" fill="rgba(255,242,205,0.4)"/>
+            <svg viewBox="0 0 120 120" width="88" height="88" style="display:block;">
+              <circle cx="60" cy="60" r="58" fill="#5c3d10"/>
+              <circle cx="60" cy="59" r="55" fill="#7a5518"/>
+              <circle cx="60" cy="58" r="53" fill="#a07c2c"/>
+              <circle cx="60" cy="57" r="51" fill="#c09a3e"/>
+              <circle cx="60" cy="55" r="49" fill="#d9b45c"/>
+              <circle cx="60" cy="54" r="46" fill="#e8c878"/>
+              <ellipse cx="60" cy="38" rx="30" ry="13" fill="rgba(255,246,215,0.5)"/>
+              <ellipse cx="60" cy="88" rx="24" ry="8" fill="rgba(80,50,10,0.25)"/>
               <circle cx="60" cy="60" r="50" fill="none" stroke="#8a6320" stroke-width="1.5"/>
-              <g fill="#6b4c16" font-size="14" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
-                <text x="60" y="26">观</text>
-                <text x="95" y="65">易</text>
-                <text x="60" y="104">知</text>
-                <text x="25" y="65">变</text>
+              <g font-size="15" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
+                <g fill="#4a2f08">
+                  <text x="60" y="27">观</text><text x="96" y="66">易</text><text x="60" y="105">知</text><text x="24" y="66">变</text>
+                </g>
+                <g fill="#f5e2a8">
+                  <text x="60" y="25">观</text><text x="96" y="64">易</text><text x="60" y="103">知</text><text x="24" y="64">变</text>
+                </g>
               </g>
-              <rect x="42" y="42" width="36" height="36" rx="7" fill="#3a2808"/>
-              <rect x="44.5" y="44.5" width="31" height="31" rx="6" fill="none" stroke="#7a5a1c" stroke-width="2.5"/>
-              <circle cx="26" cy="84" r="5" fill="rgba(82,110,72,0.35)"/>
-              <circle cx="93" cy="28" r="3.5" fill="rgba(82,110,72,0.28)"/>
-              <circle cx="90" cy="88" r="4" fill="rgba(82,110,72,0.22)"/>
+              <rect x="42" y="42" width="36" height="36" rx="7" fill="#241703"/>
+              <rect x="44.5" y="44.5" width="31" height="31" rx="6" fill="none" stroke="#8a6320" stroke-width="2.5"/>
+              <rect x="42" y="42" width="36" height="5" rx="3" fill="rgba(255,240,200,0.15)"/>
+              <circle cx="24" cy="86" r="6" fill="rgba(74,98,64,0.4)"/>
+              <circle cx="95" cy="26" r="4" fill="rgba(74,98,64,0.3)"/>
+              <circle cx="90" cy="90" r="4.5" fill="rgba(74,98,64,0.25)"/>
+              <circle cx="30" cy="30" r="3" fill="rgba(74,98,64,0.2)"/>
+              <path d="M20 55 Q 40 52 52 54" stroke="rgba(90,60,20,0.4)" stroke-width="1" fill="none"/>
+              <path d="M68 88 Q 84 90 100 84" stroke="rgba(90,60,20,0.35)" stroke-width="1" fill="none"/>
             </svg>
           </div>
           <!-- 背面: 见心明境(古币) -->
           <div class="coin-face coin-back">
-            <svg viewBox="0 0 120 120" width="84" height="84" style="display:block;">
-              <circle cx="60" cy="60" r="57" fill="#5c4010"/>
-              <circle cx="60" cy="58" r="53" fill="#a07c30"/>
-              <circle cx="60" cy="55" r="50" fill="#c39a48"/>
-              <ellipse cx="60" cy="40" rx="28" ry="13" fill="rgba(255,236,195,0.35)"/>
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#7a5a1c" stroke-width="1.5"/>
-              <g fill="#5c4010" font-size="14" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
-                <text x="60" y="26">见</text>
-                <text x="95" y="65">心</text>
-                <text x="60" y="104">明</text>
-                <text x="25" y="65">境</text>
+            <svg viewBox="0 0 120 120" width="88" height="88" style="display:block;">
+              <circle cx="60" cy="60" r="58" fill="#4a3010"/>
+              <circle cx="60" cy="59" r="55" fill="#634712"/>
+              <circle cx="60" cy="58" r="53" fill="#8a6520"/>
+              <circle cx="60" cy="57" r="51" fill="#a8812f"/>
+              <circle cx="60" cy="55" r="49" fill="#c59a44"/>
+              <circle cx="60" cy="54" r="46" fill="#d4ac58"/>
+              <ellipse cx="60" cy="38" rx="30" ry="13" fill="rgba(255,236,195,0.45)"/>
+              <ellipse cx="60" cy="88" rx="24" ry="8" fill="rgba(50,32,8,0.3)"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#6b4c16" stroke-width="1.5"/>
+              <g font-size="15" font-family="'Songti SC','SimSun',serif" font-weight="bold" text-anchor="middle">
+                <g fill="#3a2608">
+                  <text x="60" y="27">见</text><text x="96" y="66">心</text><text x="60" y="105">明</text><text x="24" y="66">境</text>
+                </g>
+                <g fill="#eed89a">
+                  <text x="60" y="25">见</text><text x="96" y="64">心</text><text x="60" y="103">明</text><text x="24" y="64">境</text>
+                </g>
               </g>
-              <rect x="42" y="42" width="36" height="36" rx="7" fill="#2c1e06"/>
+              <rect x="42" y="42" width="36" height="36" rx="7" fill="#1c1203"/>
               <rect x="44.5" y="44.5" width="31" height="31" rx="6" fill="none" stroke="#6b4c16" stroke-width="2.5"/>
-              <circle cx="30" cy="82" r="4.5" fill="rgba(82,110,72,0.3)"/>
-              <circle cx="92" cy="34" r="3" fill="rgba(82,110,72,0.25)"/>
+              <rect x="42" y="42" width="36" height="5" rx="3" fill="rgba(255,230,185,0.12)"/>
+              <circle cx="28" cy="84" r="5.5" fill="rgba(74,98,64,0.38)"/>
+              <circle cx="94" cy="30" r="4" fill="rgba(74,98,64,0.28)"/>
+              <circle cx="88" cy="88" r="3.5" fill="rgba(74,98,64,0.22)"/>
+              <circle cx="34" cy="30" r="2.5" fill="rgba(74,98,64,0.18)"/>
+              <path d="M22 52 Q 42 49 54 51" stroke="rgba(80,52,16,0.4)" stroke-width="1" fill="none"/>
+              <path d="M66 90 Q 82 92 98 86" stroke="rgba(80,52,16,0.35)" stroke-width="1" fill="none"/>
             </svg>
           </div>
         </div>
@@ -147,10 +168,11 @@ function settleCoins() {
     const from = currentAngles[i]
     let to = target
     if (to === from) to = from + 360 // 同面也要翻一整圈,保证每爻都有翻转动作
-    gsap.fromTo(el, { rotateY: from }, {
-      rotateY: to, duration: 0.6, ease: 'power2.inOut', delay: i * 0.08,
-      onComplete: () => { currentAngles[i] = to % 360 }
-    })
+    // 完整翻转: 抛起翻转 + 回落(0.75s),翻转过程全程可见
+    const tl = gsap.timeline({ delay: i * 0.08 })
+    tl.fromTo(el, { rotateY: from, y: 0 }, { rotateY: to, y: -26, duration: 0.45, ease: 'power2.out' })
+      .to(el, { y: 0, duration: 0.3, ease: 'sine.inOut' })
+    tl.eventCallback('onComplete', () => { currentAngles[i] = to % 360 })
   })
   // 点睛:轻微放大 + 亮度
   gsap.fromTo(els, { scale: 1, filter: 'brightness(1)' }, {
@@ -188,6 +210,7 @@ onUnmounted(() => { if (coinEls.value.length) gsap.killTweensOf(coinEls.value) }
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: 50%;
   filter: drop-shadow(0 0 10px rgba(212, 168, 83, 0.35));
 }
