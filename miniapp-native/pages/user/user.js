@@ -75,7 +75,8 @@ Page({
   },
   doPay() {
     if (!this.data.selected) return
-    const openid = this.data.profile.openid
+    // 历史账号合并可能让 openid 存成逗号分隔多值，JSAPI 只取第一个
+    const openid = (this.data.profile.openid || '').split(',')[0]
     if (!openid) { wx.showToast({ title: '请先绑定微信', icon: 'none' }); return }
     this.setData({ payLoading: true })
     // iOS 小程序虚拟商品必须走米大师虚拟支付（wx.requestVirtualPayment），其余平台保持 JSAPI
@@ -88,7 +89,24 @@ Page({
   },
   // 米大师虚拟支付（iOS）
   doVirtualPay() {
-    api.virtualCreateOrder(this.data.selected).then(data => {
+    // 先 wx.login 拿临时 code，后端用它换 session_key 生成用户态签名
+    wx.login({
+      success: (loginRes) => {
+        if (!loginRes.code) {
+          wx.showToast({ title: '登录失败，请重试', icon: 'none' })
+          this.setData({ payLoading: false })
+          return
+        }
+        this.virtualPayRequest(loginRes.code)
+      },
+      fail: () => {
+        wx.showToast({ title: '登录失败，请重试', icon: 'none' })
+        this.setData({ payLoading: false })
+      }
+    })
+  },
+  virtualPayRequest(loginCode) {
+    api.virtualCreateOrder(this.data.selected, loginCode).then(data => {
       const v = data.virtual
       if (!wx.requestVirtualPayment) {
         wx.showToast({ title: '当前微信版本过低，请升级微信后重试', icon: 'none' })

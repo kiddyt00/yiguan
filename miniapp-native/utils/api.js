@@ -47,8 +47,8 @@ module.exports = {
 
   // 支付
   jsapiCreateOrder: (productID, openid) => request('/orders/jsapi-create', { method: 'POST', data: { product_id: productID, openid } }),
-  // 虚拟支付（米大师，iOS 小程序虚拟商品专用）
-  virtualCreateOrder: (productID) => request('/orders/virtual-create', { method: 'POST', data: { product_id: productID } }),
+  // 虚拟支付（米大师，iOS 小程序虚拟商品专用；code 为 wx.login 返回的临时凭证，后端换 session_key 签名）
+  virtualCreateOrder: (productID, code) => request('/orders/virtual-create', { method: 'POST', data: { product_id: productID, code } }),
   getOrder: (id) => request('/orders/' + id),
   listOrders: () => request('/orders'),
 }
