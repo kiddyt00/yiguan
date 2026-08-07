@@ -259,8 +259,9 @@ func main() {
 		vpNotifyURL = "https://zgjz.insightj.cn/api/orders/virtual-notify"
 	}
 	if vpOfferID != "" {
-		vpHandler := handler.NewVirtualPayHandler(st, vpOfferID, vpAppKey, vpSandboxKey, vpSandbox, os.Getenv("WX_APPID"), os.Getenv("WX_SECRET"), vpNotifyURL)
+		vpHandler := handler.NewVirtualPayHandler(st, vpOfferID, vpAppKey, vpSandboxKey, vpSandbox, os.Getenv("WX_APPID"), os.Getenv("WX_SECRET"), vpNotifyURL, os.Getenv("WX_VP_PUSH_TOKEN"), os.Getenv("WX_VP_PUSH_AES_KEY"))
 		mux.Handle("POST /api/orders/virtual-create", authMW(corsWrap(http.HandlerFunc(vpHandler.CreateVirtualOrder))))
+		mux.Handle("GET /api/orders/virtual-notify", corsWrap(http.HandlerFunc(vpHandler.VirtualNotifyVerify)))
 		mux.Handle("POST /api/orders/virtual-notify", corsWrap(http.HandlerFunc(vpHandler.VirtualNotify)))
 	}
 

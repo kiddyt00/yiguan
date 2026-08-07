@@ -40,10 +40,12 @@ type VirtualPayHandler struct {
 	appID         string // 小程序 AppID（code2session 用）
 	appSecret     string // 小程序 AppSecret（code2session 用）
 	notifyURL     string // 发货订阅回调地址
+	pushToken     string // 微信消息推送 Token（mp 后台配置，GET 验证用）
+	pushAESKey    string // 微信消息推送 EncodingAESKey（43位，安全模式解密用）
 }
 
 // NewVirtualPayHandler 创建虚拟支付处理器
-func NewVirtualPayHandler(st store.Store, offerID, appKey, sandboxAppKey string, sandbox bool, appID, appSecret, notifyURL string) *VirtualPayHandler {
+func NewVirtualPayHandler(st store.Store, offerID, appKey, sandboxAppKey string, sandbox bool, appID, appSecret, notifyURL, pushToken, pushAESKey string) *VirtualPayHandler {
 	return &VirtualPayHandler{
 		store:         st,
 		offerID:       offerID,
@@ -53,6 +55,8 @@ func NewVirtualPayHandler(st store.Store, offerID, appKey, sandboxAppKey string,
 		appID:         appID,
 		appSecret:     appSecret,
 		notifyURL:     notifyURL,
+		pushToken:     pushToken,
+		pushAESKey:    pushAESKey,
 	}
 }
 
@@ -216,6 +220,13 @@ func (h *VirtualPayHandler) VirtualNotify(w http.ResponseWriter, r *http.Request
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		writeVirtualNotifyXML(w, 1, "读取通知失败")
+		return
+	}
+	// 安全模式：解密推送体为明文 XML（明文模式原样返回）
+	body, err = h.decryptPushBody(r, body)
+	if err != nil {
+		log.Printf("虚拟支付推送解密失败: %v", err)
+		writeVirtualNotifyXML(w, 1, "解密失败")
 		return
 	}
 	log.Printf("虚拟支付发货通知: %s", string(body))
