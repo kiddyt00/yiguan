@@ -96,17 +96,9 @@ Page({
   },
   doPay() {
     if (!this.data.selected) return
-    // 历史账号合并可能让 openid 存成逗号分隔多值，JSAPI 只取第一个
-    const openid = (this.data.profile.openid || '').split(',')[0]
-    if (!openid) { wx.showToast({ title: '请先绑定微信', icon: 'none' }); return }
     this.setData({ payLoading: true })
-    // iOS 小程序虚拟商品必须走米大师虚拟支付（wx.requestVirtualPayment），其余平台保持 JSAPI
-    const info = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync()
-    if (info.platform === 'ios') {
-      this.doVirtualPay()
-    } else {
-      this.doJsapiPay()
-    }
+    // 审核要求：虚拟商品支付必须接入「小程序虚拟支付」（全终端），统一走 wx.requestVirtualPayment
+    this.doVirtualPay()
   },
   // 米大师虚拟支付（iOS）
   doVirtualPay() {
