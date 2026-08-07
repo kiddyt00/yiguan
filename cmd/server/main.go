@@ -163,6 +163,11 @@ func main() {
 	mux.Handle("PUT /api/user", authMW(corsWrap(http.HandlerFunc(uh.UpdateUser))))
 	mux.Handle("POST /api/user/bind-wechat", authMW(corsWrap(http.HandlerFunc(uh.BindWechat))))
 	mux.Handle("GET /api/user/membership", authMW(corsWrap(http.HandlerFunc(uh.GetMembership))))
+
+	// 头像上传与静态服务（小程序头像昵称填写能力）
+	avatarHandler := handler.NewAvatarHandler(st, os.Getenv("AVATAR_DIR"))
+	mux.Handle("POST /api/upload/avatar", authMW(corsWrap(http.HandlerFunc(avatarHandler.UploadAvatar))))
+	mux.Handle("GET /api/avatars/{name}", corsWrap(http.HandlerFunc(avatarHandler.ServeAvatar)))
 	mux.Handle("GET /api/history/search", authMW(corsWrap(http.HandlerFunc(hh.SearchHistory))))
 	mux.Handle("GET /api/history/latest", authMW(corsWrap(http.HandlerFunc(hh.GetLatestHistory))))
 	mux.Handle("GET /api/history/recent", authMW(corsWrap(http.HandlerFunc(hh.GetRecentHistory))))

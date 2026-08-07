@@ -150,6 +150,15 @@ func (s *Store) UpdateUserWechatInfo(id int64, nickname, wxAvatar string) error 
 	return err
 }
 
+// UpdateUserAvatar 更新用户自定义头像（用户主动上传，非微信头像）
+func (s *Store) UpdateUserAvatar(id int64, avatarURL string) error {
+	_, err := s.db.Exec(
+		"UPDATE users SET avatar = ? WHERE id = ?",
+		avatarURL, id,
+	)
+	return err
+}
+
 // UpdateUserGender 更新微信用户性别（1=男, 2=女）
 func (s *Store) UpdateUserGender(id int64, sex int) error {
 	_, err := s.db.Exec("UPDATE users SET wx_sex = ? WHERE id = ?", sex, id)

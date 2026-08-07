@@ -14,6 +14,27 @@ Page({
   onShow() { this.loadProfile() },
   onNick(e) { this.setData({ 'form.nickname': e.detail.value }) },
   onAddr(e) { this.setData({ 'form.address': e.detail.value }) },
+  // 头像选择（微信头像昵称填写能力：open-type=chooseAvatar）
+  onChooseAvatar(e) {
+    const tempPath = e.detail.avatarUrl
+    if (!tempPath) return
+    wx.uploadFile({
+      url: API + '/upload/avatar',
+      filePath: tempPath,
+      name: 'avatar',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const data = JSON.parse(res.data)
+          this.setData({ 'profile.avatar': data.avatar })
+          wx.showToast({ title: '头像已更新' })
+        } else {
+          wx.showToast({ title: '头像上传失败', icon: 'none' })
+        }
+      },
+      fail: () => wx.showToast({ title: '上传失败', icon: 'none' })
+    })
+  },
   // 设置分享内容
   onShareAppMessage() {
     const code = this.data.inviteCode
