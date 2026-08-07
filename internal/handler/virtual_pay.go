@@ -148,35 +148,16 @@ func (h *VirtualPayHandler) CreateVirtualOrder(w http.ResponseWriter, r *http.Re
 	})
 }
 
-// exchangeSessionKey 用 wx.login code 换取 session_key
+// exchangeSessionKey 用 wx.login code 换取 session_key（复用公共 code2session）
 func (h *VirtualPayHandler) exchangeSessionKey(code string) (string, error) {
-	if h.appID == "" || h.appSecret == "" {
-		return "", fmt.Errorf("小程序未配置 WX_APPID/WX_SECRET")
-	}
-	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code",
-		h.appID, h.appSecret, code)
-	resp, err := http.Get(url)
+	ws, err := wechatCode2Session(h.appID, h.appSecret, code)
 	if err != nil {
-		return "", fmt.Errorf("请求微信API失败: %w", err)
+		return "", err
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	var wr struct {
-		OpenID     string `json:"openid"`
-		SessionKey string `json:"session_key"`
-		ErrCode    int    `json:"errcode"`
-		ErrMsg     string `json:"errmsg"`
-	}
-	if err := json.Unmarshal(body, &wr); err != nil {
-		return "", fmt.Errorf("解析微信响应失败: %w", err)
-	}
-	if wr.ErrCode != 0 {
-		return "", fmt.Errorf("微信错误 %d: %s", wr.ErrCode, wr.ErrMsg)
-	}
-	if wr.SessionKey == "" {
+	if ws.SessionKey == "" {
 		return "", fmt.Errorf("session_key 为空")
 	}
-	return wr.SessionKey, nil
+	return ws.SessionKey, nil
 }
 
 // ========== 签名（官方《签名详解》，含可复现验证值，见 virtual_pay_test.go） ==========

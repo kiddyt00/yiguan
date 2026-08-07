@@ -84,7 +84,7 @@ Page({
     if (info.platform === 'ios') {
       this.doVirtualPay()
     } else {
-      this.doJsapiPay(openid)
+      this.doJsapiPay()
     }
   },
   // 米大师虚拟支付（iOS）
@@ -136,8 +136,25 @@ Page({
     })
   },
   // JSAPI 支付（Android / 其他平台）
-  doJsapiPay(openid) {
-    api.jsapiCreateOrder(this.data.selected, openid).then(data => {
+  doJsapiPay() {
+    // 后端用 wx.login code 换当前用户 openid（避免历史逗号分隔脏数据）
+    wx.login({
+      success: (loginRes) => {
+        if (!loginRes.code) {
+          wx.showToast({ title: '登录失败，请重试', icon: 'none' })
+          this.setData({ payLoading: false })
+          return
+        }
+        this.jsapiPayRequest(loginRes.code)
+      },
+      fail: () => {
+        wx.showToast({ title: '登录失败，请重试', icon: 'none' })
+        this.setData({ payLoading: false })
+      }
+    })
+  },
+  jsapiPayRequest(loginCode) {
+    api.jsapiCreateOrder(this.data.selected, loginCode).then(data => {
       const pay = data.payment
       wx.requestPayment({
         timeStamp: pay.timeStamp,

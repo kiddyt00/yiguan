@@ -30,16 +30,18 @@ type OrderHandler struct {
 	mchID     string // 商户号
 	apiKey    string // API密钥
 	appID     string // 公众号AppID
+	appSecret string // 小程序 AppSecret（code2session 换 openid 用）
 	notifyURL string // 回调地址
 }
 
 // NewOrderHandler 创建订单处理器
-func NewOrderHandler(st store.Store, mchID, apiKey, appID, notifyURL string) *OrderHandler {
+func NewOrderHandler(st store.Store, mchID, apiKey, appID, appSecret, notifyURL string) *OrderHandler {
 	return &OrderHandler{
 		store:     st,
 		mchID:     mchID,
 		apiKey:    apiKey,
 		appID:     appID,
+		appSecret: appSecret,
 		notifyURL: notifyURL,
 	}
 }
@@ -114,6 +116,9 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 type jsapiCreateOrderReq struct {
 	ProductID string `json:"product_id"`
 	OpenID    string `json:"openid"`
+	// Code 为 wx.login 临时凭证（新版前端传）；后端用它换当前用户 openid，
+	// 避免信任前端可能脏的 openid（历史逗号分隔多值）
+	Code string `json:"code"`
 }
 
 // CreateJSAPIOrder 小程序下单（POST /api/orders/jsapi-create）
@@ -125,7 +130,19 @@ func (h *OrderHandler) CreateJSAPIOrder(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
 		return
 	}
-	if req.OpenID == "" {
+	openid := req.OpenID
+	if req.Code != "" {
+		ws, err := wechatCode2Session(h.appID, h.appSecret, req.Code)
+		if err != nil {
+			log.Printf("JSAPI 下单 code2session 失败: %v", err)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "会话校验失败，请重试"})
+			return
+		}
+		openid = ws.OpenID
+	}
+	// 兼容历史脏数据：逗号分隔多 openid 取第一个
+	openid = firstOpenID(openid)
+	if openid == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 openid"})
 		return
 	}
@@ -138,7 +155,7 @@ func (h *OrderHandler) CreateJSAPIOrder(w http.ResponseWriter, r *http.Request) 
 
 	outTradeNo := generateOutTradeNo()
 
-	prepayID, err := h.wechatPayJSAPI(product, outTradeNo, req.OpenID)
+	prepayID, err := h.wechatPayJSAPI(product, outTradeNo, openid)
 	if err != nil {
 		log.Printf("微信支付JSAPI下单失败: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "支付下单失败"})

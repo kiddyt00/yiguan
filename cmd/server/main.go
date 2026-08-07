@@ -242,7 +242,7 @@ func main() {
 	if payAppID == "" {
 		payAppID = os.Getenv("WX_OPEN_APPID")
 	}
-	orderHandler := handler.NewOrderHandler(st, mchID, payKey, payAppID, payNotifyURL)
+	orderHandler := handler.NewOrderHandler(st, mchID, payKey, payAppID, os.Getenv("WX_SECRET"), payNotifyURL)
 	mux.Handle("POST /api/orders/create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateOrder))))
 	mux.Handle("POST /api/orders/jsapi-create", authMW(corsWrap(http.HandlerFunc(orderHandler.CreateJSAPIOrder))))
 	mux.Handle("GET /api/orders/{id}", authMW(corsWrap(http.HandlerFunc(orderHandler.GetOrder))))
