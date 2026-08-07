@@ -47,6 +47,8 @@ module.exports = {
 
   // 支付
   jsapiCreateOrder: (productID, openid) => request('/orders/jsapi-create', { method: 'POST', data: { product_id: productID, openid } }),
+  // 虚拟支付（米大师，iOS 小程序虚拟商品专用）
+  virtualCreateOrder: (productID) => request('/orders/virtual-create', { method: 'POST', data: { product_id: productID } }),
   getOrder: (id) => request('/orders/' + id),
   listOrders: () => request('/orders'),
 }

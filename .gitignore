@@ -48,3 +48,8 @@ miniapp-native/node_modules/
 
 # 支付宝密钥
 *.pem
+
+# 微信支付 API 证书
+*.p12
+*_cert.zip
+wechatpay/

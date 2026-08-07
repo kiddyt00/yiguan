@@ -23,6 +23,12 @@ services:
       - WX_PAY_API_KEY=${WX_PAY_API_KEY}
       - WX_PAY_APPID=${WX_PAY_APPID}
       - WX_APPID=${WX_APPID}
+      # 小程序虚拟支付（米大师，iOS 虚拟商品）
+      - WX_VP_OFFER_ID=${WX_VP_OFFER_ID}
+      - WX_VP_APP_KEY=${WX_VP_APP_KEY}
+      - WX_VP_APP_KEY_SANDBOX=${WX_VP_APP_KEY_SANDBOX}
+      - WX_VP_SANDBOX=${WX_VP_SANDBOX:-false}
+      - WX_VP_NOTIFY_URL=${WX_VP_NOTIFY_URL:-https://zgjz.insightj.cn/api/orders/virtual-notify}
       - WX_SECRET=${WX_SECRET}
       # 支付宝支付
       - ALIPAY_APPID=${ALIPAY_APPID}

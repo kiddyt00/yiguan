@@ -249,6 +249,21 @@ func main() {
 	mux.Handle("GET /api/orders", authMW(corsWrap(http.HandlerFunc(orderHandler.ListOrders))))
 	mux.Handle("POST /api/orders/notify", corsWrap(http.HandlerFunc(orderHandler.WechatNotify)))
 
+	// 小程序虚拟支付（米大师，iOS 虚拟商品）
+	vpOfferID := os.Getenv("WX_VP_OFFER_ID")
+	vpAppKey := os.Getenv("WX_VP_APP_KEY")
+	vpSandboxKey := os.Getenv("WX_VP_APP_KEY_SANDBOX")
+	vpSandbox := os.Getenv("WX_VP_SANDBOX") == "1" || os.Getenv("WX_VP_SANDBOX") == "true"
+	vpNotifyURL := os.Getenv("WX_VP_NOTIFY_URL")
+	if vpNotifyURL == "" {
+		vpNotifyURL = "https://zgjz.insightj.cn/api/orders/virtual-notify"
+	}
+	if vpOfferID != "" {
+		vpHandler := handler.NewVirtualPayHandler(st, vpOfferID, vpAppKey, vpSandboxKey, vpSandbox, os.Getenv("WX_APPID"), os.Getenv("WX_SECRET"), vpNotifyURL)
+		mux.Handle("POST /api/orders/virtual-create", authMW(corsWrap(http.HandlerFunc(vpHandler.CreateVirtualOrder))))
+		mux.Handle("POST /api/orders/virtual-notify", corsWrap(http.HandlerFunc(vpHandler.VirtualNotify)))
+	}
+
 	// 退款
 	refundHandler := handler.NewRefundHandler(st)
 	refundHandler.SetChannels(nil, orderHandler)

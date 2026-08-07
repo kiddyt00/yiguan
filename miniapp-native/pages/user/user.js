@@ -78,6 +78,47 @@ Page({
     const openid = this.data.profile.openid
     if (!openid) { wx.showToast({ title: '请先绑定微信', icon: 'none' }); return }
     this.setData({ payLoading: true })
+    // iOS 小程序虚拟商品必须走米大师虚拟支付（wx.requestVirtualPayment），其余平台保持 JSAPI
+    const info = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync()
+    if (info.platform === 'ios') {
+      this.doVirtualPay()
+    } else {
+      this.doJsapiPay(openid)
+    }
+  },
+  // 米大师虚拟支付（iOS）
+  doVirtualPay() {
+    api.virtualCreateOrder(this.data.selected).then(data => {
+      const v = data.virtual
+      if (!wx.requestVirtualPayment) {
+        wx.showToast({ title: '当前微信版本过低，请升级微信后重试', icon: 'none' })
+        this.setData({ payLoading: false })
+        return
+      }
+      wx.requestVirtualPayment({
+        signData: v.signData,
+        paySig: v.paySig,
+        signature: v.signature,
+        mode: v.mode,
+        success: () => {
+          wx.showToast({ title: '支付成功' })
+          this.setData({ selected: '' })
+          this.loadProfile()
+        },
+        fail: (err) => {
+          if ((err.errMsg || '').indexOf('cancel') === -1) {
+            wx.showToast({ title: '支付失败: ' + (err.errMsg || '未知错误'), icon: 'none' })
+          }
+        },
+        complete: () => { this.setData({ payLoading: false }) }
+      })
+    }).catch(e => {
+      wx.showToast({ title: e.message || '下单失败', icon: 'none' })
+      this.setData({ payLoading: false })
+    })
+  },
+  // JSAPI 支付（Android / 其他平台）
+  doJsapiPay(openid) {
     api.jsapiCreateOrder(this.data.selected, openid).then(data => {
       const pay = data.payment
       wx.requestPayment({
