@@ -56,6 +56,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	user.Password = ""
 	remaining, _ := h.store.GetRemainingQuota(userID)
 	writeJSON(w, http.StatusOK, map[string]interface{}{
@@ -81,6 +82,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user, _ := h.store.GetUserByID(userID)
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	user.Password = ""
 	remaining, _ := h.store.GetRemainingQuota(userID)
 	writeJSON(w, http.StatusOK, map[string]interface{}{

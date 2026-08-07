@@ -128,11 +128,11 @@ func (s *Store) GrantOrderBenefits(orderID int64, prepayID string) error {
 	}
 	defer tx.Rollback()
 
-	var userID, quota int64
+	var userID, quota, amount int64
 	var productID string
 	err = tx.QueryRow(
-		"SELECT user_id, quota, COALESCE(product_id,'') FROM orders WHERE id = ?", orderID,
-	).Scan(&userID, &quota, &productID)
+		"SELECT user_id, quota, COALESCE(product_id,''), amount FROM orders WHERE id = ?", orderID,
+	).Scan(&userID, &quota, &productID, &amount)
 	if err != nil {
 		return err
 	}
@@ -208,6 +208,16 @@ func (s *Store) GrantOrderBenefits(orderID int64, prepayID string) error {
 					return err
 				}
 			}
+		}
+	}
+
+	// 金币累加（1元=10金币，amount 单位分）：购买自动记录累计金币，用于等级
+	if coinAdd := amount / 10; coinAdd > 0 {
+		if _, err := tx.Exec(
+			"UPDATE users SET coin_total = coin_total + ? WHERE id = ?",
+			coinAdd, userID,
+		); err != nil {
+			return err
 		}
 	}
 

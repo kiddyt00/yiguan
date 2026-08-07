@@ -5,6 +5,7 @@
       <div class="text-xs font-medium tracking-widest uppercase" :class="isDark ? 'text-stone-400' : 'text-stone-400'">剩余次数</div>
       <div class="mt-2 text-6xl font-extrabold" :class="quota > 0 ? 'text-amber-600' : 'text-red-400'">{{ quota }}</div>
       <div class="mt-1 text-xs" :class="isDark ? 'text-stone-500' : 'text-stone-400'">次</div>
+      <div class="mt-2 text-sm font-medium" :class="isDark ? 'text-amber-300' : 'text-amber-700'">🏅 {{ level }} · 🪙 累计 {{ coinTotal }} 金币</div>
       <div class="flex items-center justify-center gap-3 mt-4">
         <router-link to="/recharge" class="px-6 py-2.5 rounded-xl text-sm font-medium transition bg-amber-600 text-white hover:bg-amber-500 shadow-lg shadow-amber-600/20">
           💎 充值
@@ -97,6 +98,8 @@ const form = ref({ nickname: '' })
 const saving = ref(false)
 const msg = ref('')
 const quota = ref(0)
+const coinTotal = ref(0)
+const level = ref('青铜')
 const inviteCode = ref('')
 const progress = ref({ registered_count: 0, divined_count: 0, reward_round: 0, pending_reward: false })
 const claiming = ref(false)
@@ -105,7 +108,10 @@ onMounted(async () => {
   try {
     const data = await apiGetJSON('/api/user')
     quota.value = data.remaining_quota || 0
-    form.value.nickname = (data.user || data).nickname || ''
+    const u = data.user || data
+    form.value.nickname = u.nickname || ''
+    coinTotal.value = u.coin_total || 0
+    level.value = u.level || '青铜'
   } catch (e) {}
   loadInvite()
 })

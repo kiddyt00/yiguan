@@ -60,9 +60,9 @@ func (s *Store) CreateUserByOpenID(openid, nickname, wxAvatar string) (*store.Us
 func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE phone = ?",
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, coin_total, created_at FROM users WHERE phone = ?",
 		phone,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CoinTotal, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -76,9 +76,9 @@ func (s *Store) GetUserByPhone(phone string) (*store.User, error) {
 func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE openid = ? OR openid LIKE ?",
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, coin_total, created_at FROM users WHERE openid = ? OR openid LIKE ?",
 		openid, "%"+openid+"%",
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CoinTotal, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -92,9 +92,9 @@ func (s *Store) GetUserByOpenID(openid string) (*store.User, error) {
 func (s *Store) GetUserByUnionID(unionid string) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE unionid = ?",
+		"SELECT id, phone, COALESCE(openid,''), COALESCE(unionid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, coin_total, created_at FROM users WHERE unionid = ?",
 		unionid,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.UnionID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CoinTotal, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -114,9 +114,9 @@ func (s *Store) UpdateUserUnionID(id int64, unionid string) error {
 func (s *Store) GetUserByID(id int64) (*store.User, error) {
 	u := &store.User{}
 	err := s.db.QueryRow(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE id = ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, coin_total, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+	).Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CoinTotal, &u.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound
 	}
@@ -169,7 +169,7 @@ func (s *Store) UpdateUserGender(id int64, sex int) error {
 func (s *Store) SearchUsers(keyword string, limit, offset int) ([]store.User, error) {
 	like := "%" + keyword + "%"
 	rows, err := s.db.Query(
-		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, created_at FROM users WHERE nickname LIKE ? OR phone LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?",
+		"SELECT id, phone, COALESCE(openid,''), nickname, avatar, COALESCE(wx_avatar,''), address, password, role, is_active, coin_total, created_at FROM users WHERE nickname LIKE ? OR phone LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?",
 		like, like, limit, offset,
 	)
 	if err != nil {
@@ -179,7 +179,7 @@ func (s *Store) SearchUsers(keyword string, limit, offset int) ([]store.User, er
 	var list []store.User
 	for rows.Next() {
 		var u store.User
-		rows.Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
+		rows.Scan(&u.ID, &u.Phone, &u.OpenID, &u.Nickname, &u.Avatar, &u.WxAvatar, &u.Address, &u.Password, &u.Role, &u.IsActive, &u.CoinTotal, &u.CreatedAt)
 		u.Password = ""
 		list = append(list, u)
 	}

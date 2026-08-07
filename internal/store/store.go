@@ -26,6 +26,8 @@ type User struct {
 	Password  string    `json:"-"`
 	Role      string    `json:"role"`
 	IsActive  int       `json:"is_active"`
+	CoinTotal int64     `json:"coin_total"` // 累计金币（1元=10金币，购买自动累加，用于等级）
+	Level     string    `json:"level"`      // 会员等级（按累计金币计算，handler 填充，不入库）
 	CreatedAt time.Time `json:"created_at"`
 }
 

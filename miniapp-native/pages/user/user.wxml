@@ -5,6 +5,7 @@
     </button>
     <view style="font-size:20rpx;color:#9E8C7A;margin-top:8rpx;">点击设置头像</view>
     <view style="font-size:36rpx;font-weight:700;margin-top:16rpx;">{{profile.nickname || '易友'}}</view>
+    <view style="font-size:24rpx;color:#D4A853;margin-top:8rpx;">🏅 {{profile.level || '青铜'}} · 🪙 累计 {{profile.coin_total || 0}} 金币</view>
     <text class="text-muted">{{profile.phone || ''}}</text>
   </view>
   <!-- 充值 -->

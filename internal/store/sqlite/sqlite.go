@@ -42,6 +42,7 @@ func migrate(db *sql.DB) error {
 			password TEXT NOT NULL,
 			role TEXT DEFAULT 'user',
 			is_active INTEGER DEFAULT 1,
+			coin_total INTEGER DEFAULT 0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
 		`CREATE TABLE IF NOT EXISTS quotas (
@@ -231,6 +232,7 @@ func migrate(db *sql.DB) error {
 		{"history", "master_yao", "INTEGER", "0"},
 		{"users", "unionid", "TEXT", "''"},
 		{"users", "invite_code", "TEXT", "''"},
+		{"users", "coin_total", "INTEGER", "0"},
 		{"quotas", "order_id", "INTEGER", "0"},
 		{"orders", "channel", "TEXT", "''"},
 	}

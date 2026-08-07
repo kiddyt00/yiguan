@@ -118,6 +118,7 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	token, _ := h.generateToken(user.ID, "user")
 	logLogin(h.store, user.ID, r)
 	writeJSON(w, http.StatusCreated, authResp{User: user, Token: token})
@@ -145,6 +146,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	logLogin(h.store, user.ID, r)
@@ -197,6 +199,7 @@ func (h *AuthHandler) wechatLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	logLogin(h.store, user.ID, r)
@@ -289,6 +292,7 @@ func (h *AuthHandler) smsLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	token, _ := h.generateToken(user.ID, user.Role)
 	user.Password = ""
 	logLogin(h.store, user.ID, r)
@@ -382,6 +386,7 @@ func (h *AuthHandler) wechatCode(w http.ResponseWriter, r *http.Request) {
 
 	jwtToken, _ := h.generateToken(user.ID, user.Role)
 	fillUserAvatar(user)
+	fillUserLevel(user)
 	user.Password = ""
 	writeJSON(w, http.StatusOK, authResp{User: user, Token: jwtToken})
 }

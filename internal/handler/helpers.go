@@ -36,3 +36,18 @@ func fillUserAvatar(u *store.User) {
 		u.Avatar = u.WxAvatar
 	}
 }
+
+// fillUserLevel 按累计金币计算会员等级（1元=10金币）
+// 青铜 0-999 / 白银 1000-4999 / 黄金 5000-9999 / 钻石 10000+
+func fillUserLevel(u *store.User) {
+	switch {
+	case u.CoinTotal >= 10000:
+		u.Level = "钻石"
+	case u.CoinTotal >= 5000:
+		u.Level = "黄金"
+	case u.CoinTotal >= 1000:
+		u.Level = "白银"
+	default:
+		u.Level = "青铜"
+	}
+}
