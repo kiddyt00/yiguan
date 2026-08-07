@@ -130,6 +130,7 @@ func (h *OrderHandler) CreateJSAPIOrder(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求格式错误"})
 		return
 	}
+	log.Printf("JSAPI 下单请求 product=%s openidSet=%v codeLen=%d", req.ProductID, req.OpenID != "", len(req.Code))
 	openid := req.OpenID
 	if req.Code != "" {
 		ws, err := wechatCode2Session(h.appID, h.appSecret, req.Code)
