@@ -14,28 +14,28 @@
     <el-table :data="items" stripe v-loading="loading" empty-text="暂无数据" size="small" style="width:100%" @row-click="showDetail">
       <el-table-column label="ID" prop="id" width="55" align="center" />
       <el-table-column label="用户" min-width="100">
-        <template #default="{row}"><span style="font-weight:600">{{ row.nickname||'微信用户' }}</span></template>
+        <template #default="{row}"><span class="fw6">{{ row.nickname||'微信用户' }}</span></template>
       </el-table-column>
       <el-table-column label="UID" prop="user_id" width="55" align="center" />
       <el-table-column label="问题" min-width="150" show-overflow-tooltip>
         <template #default="{row}">{{ row.question }}</template>
       </el-table-column>
       <el-table-column label="本卦" width="70" align="center">
-        <template #default="{row}"><el-tag size="small" effect="plain" style="background:oklch(96% 0.02 80);color:var(--accent-deep);border-color:var(--accent)">{{ row.primary_gua }}</el-tag></template>
+        <template #default="{row}"><span class="gua-tag">{{ row.primary_gua }}</span></template>
       </el-table-column>
       <el-table-column label="变卦" width="70" align="center">
-        <template #default="{row}"><el-tag v-if="row.changing_gua" size="small" effect="plain" style="background:#fef0f0;color:#c62828;border-color:#fca5a5">{{ row.changing_gua }}</el-tag><span v-else style="color:#999">—</span></template>
+        <template #default="{row}"><span v-if="row.changing_gua" class="gua-tag-v">{{ row.changing_gua }}</span><span v-else class="dash">—</span></template>
       </el-table-column>
       <el-table-column label="变爻" width="140" show-overflow-tooltip>
-        <template #default="{row}"><span style="color:#8a6020">{{ row.yao_positions||'—' }}</span></template>
+        <template #default="{row}"><span class="yao-pos">{{ row.yao_positions||'—' }}</span></template>
       </el-table-column>
       <el-table-column label="时间" width="110">
-        <template #default="{row}"><span style="color:var(--muted);font-size:12px">{{ formatDate(row.created_at) }}</span></template>
+        <template #default="{row}"><span class="t-time">{{ formatDate(row.created_at) }}</span></template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="140" fixed="right">
         <template #default="{row}">
-          <el-button size="small" @click.stop="showDetail(row)" style="padding:4px 10px;font-size:12px">详情</el-button>
-          <el-button size="small" type="danger" plain @click.stop="remove(row)" style="padding:4px 10px;font-size:12px">删除</el-button>
+          <el-button size="small" @click.stop="showDetail(row)">详情</el-button>
+          <el-button size="small" type="danger" plain @click.stop="remove(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,21 +43,22 @@
     <el-dialog v-model="detailVisible" :title="'卦象详情 #' + (detail?.id || '')" width="720px" top="5vh" destroy-on-close>
       <div v-if="detail" class="dw">
         <div class="ds dm"><div class="mi"><span class="ml">用户</span><span class="mv">{{ detail.nickname || '微信用户' }} <span class="g">#{{ detail.user_id }}</span></span></div><div class="mi"><span class="ml">时间</span><span class="mv">{{ formatDate(detail.created_at) }}</span></div></div>
-        <div class="ds"><div class="st">📝 问题</div><div class="qt">{{ detail.question }}</div></div>
-        <div v-if="pt.length" class="ds"><div class="st">🪙 铜钱信息</div>
+        <div class="ds"><div class="st">问题</div><div class="qt">{{ detail.question }}</div></div>
+        <div v-if="pt.length" class="ds"><div class="st">铜钱信息</div>
           <div class="tg"><div class="th"><span>爻位</span><span>结果</span><span>三钱</span><span>阴阳</span><span>变</span></div>
             <div v-for="t in pt" :key="t.throw" class="tr" :class="{ch:t.result==='老阴'||t.result==='老阳'}">
               <span class="fw6">{{ t.label }}</span><span :class="t.yang?'cg2':'cb'">{{ t.result }}</span>
               <span class="cs"><span v-for="(cv,ci) in t.coin_values" :key="ci" :class="cv===3?'d df':'d db'">{{ cv===3?'正':'反' }}</span></span>
-              <span>{{ t.yang?'⚊ 阳':'⚋ 阴' }}</span><span>{{ (t.result==='老阴'||t.result==='老阳')?'● 变':'—' }}</span>
+              <span class="yao-cell"><span :class="t.yang?'yao-yang':'yao-yin'"></span><em class="yao-label">{{ t.yang?'阳':'阴' }}</em></span>
+              <span><span v-if="t.result==='老阴'||t.result==='老阳'" class="chg-dot"></span><span v-else class="dash">—</span></span>
             </div>
           </div>
         </div>
-        <div class="ds"><div class="st">🏷 卦象</div>
+        <div class="ds"><div class="st">卦象</div>
           <div class="hi"><div class="hr"><span class="b b1">本卦</span><span class="hn">{{ detail.primary_gua }}</span><span v-if="detail.changing_gua" class="ha">→</span><span v-if="detail.changing_gua"><span class="b b2">变卦</span><span class="hn">{{ detail.changing_gua }}</span></span></div>
           <div v-if="detail.yao_positions" class="mt1"><span class="g">变爻：</span>{{ detail.yao_positions }}</div><div v-if="detail.master_yao>0" class="mt1"><span class="g">主变爻：</span><span class="cr">第{{ detail.master_yao }}爻</span></div></div>
         </div>
-        <div class="ds"><div class="st">📖 AI 解卦</div><div class="iw"><MarkdownRenderer :content="detail.interpretation" /></div></div>
+        <div class="ds"><div class="st">AI 解卦</div><div class="iw"><MarkdownRenderer :content="detail.interpretation" /></div></div>
       </div>
       <template #footer><el-button @click="detailVisible=false">关闭</el-button></template>
     </el-dialog>
@@ -80,39 +81,67 @@ async function remove(row){try{await ElMessageBox.confirm('确定删除？','确
 function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
 </script>
 <style scoped>
-.filter-bar{margin-bottom:12px}.text-right{text-align:right}
+.filter-bar{margin-bottom:12px}
+.text-right{text-align:right}
 .pg{display:flex;justify-content:center;margin-top:12px}
+
+/* ---- 表格 ---- */
+.fw6{font-weight:600}
+.gua-tag{display:inline-block;padding:1px 8px;border-radius:4px;font-size:12px;font-weight:600;background:oklch(96% 0.02 80);color:var(--accent-deep);border:1px solid var(--accent)}
+.gua-tag-v{display:inline-block;padding:1px 8px;border-radius:4px;font-size:12px;font-weight:600;background:oklch(96% 0.03 30);color:var(--danger);border:1px solid oklch(82% 0.12 30)}
+.yao-pos{color:var(--accent-deep);font-size:12px}
+.t-time{color:var(--muted);font-size:12px}
+.dash{color:var(--faint)}
+
+/* ---- 详情弹窗 ---- */
 .dw{max-height:65vh;overflow-y:auto;padding-right:4px}
-.ds{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee8e0}
+.ds{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--rule)}
 .ds:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.st{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.st{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px;letter-spacing:1px}
+.st::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
 .dm{display:flex;gap:28px;flex-wrap:wrap}
 .mi{display:flex;gap:8px;align-items:center}
 .ml{font-size:13px;color:var(--muted);min-width:36px}
 .mv{font-size:14px;font-weight:500;color:var(--ink)}
+.g{color:var(--muted);font-size:12px}
 .qt{background:var(--paper-3);padding:12px 16px;border-radius:8px;font-size:14px;color:var(--ink-2);line-height:1.6}
+
+/* 铜钱信息表 */
 .tg{border:1px solid var(--rule);border-radius:8px;overflow:hidden}
 .th{display:flex;background:var(--paper-3);font-size:12px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--rule)}
 .th span,.tr span{flex:1}
-.tr{display:flex;padding:7px 12px;font-size:13px;border-bottom:1px solid #eee8e0;align-items:center}
+.tr{display:flex;padding:7px 12px;font-size:13px;border-bottom:1px solid var(--rule);align-items:center}
 .tr:last-child{border-bottom:none}
 .tr.ch{background:oklch(96% 0.02 80)}
 .cs{display:flex;gap:5px}
 .d{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;font-size:11px;font-weight:600}
 .df{background:var(--accent);color:oklch(98% 0.01 80)}
 .db{background:var(--rule);color:var(--muted)}
+.cg2{color:var(--accent-deep);font-weight:600}
+.cb{color:var(--muted);font-weight:600}
+
+/* 爻线（阳实 / 阴两段） */
+.yao-cell{display:flex;align-items:center;gap:7px}
+.yao-yang{width:26px;height:4px;background:var(--accent);border-radius:2px;display:inline-block}
+.yao-yin{width:26px;height:4px;display:inline-flex;gap:6px}
+.yao-yin::before,.yao-yin::after{content:'';flex:1;height:100%;background:var(--accent);border-radius:2px}
+.yao-label{font-style:normal;font-size:12px;color:var(--muted)}
+
+/* 变爻标记 */
+.chg-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px oklch(56% 0.20 28 / 0.15)}
+
+/* 卦象区 */
 .hi{padding:2px 0}
 .hr{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .ha{font-size:18px;color:var(--accent-deep);font-weight:700}
 .hn{font-size:16px;font-weight:700;color:var(--ink-2)}
-.bl{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
-.bl.b1{background:oklch(96% 0.02 80);color:var(--accent-deep);border:1px solid var(--accent)}
-.bl.b2{background:#fef0f0;color:#c62828;border:1px solid #fca5a5}
+.b{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.b.b1{background:oklch(96% 0.02 80);color:var(--accent-deep);border:1px solid var(--accent)}
+.b.b2{background:oklch(96% 0.03 30);color:var(--danger);border:1px solid oklch(82% 0.12 30)}
 .mt1{margin-top:6px}
-.cr{color:#c62828;font-weight:600}
-.cg2{color:var(--accent);font-weight:600}
-.cb{color:#667eea;font-weight:600}
-.fw6{font-weight:600}
+.cr{color:var(--danger);font-weight:600}
+
+/* AI 解卦 */
 .iw{background:var(--paper-3);padding:16px 20px;border-radius:8px}
 .dw::-webkit-scrollbar{width:4px}
 .dw::-webkit-scrollbar-thumb{background:oklch(70% 0.04 75 / 0.5);border-radius:2px}
