@@ -20,8 +20,8 @@
   --accent-deep:  oklch(55% 0.11 70);     /* 朱砂深 */
   --sidebar:      oklch(20% 0.012 70);    /* 暖墨侧栏 */
   --sidebar-2:    oklch(25% 0.014 70);
-  --sidebar-text: oklch(86% 0.025 75);
-  --sidebar-active: oklch(88% 0.10 78);
+  --sidebar-text: oklch(92% 0.025 75);
+  --sidebar-active: oklch(93% 0.12 78);
 
   --ok:      oklch(60% 0.14 155);
   --warn:    oklch(72% 0.13 85);
@@ -108,13 +108,13 @@ h1, h2, h3, h4, .page-title, .brand-text, .stat-value {
 .sidebar-brand .brand-text {
   font-size: 17px;
   font-weight: 700;
-  color: var(--accent-2);
+  color: oklch(93% 0.12 78);
   letter-spacing: 3px;
 }
 
 .sidebar-brand .brand-sub {
   font-size: 10px;
-  color: oklch(62% 0.02 75);
+  color: oklch(70% 0.02 75);
   margin-top: 4px;
   letter-spacing: 2px;
 }
@@ -123,6 +123,10 @@ h1, h2, h3, h4, .page-title, .brand-text, .stat-value {
 .el-menu {
   border-right: none !important;
   background: transparent !important;
+  --el-menu-text-color: oklch(92% 0.025 75);
+  --el-menu-active-color: oklch(93% 0.12 78);
+  --el-menu-hover-text-color: oklch(97% 0.04 78);
+  --el-menu-hover-bg-color: oklch(28% 0.015 70);
 }
 
 .el-menu-item {
@@ -130,22 +134,32 @@ h1, h2, h3, h4, .page-title, .brand-text, .stat-value {
   border-radius: 6px !important;
   font-size: 14px !important;
   letter-spacing: 0.5px;
-}
-
-.el-menu-item.is-active {
-  background: oklch(30% 0.02 70) !important;
-  color: var(--sidebar-active) !important;
-  font-weight: 600;
-}
-
-.el-menu-item:hover {
-  background: oklch(27% 0.015 70) !important;
-  color: oklch(84% 0.06 78) !important;
+  color: oklch(92% 0.025 75) !important;
 }
 
 .el-menu-item .el-icon {
   margin-right: 8px;
   font-size: 17px;
+  color: inherit;
+}
+
+.el-menu-item.is-active {
+  background: oklch(33% 0.02 70) !important;
+  color: oklch(93% 0.12 78) !important;
+  font-weight: 600;
+}
+
+.el-menu-item.is-active .el-icon {
+  color: oklch(93% 0.12 78);
+}
+
+.el-menu-item:hover {
+  background: oklch(28% 0.015 70) !important;
+  color: oklch(97% 0.04 78) !important;
+}
+
+.el-menu-item:hover .el-icon {
+  color: oklch(97% 0.04 78);
 }
 
 /* ============ 顶栏 ============ */
