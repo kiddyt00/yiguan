@@ -63,7 +63,7 @@
       </el-menu>
 
       <!-- 底部版本 -->
-      <div class="text-center py-3 text-xs" style="color: oklch(45% 0.02 75); letter-spacing: 1px;">
+      <div class="text-center py-3 text-xs" style="color: oklch(58% 0.02 75); letter-spacing: 1px;">
         v2.3
       </div>
     </el-aside>

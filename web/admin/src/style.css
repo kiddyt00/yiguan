@@ -20,8 +20,8 @@
   --accent-deep:  oklch(55% 0.11 70);     /* 朱砂深 */
   --sidebar:      oklch(20% 0.012 70);    /* 暖墨侧栏 */
   --sidebar-2:    oklch(25% 0.014 70);
-  --sidebar-text: oklch(76% 0.02 75);
-  --sidebar-active: oklch(80% 0.10 78);
+  --sidebar-text: oklch(86% 0.025 75);
+  --sidebar-active: oklch(88% 0.10 78);
 
   --ok:      oklch(60% 0.14 155);
   --warn:    oklch(72% 0.13 85);
@@ -51,7 +51,7 @@
   --el-menu-text-color: var(--sidebar-text);
   --el-menu-active-color: var(--sidebar-active);
   --el-menu-hover-bg-color: oklch(27% 0.015 70);
-  --el-menu-hover-text-color: oklch(84% 0.06 78);
+  --el-menu-hover-text-color: oklch(92% 0.06 78);
   --el-menu-item-height: 44px;
 
   /* ---------- 卡片 / 表单 ---------- */
@@ -114,7 +114,7 @@ h1, h2, h3, h4, .page-title, .brand-text, .stat-value {
 
 .sidebar-brand .brand-sub {
   font-size: 10px;
-  color: oklch(50% 0.02 75);
+  color: oklch(62% 0.02 75);
   margin-top: 4px;
   letter-spacing: 2px;
 }
