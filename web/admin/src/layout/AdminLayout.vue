@@ -1,20 +1,23 @@
 <template>
   <el-container class="min-h-screen">
-    <el-aside width="200px" class="bg-[#1a1a2e] text-white flex flex-col">
+    <el-aside width="200px" class="bg-[var(--sidebar)] text-white flex flex-col">
       <!-- Brand 区 -->
       <div class="sidebar-brand">
-        <span class="brand-icon">☯</span>
+        <span class="brand-icon">
+          <svg viewBox="0 0 48 36" class="w-11 h-8" fill="currentColor" aria-hidden="true">
+            <rect x="2" y="2" width="44" height="7" rx="3.5" />
+            <rect x="2" y="14.5" width="44" height="7" rx="3.5" />
+            <rect x="2" y="27" width="44" height="7" rx="3.5" />
+          </svg>
+        </span>
         <div class="brand-text">真观己斋后台</div>
         <div class="brand-sub">ZHEN GUAN JI ZHAI</div>
       </div>
 
-      <!-- 导航菜单 -->
+      <!-- 导航菜单（配色由 --el-menu-* 变量控制） -->
       <el-menu
         :default-active="route.path"
         router
-        background-color="#1a1a2e"
-        text-color="#94a3b8"
-        active-text-color="#d4a853"
         class="border-0 flex-1"
       >
         <el-menu-item index="/">
@@ -45,8 +48,8 @@
           <el-icon><Document /></el-icon>
           <span>订单管理</span>
         </el-menu-item>
-<el-menu-item index="/refunds">
-          <el-icon><el-icon><svg viewBox="0 0 1024 1024" width="16" height="16"><path fill="currentColor" d="M512 64a448 448 0 1 0 0 896 448 448 0 0 0 0-896zm0 832a384 384 0 1 1 0-768 384 384 0 0 1 0 768zm-32-608v256h160a32 32 0 1 0 0-64h-96V288a32 32 0 1 0-64 0z"/></svg></el-icon></el-icon>
+        <el-menu-item index="/refunds">
+          <el-icon><RefreshLeft /></el-icon>
           <span>退款管理</span>
         </el-menu-item>
         <el-menu-item index="/memberships">
@@ -60,7 +63,7 @@
       </el-menu>
 
       <!-- 底部版本 -->
-      <div class="text-center py-3 text-xs" style="color: rgba(212, 168, 83, 0.25); letter-spacing: 1px;">
+      <div class="text-center py-3 text-xs" style="color: oklch(45% 0.02 75); letter-spacing: 1px;">
         v2.3
       </div>
     </el-aside>
@@ -70,8 +73,8 @@
       <el-header class="admin-header">
         <div class="page-title">{{ pageTitle }}</div>
         <el-dropdown @command="handleCommand">
-          <span class="flex items-center gap-1.5 cursor-pointer text-sm font-medium text-stone-600 hover:text-amber-600 transition-colors">
-            <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+          <span class="flex items-center gap-1.5 cursor-pointer text-sm font-medium text-[var(--ink-2)] hover:text-[var(--accent-deep)] transition-colors">
+            <span class="w-7 h-7 rounded-full bg-[oklch(93%_0.03_80)] text-[var(--accent-deep)] flex items-center justify-center text-xs font-bold">
               {{ (user?.nickname || '管理').charAt(0) }}
             </span>
             {{ user?.nickname || '管理员' }}

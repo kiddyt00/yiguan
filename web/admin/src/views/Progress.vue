@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="page-header"><h2>📋 开发进度</h2></div>
+    <div class="page-header"><h2>开发进度</h2></div>
     <div class="stats-grid">
       <div class="stat-card clickable" v-for="s in stats" :key="s.label" @click="scrollTo(s.scrollTo)" :style="'--hl:'+s.color">
         <div class="stat-value" :style="{ color: s.color }">{{ s.count }}</div>
@@ -11,7 +11,7 @@
     <div class="two-col">
       <div class="col-tl">
         <div ref="tlSection" class="tl-section">
-          <h3 class="section-title">🕐 完整开发时间线（共 {{total}} 次提交）</h3>
+          <h3 class="section-title">完整开发时间线（共 {{total}} 次提交）</h3>
           <div class="tl">
             <div class="tl-spine"></div>
             <div v-for="(phase, i) in phases" :key="i" class="tl-row" :class="i%2===0?'tl-left':'tl-right'">
@@ -23,7 +23,7 @@
                   <div v-if="phase.subtitle" class="tl-sub">{{ phase.subtitle }}</div>
                   <div class="tl-pbar"><div class="tl-pfill" :style="'width:'+phase.pct+'%'"></div></div>
                   <ul class="tl-items">
-                    <li v-for="t in phase.tasks" :key="t.text" class="tl-item"><span class="tl-chk">{{ t.done?'✅':'⬜' }}</span>{{ t.text }}</li>
+                    <li v-for="t in phase.tasks" :key="t.text" class="tl-item"><span class="tl-chk" :class="t.done?'done':''"></span>{{ t.text }}</li>
                   </ul>
                 </div>
               </div>
@@ -33,16 +33,16 @@
       </div>
       <div class="col-todo">
         <div ref="todoSection" class="todo-wrap">
-          <h3>📌 待办事项</h3>
+          <h3>待办事项</h3>
           <div v-for="(g,gi) in todos" :key="gi" class="tg">
-            <div class="tp" :style="{color:g.color}">{{ g.label }}<span class="tbadge">{{ g.items.filter(t=>!t.done).length }}</span></div>
+            <div class="tp" :style="{color:g.color}"><span class="tpd" :style="{background:g.color}"></span>{{ g.label }}<span class="tbadge">{{ g.items.filter(t=>!t.done).length }}</span></div>
             <div v-for="(t,ti) in g.items" :key="ti" class="ti" :class="t.done?'done':''">
-              <span>{{ t.done?'✅':'⬜' }}</span>
+              <span class="todo-chk" :class="t.done?'done':''"></span>
               <div class="tb"><div class="tt">{{ t.text }}</div><div v-if="t.note" class="tn">{{ t.note }}</div></div>
             </div>
           </div>
           <div class="di">
-            <div class="dit">🚀 部署信息</div>
+            <div class="dit">部署信息</div>
             <div class="dr"><span>首次上线</span><span>2026-06-01</span></div>
             <div class="dr"><span>运行天数</span><span>{{ stats[3].count }}天</span></div>
             <div class="dr"><span>生产域名</span><span>zgjz.insightj.cn</span></div>
@@ -77,7 +77,7 @@ const phases=[
   {period:'2026-05-19~21',tag:'小程序',tagClass:'tv2',dotClass:'dv2',title:'微信小程序开发',subtitle:'46次 · UniApp+原生双版',commits:46,pct:100,tasks:[
     {done:true,text:'UniApp版（Vue3编译）'},{done:true,text:'原生miniapp-native'},{done:true,text:'微信小程序登录'},{done:true,text:'首页/结果/历史/个人中心'},{done:true,text:'小程序广告'},
   ]},
-  {period:'2026-06-01',tag:'上线',tagClass:'tlaunch',dotClass:'dlaunch',title:'v2.1生产部署🚀',subtitle:'5次 · 腾讯云Docker',commits:5,pct:100,tasks:[
+  {period:'2026-06-01',tag:'上线',tagClass:'tlaunch',dotClass:'dlaunch',title:'v2.1生产部署',subtitle:'5次 · 腾讯云Docker',commits:5,pct:100,tasks:[
     {done:true,text:'腾讯云+域名zgjz.insightj.cn'},{done:true,text:'Docker生产编排+Nginx'},{done:true,text:'7用户·138条占卜'},
   ]},
   {period:'2026-07-16',tag:'登录',tagClass:'tdone',dotClass:'ddone',title:'微信扫码登录+安全加固',subtitle:'46次 · wxLogin.js',commits:46,pct:100,tasks:[
@@ -101,40 +101,40 @@ const phases=[
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
-  {label:'🔴 急迫',color:'#c62828',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
-  {label:'🟡 待开发',color:'#d4a853',items:[{done:true,text:'支付宝扫码支付接入',note:'✅ 已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
-  {label:'🟢 优化项',color:'#667eea',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
+  {label:'急迫',color:'var(--danger)',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
+  {label:'待开发',color:'var(--accent)',items:[{done:true,text:'支付宝扫码支付接入',note:'已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
+  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
 const todo=todos[0].items.filter(t=>!t.done).length+todos[1].items.filter(t=>!t.done).length
 const opt=todos[2].items.filter(t=>!t.done).length
 const stats=[
-  {label:'已完成',count:done,color:'#d4a853',scrollTo:'tl'},
-  {label:'待办',count:todo,color:'#c62828',scrollTo:'todo'},
-  {label:'优化',count:opt,color:'#667eea',scrollTo:'opt'},
-  {label:'运行天数',count:days,color:'#2e7d32',scrollTo:'deploy'},
+  {label:'已完成',count:done,color:'var(--accent)',scrollTo:'tl'},
+  {label:'待办',count:todo,color:'var(--danger)',scrollTo:'todo'},
+  {label:'优化',count:opt,color:'oklch(60% 0.08 170)',scrollTo:'opt'},
+  {label:'运行天数',count:days,color:'var(--ink-2)',scrollTo:'deploy'},
 ]
 const tlSec=ref(null),tdSec=ref(null)
 function scrollTo(t){const e=t==='tl'?tlSec.value:tdSec.value;if(!e)return;e.scrollIntoView({behavior:'smooth'});e.classList.add('hl');setTimeout(()=>e.classList.remove('hl'),1200)}
 </script>
 <style scoped>
-.page-header h2{font-size:20px;font-weight:700;color:#1c1917;margin-bottom:20px}
+.page-header h2{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:20px}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat-card{background:#fff;border:1px solid #e5ddd0;border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
-.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--hl)}
+.stat-card{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s ease, box-shadow .2s ease;position:relative}
+.stat-card:hover{box-shadow:0 2px 12px oklch(20% 0.02 60 / 0.07);border-color:var(--hl)}
 .stat-value{font-size:28px;font-weight:800;line-height:1}
-.stat-label{font-size:13px;color:#8a7e72;margin-top:6px}
-.stat-hint{font-size:11px;color:#ccc;margin-top:4px;opacity:0}
+.stat-label{font-size:13px;color:var(--muted);margin-top:6px}
+.stat-hint{font-size:11px;color:var(--faint);margin-top:4px;opacity:0}
 .stat-card:hover .stat-hint{opacity:1}
 .two-col{display:flex;gap:20px;align-items:flex-start}
 .col-tl{flex:5;min-width:0}
 .col-todo{flex:3;min-width:260px}
-.section-title{font-size:15px;font-weight:700;color:#1c1917;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px}
 .tl-section,.todo-wrap{transition:box-shadow .3s;border-radius:10px}
-.tl-section.hl,.todo-wrap.hl{box-shadow:0 0 0 3px #d4a85340}
+.tl-section.hl,.todo-wrap.hl{box-shadow:0 0 0 3px oklch(70% 0.12 75 / 0.25)}
 
 .tl{position:relative}
-.tl-spine{position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#d4a853,#e5ddd0 80%);transform:translateX(-50%)}
+.tl-spine{position:absolute;left:50%;top:0;bottom:0;width:2px;background:oklch(70% 0.04 75 / 0.4);transform:translateX(-50%)}
 .tl-row{display:flex;margin-bottom:20px}
 .tl-row:last-child{margin-bottom:0}
 .tl-left{justify-content:flex-start}
@@ -147,31 +147,33 @@ function scrollTo(t){const e=t==='tl'?tlSec.value:tdSec.value;if(!e)return;e.scr
 .tl-right .tl-card .tl-dot{flex-shrink:0;margin-top:6px}
 
 .tl-dot{width:12px;height:12px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:6px}
-.ddone{background:#d4a853;border-color:#d4a853}
-.dlaunch{background:#2e7d32;border-color:#2e7d32}
-.dv1{background:#3b82f6;border-color:#3b82f6}
-.dv2{background:#667eea;border-color:#667eea}
+.ddone{background:var(--accent);border-color:var(--accent)}
+.dlaunch{background:var(--ok);border-color:var(--ok)}
+.dv1{background:oklch(60% 0.10 240);border-color:oklch(60% 0.10 240)}
+.dv2{background:oklch(60% 0.08 170);border-color:oklch(60% 0.08 170)}
 
-.tl-body{background:#fff;border:1px solid #e5ddd0;border-radius:10px;padding:12px 16px;flex:1}
-.tl-body:hover{border-color:#d4a853;box-shadow:0 2px 8px rgba(212,168,83,.1)}
+.tl-body{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:12px 16px;flex:1}
+.tl-body:hover{border-color:var(--accent);box-shadow:0 2px 8px oklch(70% 0.12 75 / 0.15)}
 .tl-h{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.tl-date{font-size:12px;color:#8a7e72;font-weight:600}
+.tl-date{font-size:12px;color:var(--muted);font-weight:600}
 .tl-tag{font-size:11px;padding:1px 8px;border-radius:4px;font-weight:600}
-.tdone{background:#fdf8f0;color:#b8860b;border:1px solid #d4a853}
-.tlaunch{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
-.tv1{background:#dbeafe;color:#2563eb;border:1px solid #93c5fd}
-.tv2{background:#e0e7ff;color:#4f46e5;border:1px solid #a5b4fc}
-.tl-cnt{margin-left:auto;font-size:11px;color:#8a7e72;white-space:nowrap}
-.tl-title{font-size:14px;font-weight:700;color:#1c1917;margin-bottom:2px}
-.tl-sub{font-size:12px;color:#8a7e72;margin-bottom:4px}
-.tl-pbar{height:3px;background:#f0ebe0;border-radius:2px;margin-bottom:8px;overflow:hidden}
-.tl-pfill{height:100%;background:#d4a853;border-radius:2px}
+.tdone{background:oklch(96% 0.02 80);color:var(--accent-deep);border:1px solid var(--accent)}
+.tlaunch{background:oklch(96% 0.03 150);color:oklch(50% 0.12 155);border:1px solid oklch(80% 0.10 155)}
+.tv1{background:oklch(96% 0.03 240);color:oklch(50% 0.10 240);border:1px solid oklch(82% 0.08 240)}
+.tv2{background:oklch(96% 0.03 170);color:oklch(50% 0.08 170);border:1px solid oklch(82% 0.08 170)}
+.tl-cnt{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.tl-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.tl-sub{font-size:12px;color:var(--muted);margin-bottom:4px}
+.tl-pbar{height:3px;background:var(--paper-3);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.tl-pfill{height:100%;background:var(--accent);border-radius:2px}
 .tl-items{list-style:none;padding:0;margin:0}
-.tl-item{display:flex;gap:6px;font-size:13px;color:#292524;padding:2px 0;line-height:1.5}
-.tl-chk{flex-shrink:0;font-size:12px}
+.tl-item{display:flex;gap:6px;font-size:13px;color:var(--ink-2);padding:2px 0;line-height:1.5}
+.tl-chk,.todo-chk{flex-shrink:0;width:14px;height:14px;border:1px solid var(--rule);border-radius:3px;margin-top:3px;position:relative}
+.tl-chk.done,.todo-chk.done{background:var(--accent);border-color:var(--accent)}
+.tl-chk.done::after,.todo-chk.done::after{content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid oklch(98% 0.01 80);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
 
-.todo-wrap{background:#fff;border:1px solid #e5ddd0;border-radius:10px;padding:18px;position:sticky;top:12px}
-.todo-wrap h3{font-size:16px;font-weight:700;color:#1c1917;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f0ebe0}
+.todo-wrap{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:18px;position:sticky;top:12px}
+.todo-wrap h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--paper-3)}
 .tg{margin-bottom:14px}
 .tg:last-child{margin-bottom:0}
 .tp{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}

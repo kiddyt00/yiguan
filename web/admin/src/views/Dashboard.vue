@@ -7,7 +7,9 @@
         :style="{ '--card-accent': card.color }"
         @click="goTo(card.route)">
         <div class="stat-top">
-          <span class="stat-icon">{{ card.icon }}</span>
+          <span class="stat-icon">
+            <el-icon :size="22"><component :is="card.icon" /></el-icon>
+          </span>
           <span class="stat-arrow">→</span>
         </div>
         <div class="stat-label">{{ card.label }}</div>
@@ -17,7 +19,7 @@
 
     <!-- 起卦趋势图表 -->
     <div class="chart-card">
-      <div class="chart-title">📈 起卦趋势（近7天）</div>
+      <div class="chart-title">起卦趋势（近7天）</div>
       <v-chart :option="chartOption" autoresize style="height:280px" />
     </div>
   </div>
@@ -33,6 +35,7 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
+import { User, UserFilled, Timer, Histogram, VideoPlay, TrendCharts } from '@element-plus/icons-vue'
 use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
 
 const router = useRouter()
@@ -40,19 +43,19 @@ const stats = ref({})
 const trend = ref({})
 
 const cards = computed(() => [
-  { label: '注册用户', value: stats.value.total_users ?? '-', icon: '👥', color: '#d4a853', route: '/users' },
-  { label: '活跃用户', value: stats.value.active_users ?? '-', icon: '🔥', color: '#4ade80', route: '/users' },
-  { label: '今日起卦', value: stats.value.today_divines ?? '-', icon: '🔮', color: '#60a5fa', route: '/hexagrams' },
-  { label: '总起卦数', value: stats.value.total_divines ?? '-', icon: '📊', color: '#a78bfa', route: '/hexagrams' },
-  { label: '今日广告', value: stats.value.ad_watches_today ?? '-', icon: '📺', color: '#f59e0b', route: '/ads' },
-  { label: '总广告播放', value: stats.value.total_ads_watched ?? '-', icon: '📈', color: '#f472b6', route: '/ads' },
+  { label: '注册用户', value: stats.value.total_users ?? '-', icon: User, color: 'var(--accent)', route: '/users' },
+  { label: '活跃用户', value: stats.value.active_users ?? '-', icon: UserFilled, color: 'var(--accent)', route: '/users' },
+  { label: '今日起卦', value: stats.value.today_divines ?? '-', icon: Timer, color: 'var(--accent)', route: '/hexagrams' },
+  { label: '总起卦数', value: stats.value.total_divines ?? '-', icon: Histogram, color: 'var(--accent)', route: '/hexagrams' },
+  { label: '今日广告', value: stats.value.ad_watches_today ?? '-', icon: VideoPlay, color: 'var(--accent)', route: '/ads' },
+  { label: '总广告播放', value: stats.value.total_ads_watched ?? '-', icon: TrendCharts, color: 'var(--accent)', route: '/ads' },
 ])
 
 const chartOption = computed(() => ({
   grid: { left: 40, right: 20, top: 20, bottom: 30 },
-  xAxis: { type: 'category', data: Object.keys(trend.value) },
-  yAxis: { type: 'value', minInterval: 1 },
-  series: [{ type: 'bar', data: Object.values(trend.value), itemStyle: { color: '#d4a853' }, barWidth: 24 }],
+  xAxis: { type: 'category', data: Object.keys(trend.value), axisLine: { lineStyle: { color: 'var(--rule)' } }, axisLabel: { color: 'var(--muted)' } },
+  yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: 'var(--rule)' } }, axisLabel: { color: 'var(--muted)' } },
+  series: [{ type: 'bar', data: Object.values(trend.value), itemStyle: { color: 'var(--accent)', borderRadius: [4, 4, 0, 0] }, barWidth: 24 }],
   tooltip: { trigger: 'axis' },
 }))
 
@@ -75,8 +78,8 @@ function goTo(route) {
 
 <style scoped>
 .chart-card {
-  background: #fff;
-  border: 1px solid #e5ddd0;
+  background: var(--paper);
+  border: 1px solid var(--rule);
   border-radius: 10px;
   padding: 16px;
   margin-top: 16px;
@@ -84,7 +87,8 @@ function goTo(route) {
 .chart-title {
   font-size: 15px;
   font-weight: 700;
-  color: #1c1917;
+  color: var(--ink);
   margin-bottom: 12px;
+  letter-spacing: 0.5px;
 }
 </style>

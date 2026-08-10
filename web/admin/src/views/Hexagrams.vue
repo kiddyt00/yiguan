@@ -21,7 +21,7 @@
         <template #default="{row}">{{ row.question }}</template>
       </el-table-column>
       <el-table-column label="本卦" width="70" align="center">
-        <template #default="{row}"><el-tag size="small" effect="plain" style="background:#fdf8f0;color:#b8860b;border-color:#d4a853">{{ row.primary_gua }}</el-tag></template>
+        <template #default="{row}"><el-tag size="small" effect="plain" style="background:oklch(96% 0.02 80);color:var(--accent-deep);border-color:var(--accent)">{{ row.primary_gua }}</el-tag></template>
       </el-table-column>
       <el-table-column label="变卦" width="70" align="center">
         <template #default="{row}"><el-tag v-if="row.changing_gua" size="small" effect="plain" style="background:#fef0f0;color:#c62828;border-color:#fca5a5">{{ row.changing_gua }}</el-tag><span v-else style="color:#999">—</span></template>
@@ -30,7 +30,7 @@
         <template #default="{row}"><span style="color:#8a6020">{{ row.yao_positions||'—' }}</span></template>
       </el-table-column>
       <el-table-column label="时间" width="110">
-        <template #default="{row}"><span style="color:#8a7e72;font-size:12px">{{ formatDate(row.created_at) }}</span></template>
+        <template #default="{row}"><span style="color:var(--muted);font-size:12px">{{ formatDate(row.created_at) }}</span></template>
       </el-table-column>
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{row}">
@@ -85,35 +85,35 @@ function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('zh-C
 .dw{max-height:65vh;overflow-y:auto;padding-right:4px}
 .ds{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee8e0}
 .ds:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.st{font-size:15px;font-weight:700;color:#1c1917;margin-bottom:10px}
+.st{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px}
 .dm{display:flex;gap:28px;flex-wrap:wrap}
 .mi{display:flex;gap:8px;align-items:center}
-.ml{font-size:13px;color:#8a7e72;min-width:36px}
-.mv{font-size:14px;font-weight:500;color:#1c1917}
-.qt{background:#f8f5f0;padding:12px 16px;border-radius:8px;font-size:14px;color:#292524;line-height:1.6}
-.tg{border:1px solid #e5ddd0;border-radius:8px;overflow:hidden}
-.th{display:flex;background:#f8f5f0;font-size:12px;font-weight:600;color:#8a7e72;padding:8px 12px;border-bottom:1px solid #e5ddd0}
+.ml{font-size:13px;color:var(--muted);min-width:36px}
+.mv{font-size:14px;font-weight:500;color:var(--ink)}
+.qt{background:var(--paper-3);padding:12px 16px;border-radius:8px;font-size:14px;color:var(--ink-2);line-height:1.6}
+.tg{border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.th{display:flex;background:var(--paper-3);font-size:12px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--rule)}
 .th span,.tr span{flex:1}
 .tr{display:flex;padding:7px 12px;font-size:13px;border-bottom:1px solid #eee8e0;align-items:center}
 .tr:last-child{border-bottom:none}
-.tr.ch{background:#fdf8f0}
+.tr.ch{background:oklch(96% 0.02 80)}
 .cs{display:flex;gap:5px}
 .d{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;font-size:11px;font-weight:600}
-.df{background:#d4a853;color:#fff}
-.db{background:#e5ddd0;color:#8a7e72}
+.df{background:var(--accent);color:oklch(98% 0.01 80)}
+.db{background:var(--rule);color:var(--muted)}
 .hi{padding:2px 0}
 .hr{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
-.ha{font-size:18px;color:#b8860b;font-weight:700}
-.hn{font-size:16px;font-weight:700;color:#292524}
+.ha{font-size:18px;color:var(--accent-deep);font-weight:700}
+.hn{font-size:16px;font-weight:700;color:var(--ink-2)}
 .bl{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
-.bl.b1{background:#fdf8f0;color:#b8860b;border:1px solid #d4a853}
+.bl.b1{background:oklch(96% 0.02 80);color:var(--accent-deep);border:1px solid var(--accent)}
 .bl.b2{background:#fef0f0;color:#c62828;border:1px solid #fca5a5}
 .mt1{margin-top:6px}
 .cr{color:#c62828;font-weight:600}
-.cg2{color:#d4a853;font-weight:600}
+.cg2{color:var(--accent);font-weight:600}
 .cb{color:#667eea;font-weight:600}
 .fw6{font-weight:600}
-.iw{background:#f8f5f0;padding:16px 20px;border-radius:8px}
+.iw{background:var(--paper-3);padding:16px 20px;border-radius:8px}
 .dw::-webkit-scrollbar{width:4px}
-.dw::-webkit-scrollbar-thumb{background:#d4a85340;border-radius:2px}
+.dw::-webkit-scrollbar-thumb{background:oklch(70% 0.04 75 / 0.5);border-radius:2px}
 </style>
