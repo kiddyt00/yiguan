@@ -11,6 +11,7 @@ const routes = [
   { path: '/recharge', name: 'Recharge', component: () => import('../views/Recharge.vue'), meta: { auth: true } },
   { path: '/orders', name: 'UserOrders', component: () => import('../views/UserOrders.vue'), meta: { auth: true } },
   { path: '/wx-callback', name: 'WxCallback', component: () => import('../views/WxCallback.vue') },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') },
 ]
 
 const router = createRouter({

@@ -26,6 +26,7 @@ const router = createRouter({
         { path: 'memberships', component: () => import('../views/Memberships.vue') },
       ],
     },
+    { path: '/:pathMatch(.*)*', component: () => import('../views/NotFound.vue') },
   ],
 })
 
