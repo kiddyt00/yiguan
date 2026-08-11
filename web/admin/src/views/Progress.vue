@@ -99,15 +99,15 @@ const phases=[
   {period:'2026-07-29',tag:'管理',tagClass:'tdone',dotClass:'ddone',title:'v2.3 管理后台 + 拉新裂变',subtitle:'订单/会员/邀请',commits:12,pct:100,tasks:[
     {done:true,text:'管理后台订单列表+会员列表页面'},{done:true,text:'Dashboard增加订单/会员统计'},{done:true,text:'邀请码生成+绑定+进度追踪'},{done:true,text:'奖励发放逻辑（3注册+1测算=1次）'},{done:true,text:'前端Profile邀请入口（Web+小程序）'},{done:true,text:'Web端Web Share API + 导航栏入口'},{done:true,text:'小程序微信原生分享卡片'},
   ]},
-  {period:'2026-08-11',tag:'上线',tagClass:'tdone',dotClass:'ddone',title:'v2.4 滚动升级（零成本双实例）',subtitle:'2次 · 运维改造',commits:2,pct:100,tasks:[
-    {done:true,text:'compose 拆双实例：backend-a/b + frontend-a/b（8081/8082）'},{done:true,text:'宿主 nginx frontend_pool + 容器内 backend_pool + 失败重试'},{done:true,text:'deploy/rolling-update.sh 滚动脚本（--no-deps --wait 逐个替换）'},{done:true,text:'构建后温和清理 + 30 天定期深度清理（cron）'},{done:true,text:'磁盘 29G 构建缓存清理，可用 31G'},
+  {period:'2026-08-11',tag:'上线',tagClass:'tdone',dotClass:'ddone',title:'v2.4 滚动升级 + 运维/体验优化',subtitle:'10次 · 零成本双实例 + 维护页 + 去AI味',commits:10,pct:100,tasks:[
+    {done:true,text:'compose 拆双实例：backend-a/b + frontend-a/b（8081/8082）'},{done:true,text:'宿主 nginx frontend_pool + 容器内 backend_pool + 失败重试'},{done:true,text:'deploy/rolling-update.sh 滚动脚本（--no-deps --wait 逐个替换）'},{done:true,text:'构建后温和清理 + 30 天定期深度清理（cron）'},{done:true,text:'磁盘 29G 构建缓存清理，可用 31G'},{done:true,text:'404/502 维护页（宿主 nginx error_page，仅页面入口拦截）'},{done:true,text:'去 AI 味设计规范（AGENTS.md Design Convention）'},{done:true,text:'SPA catch-all 404 视图（admin + front，不再空白页）'},{done:true,text:'滚动升级实战验证 4 次（全程无 502）'},
   ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
   {label:'急迫',color:'var(--danger)',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
   {label:'待开发',color:'var(--accent)',items:[{done:true,text:'支付宝扫码支付接入',note:'已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
-  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
+  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:true,text:'404/502 维护页 + 前端 404 视图',note:'已上线'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
 const todo=todos[0].items.filter(t=>!t.done).length+todos[1].items.filter(t=>!t.done).length
