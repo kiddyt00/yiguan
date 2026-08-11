@@ -3,37 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>页面不存在 · 真观己斋</title>
+<title>404 · 页面不存在 — 真观己斋</title>
 <style>
-  :root{--bg:#f7f4ee;--ink:#2b2620;--muted:#8a7e6d;--gold:#b08d3e;--rule:#e8e2d6}
+  /* Hallmark · component-scope: error page · genre: utilitarian · theme: inherit (项目墨色/暖底 token) */
+  :root{--bg:#faf8f4;--ink:#26221c;--muted:#8a8173;--line:#e5dfd3}
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%}
-  body{background:var(--bg);color:var(--ink);font-family:"Songti SC","Noto Serif CJK SC","SimSun",serif;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
-  .wrap{text-align:center;padding:48px 24px;max-width:520px}
-  .taiji{width:96px;height:96px;margin:0 auto 32px;animation:spin 14s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .code{font-size:13px;letter-spacing:.35em;color:var(--muted);margin-bottom:10px;font-family:ui-monospace,Menlo,monospace}
-  h1{font-size:26px;font-weight:700;margin-bottom:14px;letter-spacing:.06em}
-  .sub{font-size:15px;color:var(--muted);line-height:1.9;margin-bottom:36px}
-  .sub em{font-style:normal;color:var(--gold);font-weight:600}
-  a.back{display:inline-block;padding:11px 34px;border:1px solid var(--gold);color:var(--gold);text-decoration:none;font-size:14px;letter-spacing:.2em;border-radius:4px;transition:all .25s ease}
-  a.back:hover{background:var(--gold);color:#fff}
-  .foot{margin-top:36px;font-size:12px;color:var(--muted)}
+  html,body{height:100%;overflow-x:clip}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+  main{max-width:560px;width:100%;padding:40px 28px}
+  .code{font-size:72px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  h1{font-size:18px;font-weight:600;margin-top:22px}
+  .desc{margin-top:10px;font-size:14px;line-height:1.9;color:var(--muted)}
+  .ops{margin-top:34px;display:flex;gap:10px;flex-wrap:wrap}
+  .op{font-size:14px;padding:9px 22px;border-radius:6px;text-decoration:none;display:inline-block;line-height:1.5}
+  .op.primary{background:var(--ink);color:#fff}
+  .op.primary:hover{background:#3a342c}
+  .op.secondary{border:1px solid var(--line);color:var(--ink)}
+  .op.secondary:hover{border-color:var(--ink)}
+  .brand{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <svg class="taiji" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="48" fill="#f7f4ee" stroke="#2b2620" stroke-width="2"/>
-      <path d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2 Z" fill="#2b2620"/>
-      <circle cx="50" cy="26" r="9" fill="#f7f4ee"/>
-      <circle cx="50" cy="74" r="9" fill="#2b2620"/>
-    </svg>
-    <div class="code">404 · NOT FOUND</div>
-    <h1>此卦象并不存在</h1>
-    <div class="sub">您访问的页面如同<em>未起之卦</em>——<br>也许链接已失效，也许它从未被占卜出来。</div>
-    <a class="back" href="/">返回首页 · 重新起卦</a>
-    <div class="foot">真观己斋 · 易观</div>
-  </div>
+  <main>
+    <div class="code">404</div>
+    <h1>页面不存在</h1>
+    <p class="desc">您访问的地址可能已失效，或被移动到了其他位置。请检查链接，或从首页重新进入。</p>
+    <div class="ops">
+      <a class="op primary" href="/">返回首页</a>
+      <a class="op secondary" href="/admin">管理后台</a>
+    </div>
+    <div class="brand">真观己斋 · zgjz.insightj.cn</div>
+  </main>
 </body>
 </html>
