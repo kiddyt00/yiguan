@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "易观滚动更新流程（零成本 · 一次只替换一个）",
+    "subtitle": "git pull → 构建隔离 → backend 双实例交错 → frontend 双实例交错 → 无 502 验证",
+    "visual_preset": "classic",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "backend-roll",
+        "label": "后端滚动段",
+        "focus": ["build", "up_ba", "up_bb"],
+        "note": "构建完成后再滚动后端：一次只替换一个实例，另一个全程承接流量。"
+      },
+      {
+        "id": "frontend-roll",
+        "label": "前端滚动段",
+        "focus": ["up_bb", "up_fa", "up_fb"],
+        "note": "后端就绪后再动前端：frontend-a / frontend-b 交错替换，宿主机池自动切换。"
+      },
+      {
+        "id": "verify-gate",
+        "label": "验证与兜底",
+        "focus": ["up_fb", "verify"],
+        "note": "全部替换完成后用真实请求验证无 502；异常则回滚镜像重新滚动。"
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "ops", "label": "运维（ssh 执行脚本）" },
+    { "id": "backend", "label": "后端容器池" },
+    { "id": "frontend", "label": "前端容器池" },
+    { "id": "verify", "label": "验证" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "准备（不影响运行）", "fromCol": 0, "toCol": 1 },
+    { "id": "backend-roll", "label": "后端滚动", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "frontend-roll", "label": "前端滚动", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "backend-pool", "label": "backend-a / backend-b 交错替换", "lane": "backend", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "frontend-pool", "label": "frontend-a / frontend-b 交错替换", "lane": "frontend", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["git_pull", "build", "up_ba", "up_bb", "up_fa", "up_fb", "verify"],
+  "nodes": [
+    { "id": "git_pull", "lane": "ops", "col": 0, "type": "frontend", "label": "git pull", "sublabel": "--ff-only", "tag": "取最新代码" },
+    { "id": "build", "lane": "ops", "col": 1, "type": "backend", "label": "docker compose build", "sublabel": "构建阶段", "tag": "服务不受影响", "width": 150 },
+    { "id": "up_ba", "lane": "backend", "col": 2, "type": "backend", "label": "替换 backend-a", "sublabel": "up --wait backend-a", "tag": "优雅停机 → healthy" },
+    { "id": "up_bb", "lane": "backend", "col": 3, "type": "backend", "label": "替换 backend-b", "sublabel": "up --wait backend-b", "tag": "backend-a 已接管" },
+    { "id": "up_fa", "lane": "frontend", "col": 4, "type": "frontend", "label": "frontend-a", "sublabel": "up --wait", "tag": "frontend-b 承接", "width": 96 },
+    { "id": "up_fb", "lane": "frontend", "col": 5, "type": "frontend", "label": "frontend-b", "sublabel": "up --wait", "tag": "frontend-a 已接管", "width": 96 },
+    { "id": "verify", "lane": "verify", "col": 5, "type": "security", "label": "无 502 验证", "sublabel": "curl /health", "tag": "循环请求 0 失败", "width": 110 }
+  ],
+  "edges": [
+    { "from": "git_pull", "to": "build", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "build", "to": "up_ba", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "up_ba", "to": "up_bb", "variant": "emphasis" },
+    { "from": "up_bb", "to": "up_fa", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "up_fa", "to": "up_fb" },
+    { "from": "up_fb", "to": "verify", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "关键保证", "items": ["--no-deps 只动指定容器，其余容器不动", "--wait 阻塞到新容器 healthy 才继续下一步", "构建阶段与运行完全隔离，构建再久也不影响服务"] },
+    { "dot": "emerald", "title": "替换语义", "items": ["旧容器优雅停机：在飞请求排空后才退出", "nginx 池自动把流量切到幸存实例，无 502", "SQLite 共享卷 + WAL 支撑双实例并发"] },
+    { "dot": "rose", "title": "兜底", "items": ["任一容器 healthy 失败即中断脚本，不再继续替换", "异常时可 git revert 后重新执行滚动", "全程零新增成本：同一台机器多两个容器"] }
+  ]
+}

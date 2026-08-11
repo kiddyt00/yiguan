@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "易观（Yiguan）v2 架构",
+    "subtitle": "AI 易经占卜平台 · Vue 3 + Go 1.24 单体 + SQLite · 微信 / 支付宝支付",
+    "visual_preset": "classic",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/kiddyt00/yiguan.git",
+      "revision": "2f45fa78bbfaa2b4a0aa8c089f868aa53f7c8832"
+    },
+    "views": [
+      {
+        "id": "request-path",
+        "label": "主请求路径",
+        "focus": ["users", "nginx", "backend", "sqlite", "llm"],
+        "note": "从公网 HTTPS 到 Go 后端、易经引擎与 LLM 解卦的完整链路。"
+      },
+      {
+        "id": "payments",
+        "label": "支付与退款",
+        "focus": ["backend", "wxpay", "alipay"],
+        "note": "微信支付 / 米大师虚拟支付 / 支付宝三通道下单与异步回调。"
+      },
+      {
+        "id": "auth-login",
+        "label": "登录体系",
+        "focus": ["backend", "wechat", "users"],
+        "note": "手机号 + 微信扫码登录，JWT 签发与校验。"
+      },
+      {
+        "id": "admin-console",
+        "label": "管理后台",
+        "focus": ["nginx", "admin_spa", "backend"],
+        "note": "/admin 静态面板经同一入口反代到后端 admin 路由。"
+      }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "用户", "sublabel": "浏览器 Web", "tag": "手机号 / 微信登录", "pos": [30, 150], "size": [120, 60] },
+    { "id": "miniapp", "type": "frontend", "label": "微信小程序", "sublabel": "miniapp-native", "tag": "原生小程序", "pos": [30, 350], "size": [120, 60], "sources": [{ "path": "miniapp-native/pages/orders/orders.js" }] },
+    { "id": "nginx", "type": "cloud", "label": "Nginx 边缘", "sublabel": "HTTPS :443", "tag": "zgjz.insightj.cn", "pos": [260, 250], "size": [120, 60], "sources": [{ "path": "deploy/nginx.conf" }] },
+    { "id": "web_spa", "type": "frontend", "label": "用户端 SPA", "sublabel": "Vue 3 + Vite", "tag": "web/front", "pos": [500, 80], "size": [120, 60], "sources": [{ "path": "web/front/src/router/index.js" }] },
+    { "id": "admin_spa", "type": "frontend", "label": "管理后台", "sublabel": "Vue 3 + Element Plus", "tag": "web/admin", "pos": [500, 420], "size": [120, 60], "sources": [{ "path": "web/admin/src/main.js" }] },
+    { "id": "backend", "type": "backend", "label": "Go API 单体", "sublabel": ":8080 · net/http", "tag": "引擎 / LLM 路由 / Store", "pos": [740, 250], "size": [130, 60], "sources": [{ "path": "cmd/server/main.go" }, { "path": "internal/llm/router.go" }, { "path": "internal/store/store.go" }] },
+    { "id": "sqlite", "type": "database", "label": "SQLite", "sublabel": "modernc · 纯 Go", "tag": "挂载卷 /data/yiguan.db", "pos": [760, 80], "size": [120, 60], "sources": [{ "path": "internal/store/sqlite/sqlite.go" }] },
+    { "id": "llm", "type": "external", "label": "LLM 服务", "sublabel": "OpenAI 兼容 API", "tag": "Qwen / DeepSeek", "pos": [950, 250], "size": [120, 60] },
+    { "id": "wechat", "type": "external", "label": "微信开放平台", "sublabel": "扫码登录 OAuth", "tag": "openid → JWT", "pos": [760, 490], "size": [120, 60] },
+    { "id": "wxpay", "type": "external", "label": "微信支付", "sublabel": "JSAPI / 米大师虚拟支付", "tag": "下单 / 回调 / 退款", "pos": [1180, 150], "size": [130, 60] },
+    { "id": "alipay", "type": "external", "label": "支付宝", "sublabel": "电脑网站支付", "tag": "下单 / 异步通知", "pos": [1180, 380], "size": [120, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Docker Compose · 腾讯云 Ubuntu", "wraps": ["nginx", "web_spa", "admin_spa", "backend", "sqlite"] },
+    { "kind": "security-group", "label": "公网入口 · HTTPS :443", "wraps": ["nginx"] }
+  ],
+  "connections": [
+    { "id": "users-to-nginx", "from": "users", "to": "nginx", "label": "HTTPS", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "miniapp-to-nginx", "from": "miniapp", "to": "nginx", "label": "HTTPS API", "fromSide": "right", "toSide": "left" },
+    { "id": "nginx-to-web", "from": "nginx", "to": "web_spa", "label": "静态资源 /", "fromSide": "right", "toSide": "left" },
+    { "id": "nginx-to-admin", "from": "nginx", "to": "admin_spa", "label": "静态资源 /admin", "fromSide": "right", "toSide": "left" },
+    { "id": "nginx-to-backend", "from": "nginx", "to": "backend", "label": "/api 反向代理", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "backend-to-sqlite", "from": "backend", "to": "sqlite", "label": "SQL · WAL", "fromSide": "top", "toSide": "bottom" },
+    { "id": "backend-to-llm", "from": "backend", "to": "llm", "label": "解卦调用", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "backend-to-wechat", "from": "backend", "to": "wechat", "label": "OAuth 扫码", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "backend-to-wxpay", "from": "backend", "to": "wxpay", "label": "下单 / 回调", "variant": "dashed", "fromSide": "bottom", "toSide": "left" },
+    { "id": "backend-to-alipay", "from": "backend", "to": "alipay", "label": "下单 / 通知", "variant": "dashed", "fromSide": "bottom", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "边缘入口", "items": ["Nginx 终结 SSL，域名 zgjz.insightj.cn", "同一入口服务 SPA 静态资源与 /api 反向代理", "管理后台 /admin 独立面板同源托管"] },
+    { "dot": "emerald", "title": "应用核心", "items": ["Go 1.24 单体，stdlib net/http，无框架", "易经引擎摇卦/变卦 + LLM 路由器热切换与容错链", "SQLite 纯 Go 驱动，挂载卷持久化"] },
+    { "dot": "rose", "title": "安全与支付", "items": ["JWT 鉴权 + 管理员角色中间件", "微信扫码登录换 openid 签发令牌", "微信支付 / 米大师虚拟支付 / 支付宝三通道 + 退款"] }
+  ]
+}

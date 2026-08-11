@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "易观滚动更新拓扑（零成本双实例）",
+    "subtitle": "宿主机 Nginx 双前端池 + 双后端池 · 一次只替换一个 · SQLite WAL 共享卷",
+    "visual_preset": "classic",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/kiddyt00/yiguan.git",
+      "revision": "2f45fa78bbfaa2b4a0aa8c089f868aa53f7c8832"
+    },
+    "views": [
+      {
+        "id": "replace-backend-a",
+        "label": "替换 backend-a 时",
+        "focus": ["backend_a", "frontend_a", "frontend_b", "backend_b"],
+        "note": "backend-a 优雅停机期间，frontend 的 backend_pool 自动把流量落到 backend-b，无 502。"
+      },
+      {
+        "id": "replace-frontend-a",
+        "label": "替换 frontend-a 时",
+        "focus": ["host_nginx", "frontend_a", "frontend_b"],
+        "note": "frontend-a 替换期间，宿主机 upstream 池由 frontend-b 接管全部流量。"
+      },
+      {
+        "id": "data-plane",
+        "label": "数据面与共享卷",
+        "focus": ["backend_a", "backend_b", "sqlite"],
+        "note": "双后端实例并发读写同一 SQLite（WAL + busy_timeout 5s），无状态 API 各自独立。"
+      }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "用户", "sublabel": "浏览器 / 小程序", "tag": "HTTPS", "pos": [30, 250], "size": [130, 60] },
+    { "id": "host_nginx", "type": "cloud", "label": "宿主机 Nginx", "sublabel": "SSL :443", "tag": "upstream 双前端池", "pos": [240, 250], "size": [140, 60], "sources": [{ "path": "deploy/host-nginx.conf" }] },
+    { "id": "frontend_a", "type": "frontend", "label": "Frontend 容器 A", "sublabel": "nginx :8081", "tag": "静态 + /api 反代", "pos": [490, 140], "size": [150, 60], "sources": [{ "path": "deploy/nginx.conf" }] },
+    { "id": "frontend_b", "type": "frontend", "label": "Frontend 容器 B", "sublabel": "nginx :8082", "tag": "与 A 同镜像同配置", "pos": [490, 360], "size": [150, 60] },
+    { "id": "backend_a", "type": "backend", "label": "Backend 容器 A", "sublabel": "Go :8080", "tag": "优雅停机", "pos": [790, 140], "size": [150, 60], "sources": [{ "path": "cmd/server/main.go" }] },
+    { "id": "backend_b", "type": "backend", "label": "Backend 容器 B", "sublabel": "Go :8080", "tag": "与 A 同镜像同配置", "pos": [790, 360], "size": [150, 60] },
+    { "id": "sqlite", "type": "database", "label": "SQLite", "sublabel": "共享卷 /data", "tag": "WAL + busy_timeout", "pos": [1040, 140], "size": [140, 60], "sources": [{ "path": "internal/store/sqlite/sqlite.go" }] },
+    { "id": "llm", "type": "external", "label": "LLM 服务", "sublabel": "Qwen / DeepSeek", "tag": "无状态外部依赖", "pos": [1040, 360], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Docker 宿主机 · 腾讯云 Ubuntu", "wraps": ["host_nginx", "frontend_a", "frontend_b", "backend_a", "backend_b", "sqlite"] },
+    { "kind": "region", "label": "数据面 · 双后端共享 /data 卷（SQLite WAL）", "wraps": ["backend_a", "backend_b", "sqlite"] },
+    { "kind": "security-group", "label": "公网入口 · HTTPS :443", "wraps": ["host_nginx"] }
+  ],
+  "connections": [
+    { "id": "users-to-nginx", "from": "users", "to": "host_nginx", "label": "HTTPS :443", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "nginx-to-fa", "from": "host_nginx", "to": "frontend_a", "label": "upstream :8081", "fromSide": "right", "toSide": "left" },
+    { "id": "nginx-to-fb", "from": "host_nginx", "to": "frontend_b", "label": "upstream :8082", "fromSide": "right", "toSide": "left" },
+    { "id": "fa-to-ba", "from": "frontend_a", "to": "backend_a", "label": "backend_pool", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "fb-to-bb", "from": "frontend_b", "to": "backend_b", "label": "backend_pool", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "ba-to-sqlite", "from": "backend_a", "to": "sqlite", "label": "SQL · WAL", "fromSide": "right", "toSide": "left" },
+    { "id": "bb-to-llm", "from": "backend_b", "to": "llm", "label": "解卦调用", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "边缘与路由", "items": ["宿主机 nginx 配 upstream 双前端池（:8081 / :8082）", "proxy_next_upstream 失败自动重试到健康实例", "keepalive 连接复用，切换开销最小化"] },
+    { "dot": "emerald", "title": "应用池", "items": ["frontend / backend 各双实例，互为主备", "滚动更新一次只替换一个，其余全程在线", "--wait 等新容器 healthy 才替换下一个"] },
+    { "dot": "rose", "title": "数据与一致性", "items": ["SQLite WAL + busy_timeout 5s 支撑双实例并发", "共享卷 /data 是唯一数据源，双实例无状态", "Go 优雅停机排空在飞请求后再退出"] }
+  ]
+}
