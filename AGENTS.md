@@ -44,6 +44,12 @@ make deploy-remote
 - **每 30 天深度清理**（生产 cron，每月 1 号 3:00 执行 `deploy/docker-cleanup.sh`）：`docker system prune -af` + `journalctl --vacuum-size=200M`，日志在 `/var/log/docker-cleanup.log`
 - 手动检查：`ssh root@124.223.16.159 'docker system df; df -h /'`
 
+### 数据库备份
+
+- **每日自动备份**（生产 cron，每天 2:30 执行 `deploy/db-backup.sh`）：宿主机 sqlite3 在线 `.backup` 一致性快照 → `/root/yiguan/data/backup/yiguan-YYYYMMDD_HHMMSS.db` + avatars 打包，保留最近 14 份，完整性 `PRAGMA integrity_check` 校验，日志 `/var/log/db-backup.log`
+- 手动备份：`ssh root@124.223.16.159 '/root/yiguan/deploy/db-backup.sh'`
+- 备份与 db 同机不同目录（防目录级误删）；建议定期下载一份到本地/异地（防整机故障）
+
 ## Design Convention（⚠️ 所有页面设计必须去 AI 味 / anti-slop）
 
 **设计任何页面/组件（含错误页、维护页、落地页、UI 改版）时，必须去除 AI 味，规则如下：**
