@@ -107,7 +107,7 @@ const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
   {label:'急迫',color:'var(--danger)',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
   {label:'待开发',color:'var(--accent)',items:[{done:true,text:'支付宝扫码支付接入',note:'已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
-  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:true,text:'404/502 维护页 + 前端 404 视图',note:'已上线'},{done:false,text:'数据库自动备份'},{done:false,text:'前端SSE流自动重连'}]},
+  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:true,text:'404/502 维护页 + 前端 404 视图',note:'已上线'},{done:true,text:'数据库自动备份',note:'每日 2:30 · 保留14份'},{done:false,text:'前端SSE流自动重连'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
 const todo=todos[0].items.filter(t=>!t.done).length+todos[1].items.filter(t=>!t.done).length
