@@ -51,7 +51,7 @@ check() {
 }
 check http://localhost:8081/
 check http://localhost:8082/
-check http://localhost:8081/api/health
-check http://localhost:8082/api/health
+check http://localhost:8081/api/ads/active
+check http://localhost:8082/api/ads/active
 
 echo "✅ 滚动升级完成，四容器均已更新，无 502"
