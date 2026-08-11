@@ -2,9 +2,9 @@
   <div>
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ stats.total }}</div><div class="stat-label">总用户</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#67C23A">{{ stats.wechat }}</div><div class="stat-label">微信用户</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#409EFF">{{ stats.phone }}</div><div class="stat-label">手机用户</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#E6A23C">{{ stats.active }}</div><div class="stat-label">活跃用户</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ stats.wechat }}</div><div class="stat-label">微信用户</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ stats.phone }}</div><div class="stat-label">手机用户</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ stats.active }}</div><div class="stat-label">活跃用户</div></el-card></el-col>
     </el-row>
 
     <el-card shadow="never" class="mb-4">
@@ -12,7 +12,7 @@
         <el-col :span="8"><el-input v-model="search" placeholder="搜索昵称或手机号" clearable @input="onSearchInput" prefix-icon="Search" /></el-col>
         <el-col :span="4"><el-select v-model="typeFilter" placeholder="用户类型" clearable @change="loadUsers" style="width:100%"><el-option label="全部" value="" /><el-option label="微信" value="wechat" /><el-option label="手机" value="phone" /></el-select></el-col>
         <el-col :span="4"><el-select v-model="statusFilter" placeholder="状态" clearable @change="loadUsers" style="width:100%"><el-option label="全部" value="" /><el-option label="启用" value="active" /><el-option label="禁用" value="disabled" /></el-select></el-col>
-        <el-col :span="8" class="text-right"><el-button type="primary" @click="loadUsers">刷新</el-button></el-col>
+        <el-col :span="8" class="text-right"><el-button type="primary" plain @click="loadUsers">刷新</el-button></el-col>
       </el-row>
     </el-card>
 
@@ -29,24 +29,24 @@
           </template>
         </el-table-column>
         <el-table-column label="手机号" width="120">
-          <template #default="{row}"><span style="font-size:13px;color:#606266;font-family:monospace">{{ row.phone&&!row.phone.startsWith('wx:')?row.phone:'-' }}</span></template>
+          <template #default="{row}"><span class="mono">{{ row.phone&&!row.phone.startsWith('wx:')?row.phone:'-' }}</span></template>
         </el-table-column>
         <el-table-column label="微信ID" min-width="130">
-          <template #default="{row}"><span style="font-size:12px;color:#909399;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">{{ row.openid||'-' }}</span></template>
+          <template #default="{row}"><span class="mono ellipsis">{{ row.openid||'-' }}</span></template>
         </el-table-column>
         <el-table-column label="头像" width="55" align="center">
           <template #default="{row}">
-            <el-image :src="row.avatar||'/admin/favicon.svg'" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;cursor:pointer" :preview-src-list="row.avatar?[row.avatar]:[]" preview-teleported fit="cover" />
+            <el-image :src="row.avatar||'/admin/favicon.svg'" class="avatar" :preview-src-list="row.avatar?[row.avatar]:[]" preview-teleported fit="cover" />
           </template>
         </el-table-column>
         <el-table-column label="注册时间" width="100">
-          <template #default="{row}"><span style="font-size:12px;color:#909399;white-space:nowrap">{{ formatDate(row.created_at) }}</span></template>
+          <template #default="{row}"><span class="t-time">{{ formatDate(row.created_at) }}</span></template>
         </el-table-column>
         <el-table-column label="角色" width="65" align="center">
           <template #default="{row}"><el-tag :type="row.role==='admin'?'danger':'info'" size="small" effect="plain" style="white-space:nowrap">{{ row.role==='admin'?'管理':'用户' }}</el-tag></template>
         </el-table-column>
         <el-table-column label="配额" width="60" align="center">
-          <template #default="{row}"><span :style="{color:row.remaining_quota>0?'#67C23A':'#F56C6C',fontWeight:600}">{{ row.remaining_quota??'-' }}</span></template>
+          <template #default="{row}"><span class="fw6" :class="row.remaining_quota>0?'q-ok':'q-bad'">{{ row.remaining_quota??'-' }}</span></template>
         </el-table-column>
         <el-table-column label="状态" width="65" align="center">
           <template #default="{row}">
@@ -56,9 +56,9 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{row}">
             <div style="display:flex;gap:4px;white-space:nowrap">
-              <el-button size="small" :type="row.is_active?'warning':'success'" plain @click="toggleUser(row)" style="padding:4px 8px;font-size:12px">{{ row.is_active?'禁用':'启用' }}</el-button>
-              <el-button size="small" type="primary" plain @click="adjustQuota(row)" style="padding:4px 8px;font-size:12px">配额</el-button>
-              <el-button size="small" type="info" plain @click="viewHistory(row)" style="padding:4px 8px;font-size:12px">记录</el-button>
+              <el-button size="small" :type="row.is_active?'warning':'success'" plain @click="toggleUser(row)">{{ row.is_active?'禁用':'启用' }}</el-button>
+              <el-button size="small" type="primary" plain @click="adjustQuota(row)">配额</el-button>
+              <el-button size="small" type="info" plain @click="viewHistory(row)">记录</el-button>
             </div>
           </template>
         </el-table-column>
@@ -68,9 +68,9 @@
 
     <el-dialog v-model="quotaVisible" title="调整配额" width="360px">
       <div class="mb-2">用户：<strong>{{ currentUser?.nickname||currentUser?.phone }}</strong></div>
-      <div class="mb-2" style="font-size:13px;color:#909399">当前配额：<span :style="{fontWeight:600,color:(currentUser?.remaining_quota||0)>0?'#67C23A':'#F56C6C'}">{{ currentUser?.remaining_quota??0 }} 次</span></div>
+      <div class="mb-2 dim">当前配额：<span class="fw6" :class="(currentUser?.remaining_quota||0)>0?'q-ok':'q-bad'">{{ currentUser?.remaining_quota??0 }} 次</span></div>
       <el-input-number v-model="quotaDelta" :min="-100" :max="100" />
-      <div style="font-size:12px;color:#909399;margin-top:8px">正数增加，负数减少</div>
+      <div class="dim" style="margin-top:8px">正数增加，负数减少</div>
       <template #footer><el-button @click="quotaVisible=false">取消</el-button><el-button type="primary" @click="confirmQuota">确认</el-button></template>
     </el-dialog>
 
@@ -80,7 +80,7 @@
         <el-table-column prop="question" label="问题" min-width="200" show-overflow-tooltip />
         <el-table-column prop="primary_gua" label="本卦" width="65" align="center" />
         <el-table-column prop="changing_gua" label="变卦" width="65" align="center" />
-        <el-table-column label="时间" width="120"><template #default="{row}">{{ formatDate(row.created_at) }}</template></el-table-column>
+        <el-table-column label="时间" width="120"><template #default="{row}"><span class="t-time">{{ formatDate(row.created_at) }}</span></template></el-table-column>
       </el-table>
     </el-dialog>
   </div>
@@ -121,12 +121,20 @@ function formatDate(ts){if(!ts)return '';return new Date(ts).toLocaleString('zh-
 
 <style scoped>
 .stat-card{text-align:center}
-.stat-value{font-size:32px;font-weight:700;color:#303133}
-.stat-label{font-size:13px;color:#909399;margin-top:4px}
+.stat-value{font-size:32px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px}
 .mb-2{margin-bottom:8px}
 .mb-4{margin-bottom:16px}
 .text-right{text-align:right}
 .nc{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fw6{font-weight:600}
+.q-ok{color:var(--ok)}
+.q-bad{color:var(--danger)}
+.mono{font-size:12px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ellipsis{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-time{font-size:12px;color:var(--muted);white-space:nowrap}
+.dim{font-size:13px;color:var(--muted)}
+.avatar{width:32px;height:32px;border-radius:50%;vertical-align:middle;cursor:pointer}
 .pg{display:flex;justify-content:center;padding:12px 0}
 :deep(.el-table th.el-table__cell>.cell){white-space:nowrap}
 </style>

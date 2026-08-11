@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-bold">模型管理</h2>
+    <div class="page-header">
+      <h2>模型管理</h2>
       <el-button type="primary" @click="openCreate">新增模型</el-button>
     </div>
 
@@ -61,7 +61,7 @@
               placeholder="选择或输入模型名" @change="onModelSelect">
               <el-option v-for="m in currentModels" :key="m" :label="m" :value="m" />
               <el-option v-for="m in fetchedModels" :key="'f-'+m" :label="m" :value="m" />
-              <el-option label="✎ 自定义输入..." value="__custom__" />
+              <el-option label="自定义输入..." value="__custom__" />
             </el-select>
             <el-button :loading="fetchingModels" @click="fetchModelList" :disabled="!form.endpoint || !form.api_key">
               刷新
@@ -73,7 +73,7 @@
 
         <el-form-item label="⑤ 显示名称" required>
           <el-input v-model="form.display_name" placeholder="如 DeepSeek 主力号、千问极速版" />
-          <div class="text-xs text-gray-400 mt-1">留空则自动生成「供应商 模型ID」</div>
+          <div class="text-xs text-[var(--muted)] mt-1">留空则自动生成「供应商 模型ID」</div>
         </el-form-item>
       </el-form>
 

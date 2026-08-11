@@ -1,9 +1,9 @@
 <template>
   <div>
-    <h2 class="text-2xl font-bold mb-4 flex justify-between items-center">
-      广告管理
+    <div class="page-header">
+      <h2>广告管理</h2>
       <el-button type="primary" @click="showCreate = true">新增广告</el-button>
-    </h2>
+    </div>
     <el-table :data="ads" stripe>
       <el-table-column prop="id" label="ID" width="50" />
       <el-table-column prop="name" label="名称" width="120" />

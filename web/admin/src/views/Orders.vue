@@ -2,9 +2,9 @@
   <div>
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ total }}</div><div class="stat-label">总订单</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#67C23A">{{ paid }}</div><div class="stat-label">已支付</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#E6A23C">{{ pending }}</div><div class="stat-label">待支付</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#909399">{{ revenue }}</div><div class="stat-label">收入(元)</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ paid }}</div><div class="stat-label">已支付</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ pending }}</div><div class="stat-label">待支付</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ revenue }}</div><div class="stat-label">收入(元)</div></el-card></el-col>
     </el-row>
 
     <el-card shadow="never" body-style="padding:0">
@@ -16,8 +16,8 @@
         <el-table-column label="商品" width="100">
           <template #default="{row}">{{ productName(row.product_id) }}</template>
         </el-table-column>
-        <el-table-column label="金额" width="80" align="right">
-          <template #default="{row}">¥{{ (row.amount/100).toFixed(2) }}</template>
+        <el-table-column label="金额" width="90" align="right">
+          <template #default="{row}"><span class="amount">¥{{ (row.amount/100).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column label="状态" width="80" align="center">
           <template #default="{row}">
@@ -25,13 +25,13 @@
           </template>
         </el-table-column>
         <el-table-column label="支付时间" width="160">
-          <template #default="{row}">{{ row.paid_at ? row.paid_at.replace('T',' ').slice(0,16) : '-' }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.paid_at ? row.paid_at.replace('T',' ').slice(0,16) : '-' }}</span></template>
         </el-table-column>
         <el-table-column label="创建时间" width="160">
-          <template #default="{row}">{{ row.created_at.replace('T',' ').slice(0,16) }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.created_at.replace('T',' ').slice(0,16) }}</span></template>
         </el-table-column>
       </el-table>
-      <div class="p-4 text-center" v-if="total > limit">
+      <div class="pg" v-if="total > limit">
         <el-pagination background layout="prev,pager,next" :total="total" :page-size="limit" :current-page="page" @current-change="onPageChange" />
       </div>
     </el-card>
@@ -41,6 +41,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { adminApi } from '../api'
+import { ElMessage } from 'element-plus'
 
 const orders = ref([])
 const total = ref(0)
@@ -73,7 +74,9 @@ async function loadOrders() {
     const data = await adminApi.orders(limit, (page.value - 1) * limit)
     orders.value = data.items || []
     total.value = data.total || 0
-  } catch (e) { console.error(e) }
+  } catch (e) {
+    ElMessage.error('加载订单失败: ' + (e.message || '未知错误'))
+  }
   loading.value = false
 }
 
@@ -81,3 +84,12 @@ function onPageChange(p) { page.value = p; loadOrders() }
 
 onMounted(loadOrders)
 </script>
+
+<style scoped>
+.stat-card{text-align:center}
+.stat-value{font-size:32px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px}
+.amount{font-weight:600;color:var(--accent-deep);font-variant-numeric:tabular-nums}
+.t-time{font-size:12px;color:var(--muted)}
+.pg{display:flex;justify-content:center;padding:12px 0}
+</style>

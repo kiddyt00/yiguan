@@ -2,9 +2,9 @@
   <div>
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ total }}</div><div class="stat-label">退款申请</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#E6A23C">{{ pendingCount }}</div><div class="stat-label">待处理</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#67C23A">{{ completedCount }}</div><div class="stat-label">已退款</div></el-card></el-col>
-      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value" style="color:#F56C6C">{{ refundTotal }}</div><div class="stat-label">退款总额(元)</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ pendingCount }}</div><div class="stat-label">待处理</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ completedCount }}</div><div class="stat-label">已退款</div></el-card></el-col>
+      <el-col :span="6"><el-card shadow="never" class="stat-card"><div class="stat-value">{{ refundTotal }}</div><div class="stat-label">退款总额(元)</div></el-card></el-col>
     </el-row>
 
     <el-card shadow="never" body-style="padding:0">
@@ -13,7 +13,7 @@
         <el-table-column label="用户ID" width="80" prop="user_id" />
         <el-table-column label="订单ID" width="80" prop="order_id" />
         <el-table-column label="金额" width="90" align="right">
-          <template #default="{row}">¥{{ (row.amount/100).toFixed(2) }}</template>
+          <template #default="{row}"><span class="amount">¥{{ (row.amount/100).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column label="原因" min-width="140" prop="reason" show-overflow-tooltip />
         <el-table-column label="状态" width="90" align="center">
@@ -22,7 +22,7 @@
           </template>
         </el-table-column>
         <el-table-column label="申请时间" width="160">
-          <template #default="{row}">{{ row.created_at.replace('T',' ').slice(0,16) }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.created_at.replace('T',' ').slice(0,16) }}</span></template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{row}">
@@ -30,7 +30,7 @@
               <el-button type="success" size="small" :loading="actingId === row.id" @click="approve(row)">批准退款</el-button>
               <el-button type="danger" size="small" plain :loading="actingId === row.id" @click="showReject(row)">驳回</el-button>
             </template>
-            <span v-else style="color:#909399;font-size:12px">已处理</span>
+            <span v-else class="dim">已处理</span>
           </template>
         </el-table-column>
       </el-table>
@@ -135,3 +135,12 @@ async function reject() {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.stat-card{text-align:center}
+.stat-value{font-size:32px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px}
+.amount{font-weight:600;color:var(--accent-deep);font-variant-numeric:tabular-nums}
+.t-time{font-size:12px;color:var(--muted)}
+.dim{font-size:12px;color:var(--muted)}
+</style>

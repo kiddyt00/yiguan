@@ -17,13 +17,13 @@
           </template>
         </el-table-column>
         <el-table-column label="生效" width="160">
-          <template #default="{row}">{{ row.start_time.replace('T',' ').slice(0,16) }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.start_time.replace('T',' ').slice(0,16) }}</span></template>
         </el-table-column>
         <el-table-column label="到期" width="160">
-          <template #default="{row}">{{ row.end_time.replace('T',' ').slice(0,16) }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.end_time.replace('T',' ').slice(0,16) }}</span></template>
         </el-table-column>
         <el-table-column label="创建时间" width="160">
-          <template #default="{row}">{{ row.created_at.replace('T',' ').slice(0,16) }}</template>
+          <template #default="{row}"><span class="t-time">{{ row.created_at.replace('T',' ').slice(0,16) }}</span></template>
         </el-table-column>
       </el-table>
     </el-card>
@@ -33,6 +33,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { adminApi } from '../api'
+import { ElMessage } from 'element-plus'
 
 const memberships = ref([])
 const loading = ref(false)
@@ -45,9 +46,15 @@ async function load() {
   try {
     const data = await adminApi.memberships(100, 0)
     memberships.value = data.items || []
-  } catch (e) { console.error(e) }
+  } catch (e) {
+    ElMessage.error('加载会员记录失败: ' + (e.message || '未知错误'))
+  }
   loading.value = false
 }
 
 onMounted(load)
 </script>
+
+<style scoped>
+.t-time{font-size:12px;color:var(--muted)}
+</style>
