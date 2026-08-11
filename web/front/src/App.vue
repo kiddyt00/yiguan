@@ -4,7 +4,7 @@
     <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
       <router-view :is-dark="isDark" />
     </main>
-    <footer class="text-center py-6 px-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'" style="font-size: 0.7rem;">
+    <footer v-if="route.name !== 'NotFound'" class="text-center py-6 px-4" :class="isDark ? 'text-stone-500' : 'text-stone-400'" style="font-size: 0.7rem;">
       <div class="space-x-3">
         <a href="/about.html" class="hover:text-amber-500 transition">关于我们</a>
         <a href="/contact.html" class="hover:text-amber-500 transition">联系我们</a>
@@ -23,9 +23,11 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 const { t } = useI18n()
 import NavBar from './components/NavBar.vue'
 
+const route = useRoute()
 const isDark = ref(localStorage.getItem('theme') !== 'light')
 
 function applyTheme(dark) {

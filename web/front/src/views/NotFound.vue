@@ -9,7 +9,7 @@
 
 <style scoped>
 .nf{
-  min-height: calc(100vh - 240px);  /* 视口高减导航+页脚，内容在一屏内垂直居中 */
+  min-height: calc(100svh - 150px);  /* 100svh 扣 NavBar+main padding+余量，404 时 footer 已隐藏，一屏内不滚动 */
   display:flex;
   flex-direction:column;
   align-items:center;
