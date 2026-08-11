@@ -92,9 +92,9 @@ upload-miniapp:
 		--ud "$(DESC)"
 	@echo "✅ 小程序上传完成，版本: $(VERSION)"
 
-# ========== 远程部署 ==========
+# ========== 远程部署（⚠️ 升级 = 滚动升级，禁止 docker compose up -d --build） ==========
 
 deploy-remote:
-	git push origin main
-	ssh root@<server-ip> 'cd /root/yiguan && git pull && docker compose up -d --build'
-	@echo "✅ 已上线 https://zgjz.insightj.cn"
+	git push origin v2
+	ssh root@124.223.16.159 'cd /root/yiguan && ./deploy/rolling-update.sh'
+	@echo "✅ 已滚动升级 https://zgjz.insightj.cn"

@@ -22,18 +22,34 @@ npm run build
 docker compose up -d --build   # Build + start all containers
 docker compose logs -f         # Follow logs
 
-# Prod deploy
-git push origin main
-ssh root@<server-ip>
-cd /root/yiguan && git pull && docker compose up -d --build
+# Prod deploy（⚠️ 升级 = 滚动升级，见下方 Deployment Convention）
+make deploy-remote
+# 即: git push origin main && ssh root@124.223.16.159 'cd /root/yiguan && ./deploy/rolling-update.sh'
 ```
+
+## Deployment Convention（⚠️ 升级 = 滚动升级）
+
+**任何时候说"升级 / 部署 / 发布"，统一执行滚动升级，禁止再跑 `docker compose up -d --build`（同时重建所有容器 → 全站 502）。**
+
+- 升级入口：`make deploy-remote`，或 `ssh root@124.223.16.159 'cd /root/yiguan && ./deploy/rolling-update.sh'`
+- 流程（deploy/rolling-update.sh）：`git pull --ff-only` → `docker compose build`（不影响运行）→ 逐个替换 `backend-a` → `backend-b` → `frontend-a` → `frontend-b`（`--no-deps --wait` 等 healthy）→ 循环验证 200
+- 拓扑：宿主 nginx `frontend_pool`(:8081/:8082) → `frontend-a`/`frontend-b` 容器 nginx `backend_pool` → `backend-a`/`backend-b` → SQLite WAL 共享卷 `/data`（双实例并发写，WAL 已启用）
+- 生产宿主 nginx 配置对应 `deploy/host-nginx.conf`（复制到 `/etc/nginx/conf.d/zgjz.insightj.cn.conf` + `nginx -t` + reload）
+- 首次从单实例迁移到双实例有一键窗口，之后滚动全程无 502
+- 架构图：`docs/archify/rolling-topology.html`、`docs/archify/rolling-flow.html`
+
+### 磁盘清理策略
+
+- **每次构建后温和清理**（已内置 `deploy/rolling-update.sh`）：`docker builder prune -f` + `docker image prune -f`，只清未使用旧层，保留近期缓存（不影响构建速度）
+- **每 30 天深度清理**（生产 cron，每月 1 号 3:00 执行 `deploy/docker-cleanup.sh`）：`docker system prune -af` + `journalctl --vacuum-size=200M`，日志在 `/var/log/docker-cleanup.log`
+- 手动检查：`ssh root@124.223.16.159 'docker system df; df -h /'`
 
 ## Architecture
 
 ```
-User → https://zgjz.insightj.cn (Host Nginx SSL)
-  → Docker: yiguan-frontend (Nginx → SPA / API proxy)
-  → Docker: yiguan-backend (Go :8080 → SQLite)
+User → https://zgjz.insightj.cn (Host Nginx SSL → frontend_pool :8081/:8082)
+  → Docker: yiguan-frontend-a / yiguan-frontend-b (Nginx → SPA / API proxy → backend_pool)
+  → Docker: yiguan-backend-a / yiguan-backend-b (Go :8080 → SQLite WAL 共享卷 /data)
 ```
 
 - **Backend**: Go 1.24, stdlib `net/http` (no framework). Routes hardcoded in `cmd/server/main.go`. Go 1.22+ mux with method patterns (`GET /path`, `POST /path`).

@@ -1,9 +1,9 @@
 services:
-  backend:
+  backend-a:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: yiguan-backend
+    container_name: yiguan-backend-a
     restart: unless-stopped
     logging:
       driver: json-file
@@ -45,17 +45,81 @@ services:
       - ./logs:/app/logs
       - ./alipay:/app/alipay
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 5s
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8080/health
+      interval: 5s
+      timeout: 3s
       retries: 3
-      start_period: 10s
-
-  frontend:
+      start_period: 8s
+    stop_grace_period: 30s
+  backend-b:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: yiguan-backend-b
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - DB_PATH=/data/yiguan.db
+      - JWT_SECRET=${JWT_SECRET}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - SERVER_PORT=8080
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - WX_OPEN_APPID=${WX_OPEN_APPID}
+      - WX_OPEN_SECRET=${WX_OPEN_SECRET}
+      - WX_PAY_MCHID=${WX_PAY_MCHID}
+      - WX_PAY_API_KEY=${WX_PAY_API_KEY}
+      - WX_PAY_APPID=${WX_PAY_APPID}
+      - WX_APPID=${WX_APPID}
+      # 小程序虚拟支付（米大师，iOS 虚拟商品）
+      - WX_VP_OFFER_ID=${WX_VP_OFFER_ID}
+      - WX_VP_APP_KEY=${WX_VP_APP_KEY}
+      - WX_VP_APP_KEY_SANDBOX=${WX_VP_APP_KEY_SANDBOX}
+      - WX_VP_SANDBOX=${WX_VP_SANDBOX:-false}
+      - WX_VP_NOTIFY_URL=${WX_VP_NOTIFY_URL:-https://zgjz.insightj.cn/api/orders/virtual-notify}
+      # 微信消息推送（虚拟支付发货订阅）：Token/EncodingAESKey 与 mp 后台配置一致
+      - WX_VP_PUSH_TOKEN=${WX_VP_PUSH_TOKEN}
+      - WX_VP_PUSH_AES_KEY=${WX_VP_PUSH_AES_KEY}
+      - WX_SECRET=${WX_SECRET}
+      # 支付宝支付
+      - ALIPAY_APPID=${ALIPAY_APPID}
+      - ALIPAY_MERCHANT_ID=${ALIPAY_MERCHANT_ID}
+      - ALIPAY_PRIVATE_KEY_PATH=/app/alipay/app_private_key.pem
+      - ALIPAY_PUBLIC_KEY_PATH=/app/alipay/alipay_public_key.pem
+      - ALIPAY_NOTIFY_URL=${ALIPAY_NOTIFY_URL:-https://zgjz.insightj.cn/api/orders/alipay-notify}
+      - ALIPAY_RETURN_URL=${ALIPAY_RETURN_URL:-https://zgjz.insightj.cn/api/orders/alipay-return}
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+      - ./alipay:/app/alipay
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8080/health
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 8s
+    stop_grace_period: 30s
+  frontend-a:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: yiguan-frontend
+    container_name: yiguan-frontend-a
     restart: unless-stopped
     logging:
       driver: json-file
@@ -63,7 +127,27 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "${HTTP_PORT:-8080}:80"
+      - 8081:80
     depends_on:
-      backend:
+      backend-a:
+        condition: service_healthy
+      backend-b:
+        condition: service_healthy
+  frontend-b:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: yiguan-frontend-b
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - 8082:80
+    depends_on:
+      backend-a:
+        condition: service_healthy
+      backend-b:
         condition: service_healthy
