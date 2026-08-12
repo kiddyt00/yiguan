@@ -102,12 +102,15 @@ const phases=[
   {period:'2026-08-11',tag:'上线',tagClass:'tdone',dotClass:'ddone',title:'v2.4 滚动升级 + 运维/体验优化',subtitle:'10次 · 零成本双实例 + 维护页 + 去AI味',commits:10,pct:100,tasks:[
     {done:true,text:'compose 拆双实例：backend-a/b + frontend-a/b（8081/8082）'},{done:true,text:'宿主 nginx frontend_pool + 容器内 backend_pool + 失败重试'},{done:true,text:'deploy/rolling-update.sh 滚动脚本（--no-deps --wait 逐个替换）'},{done:true,text:'构建后温和清理 + 30 天定期深度清理（cron）'},{done:true,text:'磁盘 29G 构建缓存清理，可用 31G'},{done:true,text:'404/502 维护页（宿主 nginx error_page，仅页面入口拦截）'},{done:true,text:'去 AI 味设计规范（AGENTS.md Design Convention）'},{done:true,text:'SPA catch-all 404 视图（admin + front，不再空白页）'},{done:true,text:'滚动升级实战验证 4 次（全程无 502）'},
   ]},
+  {period:'2026-08-12',tag:'运维',tagClass:'tdone',dotClass:'ddone',title:'v2.5 数据库备份上云（COS 异地容灾）',subtitle:'4次 · coscli 双份备份',commits:4,pct:100,tasks:[
+    {done:true,text:'db-backup.sh 改造：本地14份 + COS 异地（coscli 上传 + ls 存在性校验）'},{done:true,text:'COS 桶 zgjz-backup-1438787644（ap-shanghai），子账号最小权限（无 GetService）'},{done:true,text:'凭据入 /root/yiguan/.env + /root/.cos.yaml（600，不入 git）'},{done:true,text:'90 天按对象名日期清理 + 控制台生命周期规则兜底'},{done:true,text:'生产验证通过：每日 2:30 cron 双份备份，script_exit=0'},
+  ]},
 ]
 const total=phases.reduce((s,p)=>s+p.commits,0)
 const todos=[
   {label:'急迫',color:'var(--danger)',items:[{done:false,text:'小程序提交审核+正式发布',note:'体验版已测试通过'}]},
   {label:'待开发',color:'var(--accent)',items:[{done:true,text:'支付宝扫码支付接入',note:'已上线'},{done:false,text:'短信服务接入',note:'当前仅打印日志'}]},
-  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:true,text:'404/502 维护页 + 前端 404 视图',note:'已上线'},{done:true,text:'数据库自动备份',note:'每日 2:30 · 保留14份'},{done:false,text:'前端SSE流自动重连'}]},
+  {label:'优化项',color:'oklch(60% 0.08 170)',items:[{done:true,text:'订单管理页面'},{done:true,text:'会员管理页面（管理后台）'},{done:true,text:'滚动升级（双实例+nginx池）',note:'已上线'},{done:true,text:'404/502 维护页 + 前端 404 视图',note:'已上线'},{done:true,text:'数据库自动备份',note:'每日 2:30 · 本地14份 + COS 90天'},{done:false,text:'前端SSE流自动重连'}]},
 ]
 const done=phases.flatMap(p=>p.tasks).filter(t=>t.done).length
 const todo=todos[0].items.filter(t=>!t.done).length+todos[1].items.filter(t=>!t.done).length
