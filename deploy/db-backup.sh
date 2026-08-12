@@ -11,14 +11,15 @@
 # cron（root）:
 #   30 2 * * * /root/yiguan/deploy/db-backup.sh >> /var/log/db-backup.log 2>&1
 #
-# COS 配置（写入 /root/yiguan/.env，勿提交 git）:
-#   COS_BUCKET=zgjz-backup-1438787644      # 桶名（含 APPID 后缀）
-#   COS_REGION=ap-guangzhou                # 桶所在地域，如 ap-guangzhou / ap-beijing
-#   COS_SECRET_ID=xxx                      # 子账号最小权限密钥（该桶 Put/Head/List/Delete）
-#   COS_SECRET_KEY=xxx
+# COS 配置:
+#   - 桶/地域写入 /root/yiguan/.env（勿提交 git）: COS_BUCKET / COS_REGION
+#   - 凭据使用 coscli 配置文件 /root/.cos.yaml（权限 600）。内容由 .env 中的
+#     腾讯云子账号密钥生成（coscli v1 只认配置文件，不读环境变量）:
+#       printf 'cos:\n  base:\n    secretid: %s\n    secretkey: %s\n' \
+#         "$COS_KEY_ID" "$COS_KEY_SECRET" > /root/.cos.yaml && chmod 600 /root/.cos.yaml
 #
 # 前置：服务器安装腾讯云官方 coscli（Go 静态二进制，零依赖）
-#   curl -s https://cosbrowser.cloud.tencent.com/software/coscli/coscli-linux-amd64 \
+#   curl -sSL https://cosbrowser.cloud.tencent.com/software/coscli/coscli-linux-amd64 \
 #        -o /usr/local/bin/coscli && chmod +x /usr/local/bin/coscli
 #
 # 任何变量可被环境变量覆盖（便于本地测试/演练）。
@@ -36,13 +37,12 @@ LOG_FILE=${LOG_FILE:-/var/log/db-backup.log}
 # ---------- COS 配置（默认空 = 跳过 COS 阶段，保持纯本地行为） ----------
 COS_BUCKET=${COS_BUCKET:-}
 COS_REGION=${COS_REGION:-}
-COS_SECRET_ID=${COS_SECRET_ID:-}
-COS_SECRET_KEY=${COS_SECRET_KEY:-}
 COSCLI_BIN=${COSCLI_BIN:-/usr/local/bin/coscli}
+COSCLI_CONFIG=${COSCLI_CONFIG:-/root/.cos.yaml}   # coscli 凭据配置（权限 600）
 COS_PREFIX=${COS_PREFIX:-yiguan-backup}
 COS_KEEP_DAYS=${COS_KEEP_DAYS:-90}
 
-# 注入生产 .env 中的 COS_*（.env 须为合法 shell 赋值格式，项目一贯如此）
+# 注入生产 .env 中的 COS_BUCKET / COS_REGION（.env 须为合法 shell 赋值格式）
 if [ -f /root/yiguan/.env ]; then
     set -a
     . /root/yiguan/.env
@@ -57,14 +57,12 @@ cos_upload() {
     [ -z "$COS_BUCKET" ] && return 0
     file="$1"; key="$2"
     log "COS 上传: $key ($(du -h "$file" | cut -f1))"
-    COS_SECRET_ID="$COS_SECRET_ID" COS_SECRET_KEY="$COS_SECRET_KEY" \
-        "$COSCLI_BIN" cp "$file" "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1
+    "$COSCLI_BIN" -c "$COSCLI_CONFIG" cp "$file" "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         log "❌ COS 上传失败: $key"
         return 1
     fi
-    COS_SECRET_ID="$COS_SECRET_ID" COS_SECRET_KEY="$COS_SECRET_KEY" \
-        "$COSCLI_BIN" stat "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
+    "$COSCLI_BIN" -c "$COSCLI_CONFIG" stat "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
         && log "OK: COS $key" || { log "❌ COS 校验失败: $key"; return 1; }
 }
 
@@ -72,16 +70,14 @@ cos_upload() {
 cos_prune() {
     [ -z "$COS_BUCKET" ] && return 0
     cutoff=$(date -d "-${COS_KEEP_DAYS} days" +%Y%m%d)
-    COS_SECRET_ID="$COS_SECRET_ID" COS_SECRET_KEY="$COS_SECRET_KEY" \
-        "$COSCLI_BIN" ls -r "cos://$COS_BUCKET/$COS_PREFIX/" -e "$COS_ENDPOINT" 2>/dev/null \
+    "$COSCLI_BIN" -c "$COSCLI_CONFIG" ls -r "cos://$COS_BUCKET/$COS_PREFIX/" -e "$COS_ENDPOINT" 2>/dev/null \
         | awk '$1 ~ /^cos:\/\// {print $1}' \
         | while read -r obj; do
             name=${obj##*/}
             d=$(echo "$name" | grep -oE '[0-9]{8}' | head -n1)
             [ -z "$d" ] && continue
             if [ "$d" -lt "$cutoff" ]; then
-                COS_SECRET_ID="$COS_SECRET_ID" COS_SECRET_KEY="$COS_SECRET_KEY" \
-                    "$COSCLI_BIN" rm "$obj" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
+                "$COSCLI_BIN" -c "$COSCLI_CONFIG" rm "$obj" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
                     && log "COS 清理: $obj"
             fi
         done
@@ -119,7 +115,7 @@ fi
 ls -1t "$BACKUP_DIR"/yiguan-*.db 2>/dev/null | tail -n +$((KEEP+1)) | xargs -r rm -f
 ls -1t "$BACKUP_DIR"/avatars-*.tar.gz 2>/dev/null | tail -n +$((KEEP+1)) | xargs -r rm -f
 
-# 5. COS 异地备份（可选阶段：未配置则跳过；配置了但缺失 region 视为错误）
+# 5. COS 异地备份（可选阶段：未配置则跳过；配置了但缺 region/凭据配置视为错误）
 COS_FAIL=0
 if [ -n "$COS_BUCKET" ]; then
     if [ -z "$COS_REGION" ]; then
@@ -127,6 +123,9 @@ if [ -n "$COS_BUCKET" ]; then
         COS_FAIL=1
     elif [ ! -x "$COSCLI_BIN" ]; then
         log "❌ coscli 未安装: $COSCLI_BIN"
+        COS_FAIL=1
+    elif [ ! -r "$COSCLI_CONFIG" ]; then
+        log "❌ coscli 凭据配置缺失: $COSCLI_CONFIG"
         COS_FAIL=1
     else
         cos_upload "$OUT" "yiguan-$STAMP.db" || COS_FAIL=1
