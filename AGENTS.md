@@ -46,9 +46,13 @@ make deploy-remote
 
 ### 数据库备份
 
-- **每日自动备份**（生产 cron，每天 2:30 执行 `deploy/db-backup.sh`）：宿主机 sqlite3 在线 `.backup` 一致性快照 → `/root/yiguan/data/backup/yiguan-YYYYMMDD_HHMMSS.db` + avatars 打包，保留最近 14 份，完整性 `PRAGMA integrity_check` 校验，日志 `/var/log/db-backup.log`
+- **每日自动备份（双份：本地 + 腾讯云 COS）**（生产 cron，每天 2:30 执行 `deploy/db-backup.sh`）：
+  - 本地：宿主机 sqlite3 在线 `.backup` 一致性快照 → `/root/yiguan/data/backup/yiguan-YYYYMMDD_HHMMSS.db` + avatars 打包，保留最近 14 份，`PRAGMA integrity_check` 校验
+  - COS 异地：`coscli` 上传到 `cos://zgjz-backup-1438787644/yiguan-backup/`，上传后 head 校验，按对象名日期清理保留 90 天（也可在控制台配生命周期规则兜底）
+  - COS 凭据在 `/root/yiguan/.env`：`COS_BUCKET` / `COS_REGION` / `COS_SECRET_ID` / `COS_SECRET_KEY`（子账号最小权限，勿提交 git）
+  - 日志 `/var/log/db-backup.log`；COS 上传失败不影响本地备份但脚本退出码非零
 - 手动备份：`ssh root@124.223.16.159 '/root/yiguan/deploy/db-backup.sh'`
-- 备份与 db 同机不同目录（防目录级误删）；建议定期下载一份到本地/异地（防整机故障）
+- 备份与 db 同机不同目录（防目录级误删）+ COS 异地（防整机故障）；验证：`coscli ls cos://zgjz-backup-1438787644/yiguan-backup/ -e cos.ap-<region>.myqcloud.com`
 
 ## Design Convention（⚠️ 所有页面设计必须去 AI 味 / anti-slop）
 
