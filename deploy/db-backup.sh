@@ -13,8 +13,9 @@
 #
 # COS 配置:
 #   - 桶/地域写入 /root/yiguan/.env（勿提交 git）: COS_BUCKET / COS_REGION
-#   - 凭据使用 coscli 配置文件 /root/.cos.yaml（权限 600）。内容由 .env 中的
-#     腾讯云子账号密钥生成（coscli v1 只认配置文件，不读环境变量）:
+#   - 凭据使用 coscli 配置文件 ~/.cos.yaml（root = /root/.cos.yaml，权限 600）。
+#     coscli 自动读取家目录配置（v1 不读环境变量、无 stat 命令），
+#     内容由 .env 中的腾讯云子账号密钥生成:
 #       printf 'cos:\n  base:\n    secretid: %s\n    secretkey: %s\n' \
 #         "$COS_KEY_ID" "$COS_KEY_SECRET" > /root/.cos.yaml && chmod 600 /root/.cos.yaml
 #
@@ -38,7 +39,7 @@ LOG_FILE=${LOG_FILE:-/var/log/db-backup.log}
 COS_BUCKET=${COS_BUCKET:-}
 COS_REGION=${COS_REGION:-}
 COSCLI_BIN=${COSCLI_BIN:-/usr/local/bin/coscli}
-COSCLI_CONFIG=${COSCLI_CONFIG:-/root/.cos.yaml}   # coscli 凭据配置（权限 600）
+COS_KEY_FILE=${COS_KEY_FILE:-/root/.cos.yaml}   # coscli 凭据配置（权限 600，coscli 自动读取）
 COS_PREFIX=${COS_PREFIX:-yiguan-backup}
 COS_KEEP_DAYS=${COS_KEEP_DAYS:-90}
 
@@ -52,17 +53,18 @@ fi
 log() { echo "$(date '+%F %T') $*" >> "$LOG_FILE"; }
 COS_ENDPOINT="cos.$COS_REGION.myqcloud.com"
 
-# ---------- COS 上传 + head 校验（COS 未配置时直接跳过） ----------
+# ---------- COS 上传 + 存在性校验（COS 未配置时直接跳过） ----------
 cos_upload() {
     [ -z "$COS_BUCKET" ] && return 0
     file="$1"; key="$2"
     log "COS 上传: $key ($(du -h "$file" | cut -f1))"
-    "$COSCLI_BIN" -c "$COSCLI_CONFIG" cp "$file" "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1
+    "$COSCLI_BIN" cp "$file" "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         log "❌ COS 上传失败: $key"
         return 1
     fi
-    "$COSCLI_BIN" -c "$COSCLI_CONFIG" stat "cos://$COS_BUCKET/$COS_PREFIX/$key" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
+    # coscli v1 无 stat 命令，用 ls 校验对象已落库（表格输出 KEY 列含对象名）
+    "$COSCLI_BIN" ls "cos://$COS_BUCKET/$COS_PREFIX/" -e "$COS_ENDPOINT" 2>/dev/null | grep -q "$key" \
         && log "OK: COS $key" || { log "❌ COS 校验失败: $key"; return 1; }
 }
 
@@ -70,15 +72,16 @@ cos_upload() {
 cos_prune() {
     [ -z "$COS_BUCKET" ] && return 0
     cutoff=$(date -d "-${COS_KEEP_DAYS} days" +%Y%m%d)
-    "$COSCLI_BIN" -c "$COSCLI_CONFIG" ls -r "cos://$COS_BUCKET/$COS_PREFIX/" -e "$COS_ENDPOINT" 2>/dev/null \
-        | awk '$1 ~ /^cos:\/\// {print $1}' \
+    # ls 输出为表格，第一列为相对 key；无日期数字的行（表头/分隔线）自动跳过
+    "$COSCLI_BIN" ls -r "cos://$COS_BUCKET/$COS_PREFIX/" -e "$COS_ENDPOINT" 2>/dev/null \
+        | awk '{print $1}' \
         | while read -r obj; do
             name=${obj##*/}
             d=$(echo "$name" | grep -oE '[0-9]{8}' | head -n1)
             [ -z "$d" ] && continue
             if [ "$d" -lt "$cutoff" ]; then
-                "$COSCLI_BIN" -c "$COSCLI_CONFIG" rm "$obj" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
-                    && log "COS 清理: $obj"
+                "$COSCLI_BIN" rm "cos://$COS_BUCKET/$obj" -e "$COS_ENDPOINT" >/dev/null 2>&1 \
+                    && log "COS 清理: cos://$COS_BUCKET/$obj"
             fi
         done
 }
@@ -124,8 +127,8 @@ if [ -n "$COS_BUCKET" ]; then
     elif [ ! -x "$COSCLI_BIN" ]; then
         log "❌ coscli 未安装: $COSCLI_BIN"
         COS_FAIL=1
-    elif [ ! -r "$COSCLI_CONFIG" ]; then
-        log "❌ coscli 凭据配置缺失: $COSCLI_CONFIG"
+    elif [ ! -r "$COS_KEY_FILE" ]; then
+        log "❌ coscli 凭据配置缺失: $COS_KEY_FILE"
         COS_FAIL=1
     else
         cos_upload "$OUT" "yiguan-$STAMP.db" || COS_FAIL=1
