@@ -23,7 +23,7 @@
           观己观心，知时知命。<br />
           后台仅供授权管理员访问。
         </p>
-        <p class="mt-6 text-[11px] tracking-widest" style="color: oklch(45% 0.02 75);">ZHEN GUAN JI ZHAI · v2.3</p>
+        <p class="mt-6 text-[11px] tracking-widest" style="color: oklch(45% 0.02 75);">ZHEN GUAN JI ZHAI · v2.5</p>
       </div>
     </div>
 

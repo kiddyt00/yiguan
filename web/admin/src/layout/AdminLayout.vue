@@ -64,7 +64,7 @@
 
       <!-- 底部版本 -->
       <div class="text-center py-3 text-xs" style="color: oklch(65% 0.02 75); letter-spacing: 1px;">
-        v2.3
+        v2.5
       </div>
     </el-aside>
 
