@@ -1,6 +1,6 @@
 # 易观 (Yi Guan) — 开发进度记录
 
-> 最后更新：2026-08-01
+> 最后更新：2026-08-13
 > 用于后续 Agent 快速了解项目状态
 
 ---
@@ -345,6 +345,80 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 
 ---
 
+### 2026-08-03 ~ 08-04 — 小程序审核合规 + UX 止血（12 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | 移除废弃 UniApp 端 `miniapp/` | 线上统一原生版 `miniapp-native/` |
+| 2 | 迁移 UniApp 成熟点 | 会员放行补全、会员徽标、朋友圈分享、首页登录态简化 |
+| 3 | UX 优化报告 v2.1 第一轮止血 | 小程序邀请裂变/防重/SSE 兜底/退出确认/删死页 + Web 错误 CTA/结果页分享 |
+| 4 | 微信审核整改 | 订单列表页、隐私政策/用户协议页、登录 checkbox 同意机制、AI 生成标识、协议勾选逻辑修复 |
+| 5 | 会员放行前端门槛修复（评审 C3） | quota=0 时会员仍可起卦 |
+
+---
+
+### 2026-08-06 — Web 起卦动画 + 历史记录修复（12 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | 起卦动画升级（GSAP） | 铜钱 3D 抛掷/落地弹跳，适配 SSE 六爻节奏，尊重 reduced-motion |
+| 2 | 铜钱真实古币化 | SVG 双面（观/易）、五层金属渐变、浮雕铭文、锈斑做旧、完整翻转（抛起+回落） |
+| 3 | 解卦写经动画 | 流式段落行首淡入 + 解读完成落定 |
+| 4 | 历史记录结果展示修复 | 64 卦辞映射、爻线从 toss_data 推导、主变爻去重、中文爻位解析 |
+
+---
+
+### 2026-08-07 — 小程序虚拟支付 + 金币体系（8 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | 米大师虚拟支付接入 | iOS 分流 `requestVirtualPayment` + HMAC-SHA256 签名（官方验证值单测）、发货通知 XML 回调、沙箱/现网双 AppKey |
+| 2 | JSAPI openid 脏数据根治 | 后端用 wx.login code 换当前用户 openid（兼容旧版传 openid） |
+| 3 | 微信消息推送协议支持 | GET 地址验证（sha1）+ 安全模式 AES-256-CBC 解密，发货订阅通道就绪 |
+| 4 | 用户头像昵称 | chooseAvatar 上传 + `/api/upload/avatar` + 静态服务（类型/大小校验、防路径穿越） |
+| 5 | 全终端虚拟支付统一 | 虚拟商品支付统一走小程序虚拟支付（审核合规要求） |
+| 6 | 金币体系 | `users.coin_total` 累计金币（1元=10金币）+ 会员等级（青铜/白银/黄金/钻石）跨端展示 |
+
+---
+
+### 2026-08-10 — 管理后台 Hallmark 重设计（4 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | 管理后台重设计 | OKLCH 暖金色板、宋黑字体配对、登录页左右分栏、emoji/五彩清理、Element Plus token 化 |
+| 2 | 侧边栏优化 | 菜单文字提亮/重设计、品牌区同步 |
+| 3 | 卦象任务页优化 | 详情弹窗去 emoji 改金色竖条标题、爻线 CSS 化（阳实阴断）、变卦 token 化、b1/b2 标签 class 修复 |
+| 4 | 其余 6 个内页统一优化 | 统计卡改墨色、金额金色强调、硬编码灰 token 化、页头统一 page-header |
+
+---
+
+### 2026-08-11 — 滚动升级上线 + 运维体系（14 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | **滚动升级上线** | compose 双实例（backend-a/b + frontend-a/b）+ nginx 双池 + `rolling-update.sh`（`--no-deps --wait` 逐个替换 + 循环验证 200），实战验证 4 次无 502 |
+| 2 | 验证端点修正 | `/api/health` → `/api/ads/active`（后端无 health 路由，避免升级误报） |
+| 3 | 磁盘清理策略 | 构建后温和清理 + 30 天深度清理 cron（`docker system prune -af` + journalctl vacuum） |
+| 4 | 自定义 404/502 维护页 | 宿主 nginx error_page 拦截（仅页面入口，/api/* JSON 原样透传） |
+| 5 | SPA catch-all 404 | admin + front 未匹配路由显示去 AI 味 404 视图（不再空白页） |
+| 6 | 去 AI 味规范 | AGENTS.md 新增 Design Convention（直白文案/克制装饰/反万能模板） |
+| 7 | 数据库每日备份 | `db-backup.sh`（sqlite3 在线 .backup + `PRAGMA integrity_check` + 保留 14 份 + avatars 打包） |
+| 8 | 架构图资产 | archify 拓扑/流程图 + 进度页 v2.4 扩充 |
+
+---
+
+### 2026-08-12 — 数据库备份上云（COS 异地容灾）（6 次提交）
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | db-backup.sh 改造 | 本地 14 份 + COS 异地（coscli 上传 + ls 存在性校验 + 按对象名日期清理 90 天） |
+| 2 | COS 桶配置 | `zgjz-backup-1438787644`（ap-shanghai），子账号最小权限（无 GetService 已实测验证） |
+| 3 | 生产配置 | coscli 安装、`.env` + `/root/.cos.yaml`（600，不入 git）、cron 生效、生产首次备份验证通过（script_exit=0） |
+| 4 | coscli v1 踩坑沉淀 | 不读环境变量（改用配置文件）、无 `stat` 命令（改用 ls 校验）、`-c` 参数部分子命令异常（去掉）——已固化到脚本注释 |
+| 5 | 进度页 v2.5 + 版本号 | 进度页新增 v2.5 条目；管理后台侧边栏/登录页版本号 v2.3 → v2.5（此前一直未同步） |
+
+---
+
 ## 四、API 概览（用户端）
 
 | 方法 | 路径 | 说明 | 鉴权 |
@@ -414,7 +488,7 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 ### 给下一个 Agent 的交接信息
 
 ```
-当前最新 commit: fff526d (2026-08-01)
+当前最新 commit: a68eb1a (2026-08-13)
 当前分支: v2（main 落后，v2 为当前工作分支）
 本地工作区: 干净
 远端仓库: git@github.com:kiddyt00/yiguan.git
@@ -428,6 +502,8 @@ document.getElementById('pay-qrcode')  → 找到元素 ✅
 支付宝手机网站支付: ✅ 已上线（alipay.trade.wap.pay）
 退款系统: ✅ 已上线（渠道原路退款 + 后台审批）
 全链路评审: ✅ 已完成（docs/REVIEW-2026-08-01.md，资金/安全问题已修复大半）
+滚动升级: ✅ 已上线（backend-a/b + frontend-a/b，deploy/rolling-update.sh）
+数据库备份: ✅ 本地14份 + COS 异地90天（zgjz-backup-1438787644 / ap-shanghai，每日 2:30 cron）
 微信小程序已配置: ✅
 ```
 
