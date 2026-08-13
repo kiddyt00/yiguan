@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易观 · 金币经济模型报告</title>
+<style>
+  :root{
+    --bg:#faf8f4; --ink:#26221c; --ink-2:#5c564b; --muted:#8a8173;
+    --gold:#b8860b; --gold-soft:#e8d9b8; --line:#e3ddd2; --card:#fffdf9;
+    --red:#a84444; --green:#4a7a5c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.65;padding:48px 24px 80px}
+  .wrap{max-width:920px;margin:0 auto}
+  header{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:40px}
+  header h1{font-size:30px;font-weight:700;letter-spacing:2px}
+  header .sub{margin-top:8px;color:var(--ink-2);font-size:14px}
+  header .meta{margin-top:12px;color:var(--muted);font-size:13px;display:flex;gap:24px;flex-wrap:wrap}
+  section{margin-bottom:48px}
+  section h2{font-size:20px;font-weight:700;padding-left:12px;border-left:4px solid var(--gold);margin-bottom:8px}
+  section > p.lead{color:var(--ink-2);font-size:14px;margin-bottom:20px;max-width:720px}
+  h3{font-size:15px;font-weight:700;margin:24px 0 10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px 24px;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:13px;border-bottom:1px solid var(--line);padding:8px 10px}
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .gold{color:var(--gold);font-weight:700}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;background:var(--gold-soft);color:#7a5a00;margin-right:6px}
+  .tag.gray{background:#eee9df;color:var(--ink-2)}
+  .tag.green{background:#e2efe7;color:var(--green)}
+  .flow-wrap{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto}
+  .legend{display:flex;gap:20px;font-size:13px;color:var(--ink-2);margin-top:10px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+  .note{font-size:13px;color:var(--muted);margin-top:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  ul.clean{list-style:none;font-size:14px}
+  ul.clean li{padding:6px 0 6px 22px;position:relative}
+  ul.clean li::before{content:"·";position:absolute;left:8px;color:var(--gold);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>易观 · 金币经济模型</h1>
+  <div class="sub">AI 周易占筮平台 · 统一货币体系与资金闭环设计</div>
+  <div class="meta"><span>版本 v3</span><span>2026-08-13</span><span>状态：设计稿（待评审）</span></div>
+</header>
+
+<!-- 一、总览 -->
+<section>
+  <h2>一、经济模型总览</h2>
+  <p class="lead">平台引入唯一可消费货币「金币」（1 元 = 10 金币）。用户通过三个支付渠道充值获得金币（含阶梯赠送），再以金币兑换测算次数、会员卡等权益；退款按原路退回并受风控约束。全链路流水可审计。</p>
+  <div class="card flow-wrap">
+    <svg viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg" font-family="inherit">
+      <!-- 充值渠道 -->
+      <g font-size="13">
+        <rect x="30" y="40" width="150" height="52" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="105" y="62" text-anchor="middle" font-weight="700">微信支付</text>
+        <text x="105" y="80" text-anchor="middle" fill="#8a8173">Web 扫码</text>
+        <rect x="30" y="108" width="150" height="52" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="105" y="130" text-anchor="middle" font-weight="700">支付宝</text>
+        <text x="105" y="148" text-anchor="middle" fill="#8a8173">Web 扫码 / 手机网站</text>
+        <rect x="30" y="176" width="150" height="52" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="105" y="198" text-anchor="middle" font-weight="700">微信虚拟支付</text>
+        <text x="105" y="216" text-anchor="middle" fill="#8a8173">小程序（iOS+Android）</text>
+      </g>
+      <!-- 箭头到钱包 -->
+      <g stroke="#b8860b" stroke-width="2" fill="none">
+        <path d="M180 66 H260" marker-end="url(#arr)"/>
+        <path d="M180 134 H260" marker-end="url(#arr)"/>
+        <path d="M180 202 H260" marker-end="url(#arr)"/>
+      </g>
+      <!-- 金币钱包 -->
+      <g font-size="13">
+        <rect x="268" y="92" width="170" height="100" rx="10" fill="#e8d9b8" stroke="#b8860b" stroke-width="2"/>
+        <text x="353" y="122" text-anchor="middle" font-weight="700">金币钱包</text>
+        <text x="353" y="142" text-anchor="middle">到账金币 + 赠送金币</text>
+        <text x="353" y="162" text-anchor="middle" fill="#8a8173" font-size="12">1 元 = 10 金币</text>
+        <text x="353" y="180" text-anchor="middle" fill="#8a8173" font-size="12">每笔变动留流水</text>
+      </g>
+      <!-- 钱包到消费点 -->
+      <g stroke="#b8860b" stroke-width="2" fill="none">
+        <path d="M438 122 H510" marker-end="url(#arr)"/>
+        <path d="M438 142 H510" marker-end="url(#arr)"/>
+        <path d="M438 162 H510" marker-end="url(#arr)"/>
+      </g>
+      <!-- 消费点 -->
+      <g font-size="13">
+        <rect x="520" y="30" width="150" height="50" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="595" y="50" text-anchor="middle" font-weight="700">单次测算</text>
+        <text x="595" y="68" text-anchor="middle" fill="#8a8173">99 金币</text>
+        <rect x="520" y="102" width="150" height="50" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="595" y="122" text-anchor="middle" font-weight="700">会员卡</text>
+        <text x="595" y="140" text-anchor="middle" fill="#8a8173">299 / 499 / 999 金币</text>
+        <rect x="520" y="174" width="150" height="50" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="595" y="194" text-anchor="middle" font-weight="700">私域服务</text>
+        <text x="595" y="212" text-anchor="middle" fill="#8a8173">预留（加群/大师微信）</text>
+      </g>
+      <!-- 权益 -->
+      <g stroke="#26221c" stroke-width="2" fill="none">
+        <path d="M670 55 H730" marker-end="url(#arr2)"/>
+        <path d="M670 127 H730" marker-end="url(#arr2)"/>
+      </g>
+      <g font-size="13">
+        <rect x="740" y="36" width="150" height="56" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="815" y="60" text-anchor="middle" font-weight="700">测算次数</text>
+        <text x="815" y="78" text-anchor="middle" fill="#8a8173">quota 账本</text>
+        <rect x="740" y="108" width="150" height="56" rx="8" fill="#fffdf9" stroke="#26221c" stroke-width="1.5"/>
+        <text x="815" y="132" text-anchor="middle" font-weight="700">会员权益</text>
+        <text x="815" y="150" text-anchor="middle" fill="#8a8173">时限内不限次</text>
+      </g>
+      <!-- 退款回路 -->
+      <g stroke="#a84444" stroke-width="1.8" fill="none" stroke-dasharray="6 4">
+        <path d="M815 200 V340 H353 V260" marker-end="url(#arr3)"/>
+      </g>
+      <g font-size="13" fill="#a84444">
+        <text x="585" y="330" text-anchor="middle" font-weight="700">退款回路：申请 → 规则自动算金额 → 人工审批 → 原路退回（赠送作废）</text>
+        <text x="585" y="352" text-anchor="middle" fill="#8a8173" font-size="12">风控四层：硬规则拦截 · 账号识别 · 行为标记 · 审计对账</text>
+      </g>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b8860b"/></marker>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#26221c"/></marker>
+        <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#a84444"/></marker>
+      </defs>
+    </svg>
+    <div class="legend">
+      <span><i style="background:#b8860b"></i>充值 / 消费流</span>
+      <span><i style="background:#a84444;border-radius:50%"></i>退款回路</span>
+      <span><i style="background:#eee;border:1px dashed #8a8173;border-radius:3px"></i>预留扩展</span>
+    </div>
+  </div>
+</section>
+
+<!-- 二、充值 -->
+<section>
+  <h2>二、充值体系</h2>
+  <p class="lead">三个支付渠道统一售卖金币档位；档位越高赠送越多，赠送金币仅可消费、不可退现金。</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>渠道矩阵</h3>
+      <table>
+        <tr><th>端</th><th>支付渠道</th><th>方式</th></tr>
+        <tr><td>Web 前台</td><td>微信支付</td><td>扫码（Native）</td></tr>
+        <tr><td>Web 前台</td><td>支付宝</td><td>扫码 / 手机网站</td></tr>
+        <tr><td>小程序</td><td>微信虚拟支付</td><td>iOS + Android（合规要求）</td></tr>
+      </table>
+      <div class="note">统一汇率 1 元 = 10 金币，三渠道等价。</div>
+    </div>
+    <div class="card">
+      <h3>充值档位（默认，可调）</h3>
+      <table>
+        <tr><th>档位</th><th class="num">实付</th><th class="num">到账</th><th class="num">赠送</th><th>折合</th></tr>
+        <tr><td>小</td><td class="num">¥10</td><td class="num">100</td><td class="num gold">+10</td><td>约 9.1 折</td></tr>
+        <tr><td>中</td><td class="num">¥30</td><td class="num">300</td><td class="num gold">+40</td><td>约 8.8 折</td></tr>
+        <tr><td>大</td><td class="num">¥50</td><td class="num">500</td><td class="num gold">+80</td><td>约 8.6 折</td></tr>
+      </table>
+      <div class="note">赠送记入流水（type=gift），退款时作废。</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>档位赠送对比</h3>
+    <svg viewBox="0 0 860 150" xmlns="http://www.w3.org/2000/svg">
+      <g font-size="12">
+        <!-- 档位1 -->
+        <text x="40" y="34" fill="#26221c">小 ¥10</text>
+        <rect x="110" y="20" width="160" height="22" rx="4" fill="#26221c"/>
+        <rect x="270" y="20" width="16" height="22" rx="4" fill="#b8860b"/>
+        <text x="300" y="36" fill="#8a8173">100+10</text>
+        <!-- 档位2 -->
+        <text x="40" y="80" fill="#26221c">中 ¥30</text>
+        <rect x="110" y="66" width="240" height="22" rx="4" fill="#26221c"/>
+        <rect x="350" y="66" width="32" height="22" rx="4" fill="#b8860b"/>
+        <text x="396" y="82" fill="#8a8173">300+40</text>
+        <!-- 档位3 -->
+        <text x="40" y="126" fill="#26221c">大 ¥50</text>
+        <rect x="110" y="112" width="400" height="22" rx="4" fill="#26221c"/>
+        <rect x="510" y="112" width="64" height="22" rx="4" fill="#b8860b"/>
+        <text x="588" y="128" fill="#8a8173">500+80</text>
+      </g>
+      <g font-size="11" fill="#8a8173">
+        <rect x="700" y="40" width="14" height="14" rx="3" fill="#26221c"/><text x="722" y="51">到账金币</text>
+        <rect x="700" y="66" width="14" height="14" rx="3" fill="#b8860b"/><text x="722" y="77">赠送金币</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- 三、消费 -->
+<section>
+  <h2>三、消费体系</h2>
+  <p class="lead">金币兑换权益，价格与现行直购价等值；会员期内不限次起卦，单次测算次数长期有效。</p>
+  <div class="card">
+    <table>
+      <tr><th>消费点</th><th class="num">金币</th><th>等值</th><th>权益</th><th>说明</th></tr>
+      <tr><td>单次测算</td><td class="num gold">99</td><td class="num">¥9.9</td><td>1 次测算</td><td>长期有效</td></tr>
+      <tr><td>月卡</td><td class="num gold">299</td><td class="num">¥29.9</td><td>30 天会员</td><td>期内不限次起卦</td></tr>
+      <tr><td>季卡</td><td class="num gold">499</td><td class="num">¥49.9</td><td>90 天会员</td><td>续费顺延叠加</td></tr>
+      <tr><td>年卡</td><td class="num gold">999</td><td class="num">¥99</td><td>365 天会员</td><td>续费顺延叠加</td></tr>
+      <tr><td><span class="tag gray">预留</span>私域服务</td><td class="num">—</td><td>—</td><td>加群 / 大师微信</td><td>后台交付，本期不实现</td></tr>
+    </table>
+    <div class="note">成长值（原“累计金币”）独立为等级积分，累计实付、仅展示，退款按订单扣回，防刷等级。</div>
+  </div>
+</section>
+
+<!-- 四、退款与风控 -->
+<section>
+  <h2>四、退款与资金安全</h2>
+  <p class="lead">退款半自动：系统按规则自动算金额，人工审批把关，渠道自动原路退回。核心原则——<b>实付优先消耗，赠送作废，原路强制</b>。</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>退款规则（实付优先消耗法）</h3>
+      <ul class="clean">
+        <li>消费先扣「实付金币」，赠送金币最后消耗</li>
+        <li>退款现金 = 剩余实付金币 ÷ 10，上限 = 实付金额</li>
+        <li>赠送金币一律作废，不可折算现金</li>
+        <li>支付后 24h 内可申请；已用尽不可退</li>
+        <li>权益按比例折算：会员按剩余天数、测算按剩余次数</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>示例（充 ¥30 = 到账 340 金币）</h3>
+      <table>
+        <tr><th>场景</th><th class="num">剩余实付</th><th class="num">退款</th><th>赠送</th></tr>
+        <tr><td>未消费</td><td class="num">300</td><td class="num">¥30 全额</td><td>40 作废</td></tr>
+        <tr><td>消费 1 次（99）</td><td class="num">201</td><td class="num">¥20.1</td><td>40 作废</td></tr>
+        <tr><td>消费 300</td><td class="num">0</td><td class="num">不可退</td><td>40 作废</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>风控四层</h3>
+    <table>
+      <tr><th>层级</th><th>机制</th><th>说明</th></tr>
+      <tr><td><span class="tag">L1 硬规则</span></td><td>自动拦截</td><td>退款原路强制（无 fallback）；上限=实付；24h 窗口；30 天 ≤3 笔且 ≤¥200（可配），超限转人工</td></tr>
+      <tr><td><span class="tag gray">L2 账号识别</span></td><td>辅助判断</td><td>多账号关联视图；注册 &lt;7 天强制人工；恶意退款黑名单</td></tr>
+      <tr><td><span class="tag gray">L3 行为标记</span></td><td>标记不拦截</td><td>退款率 &gt;30% 标高危；充值后 &lt;2h 退款标疑似套现；单笔 ≥¥500 且 24h 内退款强制人工</td></tr>
+      <tr><td><span class="tag green">L4 审计对账</span></td><td>全链路可追溯</td><td>金币流水（充值/赠送/消费/退款/作废）；渠道收支汇总（微信/支付宝/虚拟：收入、退款、净额）</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 五、数据与对账 -->
+<section>
+  <h2>五、审计与对账</h2>
+  <p class="lead">所有资金与金币变动落到同一本账，后台可按用户、类型、渠道查询，渠道收支一目了然。</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>金币总账本</h3>
+      <ul class="clean">
+        <li>充值到账 <span class="gold">+</span> / 充值赠送 <span class="gold">+</span></li>
+        <li>消费扣减 <span class="gold">−</span> / 退款扣回 <span class="gold">−</span> / 赠送作废 <span class="gold">−</span></li>
+        <li>人工调整 ±（必填原因）</li>
+        <li>不变量：流水合计 = 当前余额</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>渠道收支汇总（后台视图）</h3>
+      <table>
+        <tr><th>渠道</th><th class="num">收入</th><th class="num">退款</th><th class="num">净额</th></tr>
+        <tr><td>微信支付</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+        <tr><td>支付宝</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+        <tr><td>微信虚拟支付</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+      </table>
+      <div class="note">手续费为平台通道成本，在结算单体现，不影响退款金额口径。</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>易观（Yi Guan）· 金币经济模型报告</span>
+  <span>v3 · 2026-08-13 · 与设计文档 docs/superpowers/specs/2026-08-13-coin-economy-refactor-design.md 配套</span>
+</footer>
+
+</div>
+</body>
+</html>
