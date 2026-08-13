@@ -1,4 +1,7 @@
-# Yi Guan (易观) — Agent Guide
+# 真观己斋 (ZGJZ) — Agent Guide
+
+> **项目命名规范**：正式名 **真观己斋**（英文缩写 **ZGJZ**，对应域名 zgjz.insightj.cn）。
+> 曾用名「易观 / Yi Guan / yiguan」已弃用，今后文档、注释、对外材料一律使用「真观己斋 / ZGJZ」。
 
 AI-driven I Ching divination platform. Go backend + Vue 3 SPA, Docker deployed.
 
