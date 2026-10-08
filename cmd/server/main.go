@@ -322,7 +322,7 @@ func main() {
 		Addr:         ":" + cfg.Server.Port,
 		Handler:      rateLimitMW,
 		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 120 * time.Second, // SSE 流式响应需要较长写超时
+		WriteTimeout: 300 * time.Second, // SSE 流式响应需要较长写超时（含可能的推理期）
 		IdleTimeout:  60 * time.Second,
 	}
 

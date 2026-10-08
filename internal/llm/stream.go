@@ -11,9 +11,10 @@ import (
 )
 
 type streamChatReq struct {
-	Model    string    `json:"model"`
-	Messages []message `json:"messages"`
-	Stream   bool      `json:"stream"`
+	Model           string    `json:"model"`
+	Messages        []message `json:"messages"`
+	Stream          bool      `json:"stream"`
+	ReasoningEffort string    `json:"reasoning_effort,omitempty"`
 }
 
 type streamChunk struct {
@@ -28,11 +29,10 @@ type streamChunk struct {
 // DivineStream SSE 流式调用 LLM，对每个 chunk 调用 onChunk
 func (c *Client) DivineStream(prompt string, onChunk func(chunk string) error) error {
 	body, _ := json.Marshal(streamChatReq{
-		Model: c.cfg.Model,
-		Messages: []message{
-			{Role: "user", Content: prompt},
-		},
-		Stream: true,
+		Model:           c.cfg.Model,
+		Messages:        []message{{Role: "user", Content: prompt}},
+		Stream:          true,
+		ReasoningEffort: c.cfg.ReasoningEffort,
 	})
 
 	req, err := http.NewRequest("POST", c.chatURL(), bytes.NewReader(body))

@@ -15,6 +15,15 @@ type Router struct {
 	all     []*Client // 所有已启用模型（按 sort_order）
 }
 
+// reasoningEffortFor 为推理类模型禁用推理、直出内容（DeepSeek V4 系列默认开启推理，
+// 若不关闭，流式响应在推理阶段不返回 content，用户看不到任何输出）
+func reasoningEffortFor(provider string) string {
+	if provider == "deepseek" {
+		return "none"
+	}
+	return ""
+}
+
 // NewRouter 创建路由器并从数据库加载
 func NewRouter(st store.Store) (*Router, error) {
 	r := &Router{st: st}
@@ -34,9 +43,10 @@ func NewRouterWithFallback(st store.Store, cfg Config) (*Router, error) {
 		return r, nil
 	}
 	client := New(Config{
-		APIKey:   m.APIKey,
-		Endpoint: m.Endpoint,
-		Model:    m.Name,
+		APIKey:          m.APIKey,
+		Endpoint:        m.Endpoint,
+		Model:           m.Name,
+		ReasoningEffort: reasoningEffortFor(m.Provider),
 	})
 	r.current = client
 	r.all = []*Client{client}
@@ -91,17 +101,19 @@ func (r *Router) Reload() error {
 	clients := make([]*Client, len(enabled))
 	for i, m := range enabled {
 		clients[i] = New(Config{
-			APIKey:   m.APIKey,
-			Endpoint: m.Endpoint,
-			Model:    m.Name,
+			APIKey:          m.APIKey,
+			Endpoint:        m.Endpoint,
+			Model:           m.Name,
+			ReasoningEffort: reasoningEffortFor(m.Provider),
 		})
 	}
 
 	r.mu.Lock()
 	r.current = New(Config{
-		APIKey:   def.APIKey,
-		Endpoint: def.Endpoint,
-		Model:    def.Name,
+		APIKey:          def.APIKey,
+		Endpoint:        def.Endpoint,
+		Model:           def.Name,
+		ReasoningEffort: reasoningEffortFor(def.Provider),
 	})
 	r.all = clients
 	r.mu.Unlock()
