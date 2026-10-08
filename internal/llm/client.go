@@ -15,6 +15,8 @@ type Config struct {
 	APIKey   string
 	Endpoint string
 	Model    string
+	// ReasoningEffort 推理强度；DeepSeek V4 推理模型设为 "none" 可关闭推理直出内容
+	ReasoningEffort string
 }
 
 // Client 通用 LLM 客户端（OpenAI 兼容接口）
@@ -38,8 +40,9 @@ func (c *Client) ModelName() string {
 }
 
 type chatReq struct {
-	Model    string    `json:"model"`
-	Messages []message `json:"messages"`
+	Model           string    `json:"model"`
+	Messages        []message `json:"messages"`
+	ReasoningEffort string    `json:"reasoning_effort,omitempty"`
 }
 
 type message struct {
@@ -71,10 +74,9 @@ func (c *Client) Divine(prompt string) (string, error) {
 	}
 
 	body, _ := json.Marshal(chatReq{
-		Model: c.cfg.Model,
-		Messages: []message{
-			{Role: "user", Content: prompt},
-		},
+		Model:           c.cfg.Model,
+		Messages:        []message{{Role: "user", Content: prompt}},
+		ReasoningEffort: c.cfg.ReasoningEffort,
 	})
 
 	req, err := http.NewRequest("POST", c.chatURL(), bytes.NewReader(body))
